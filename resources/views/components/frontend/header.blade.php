@@ -1,4 +1,4 @@
-@props(['mainMenu' => collect()])
+@props(['mainMenu' => collect(), 'breakingNews' => collect()])
 
 <header class="ds-header" data-header data-brand="DailySamvad">
     <div class="ds-header__branding ds-container">
@@ -38,5 +38,6 @@
 
     <x-frontend.mobile-menu :items="$mainMenu" />
     <x-frontend.policy-navigation />
+    <x-frontend.breaking-news :items="$breakingNews" />
     <x-frontend.header-search />
 </header>

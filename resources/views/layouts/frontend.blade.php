@@ -42,8 +42,7 @@
             Skip to content
         </a>
 
-        <x-frontend.header :main-menu="$mainMenu" />
-        <x-frontend.breaking-news :items="$globalBreakingNews" />
+        <x-frontend.header :main-menu="$mainMenu" :breaking-news="$globalBreakingNews" />
 
         <div class="ds-container pt-4">
             @foreach (['success', 'error', 'warning', 'info'] as $flashType)

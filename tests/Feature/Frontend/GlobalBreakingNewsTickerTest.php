@@ -29,6 +29,7 @@ class GlobalBreakingNewsTickerTest extends TestCase
 
         $this->assertSame(1, substr_count($html, '<section class="ds-breaking'));
         $this->assertLessThan(strpos($html, 'data-hero-post'), strpos($html, '<section class="ds-breaking'));
+        $this->assertLessThan(strpos($html, '</header>'), strpos($html, '<section class="ds-breaking'));
     }
 
     public function test_ticker_renders_once_before_article_and_archive_content(): void
