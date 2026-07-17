@@ -1,4 +1,15 @@
 @import 'tailwindcss';
+@import './frontend/tokens.css';
+@import './frontend/base.css';
+@import './frontend/layout.css';
+@import './frontend/components.css';
+@import './frontend/header.css';
+@import './frontend/home-top.css';
+@import './frontend/home-sections.css';
+@import './frontend/sidebar.css';
+@import './frontend/article.css';
+@import './frontend/archive.css';
+@import './frontend/utilities.css';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
@@ -29,62 +40,5 @@
     [role='button'],
     a {
         -webkit-tap-highlight-color: transparent;
-    }
-}
-
-@layer components {
-    .article-content {
-        @apply text-lg leading-8 text-slate-800 dark:text-slate-200;
-    }
-
-    .article-content > * + * {
-        @apply mt-6;
-    }
-
-    .article-content h2,
-    .article-content h3,
-    .article-content h4 {
-        @apply font-bold leading-tight text-slate-950 dark:text-white;
-    }
-
-    .article-content h2 {
-        @apply text-3xl;
-    }
-
-    .article-content h3 {
-        @apply text-2xl;
-    }
-
-    .article-content h4 {
-        @apply text-xl;
-    }
-
-    .article-content a {
-        @apply text-amber-700 underline decoration-amber-300 underline-offset-4 dark:text-amber-400;
-    }
-
-    .article-content blockquote {
-        @apply border-l-4 border-amber-500 pl-5 italic text-slate-600 dark:text-slate-300;
-    }
-
-    .article-content ul {
-        @apply list-disc pl-6;
-    }
-
-    .article-content ol {
-        @apply list-decimal pl-6;
-    }
-
-    .article-content img {
-        @apply h-auto max-w-full rounded-xl;
-    }
-
-    .article-content table {
-        @apply w-full border-collapse text-base;
-    }
-
-    .article-content th,
-    .article-content td {
-        @apply border border-slate-300 p-2 text-left dark:border-slate-700;
     }
 }

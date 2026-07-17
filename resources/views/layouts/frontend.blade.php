@@ -18,6 +18,9 @@
         @hasSection('og_image')
             <meta property="og:image" content="@yield('og_image')">
         @endif
+        @hasSection('article_published_time')
+            <meta property="article:published_time" content="@yield('article_published_time')">
+        @endif
 
         <meta name="twitter:card" content="@yield('twitter_card', 'summary_large_image')">
         <meta name="twitter:title" content="@yield('twitter_title', 'Daily Samvad')">
@@ -26,19 +29,23 @@
             <meta name="twitter:image" content="@yield('twitter_image')">
         @endif
 
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Anek+Devanagari:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
         @stack('json-ld')
         @stack('head')
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="min-h-screen bg-slate-50 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100">
+    <body class="ds-site">
         <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-amber-500 focus:px-4 focus:py-2 focus:font-semibold focus:text-slate-950">
             Skip to content
         </a>
 
-        <x-frontend.header />
-        <x-frontend.breaking-news :items="$breakingNews ?? collect()" />
+        <x-frontend.header :main-menu="$mainMenu" />
+        <x-frontend.breaking-news :items="$globalBreakingNews" />
 
-        <div class="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
+        <div class="ds-container pt-4">
             @foreach (['success', 'error', 'warning', 'info'] as $flashType)
                 @if (session()->has($flashType))
                     <x-frontend.alert :type="$flashType" :message="session($flashType)" />

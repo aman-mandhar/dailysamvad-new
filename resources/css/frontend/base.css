@@ -1,0 +1,72 @@
+@layer base {
+    html:has(.ds-site),
+    body.ds-site {
+        max-width: 100%;
+        overflow-wrap: anywhere;
+    }
+
+    body.ds-site {
+        min-height: 100vh;
+        margin: 0;
+        background: var(--ds-color-white);
+        color: var(--ds-color-text);
+        font-family: var(--ds-font-body);
+        font-size: var(--ds-font-size-body);
+        line-height: var(--ds-line-height-body);
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    .ds-site *,
+    .ds-site *::before,
+    .ds-site *::after {
+        box-sizing: border-box;
+    }
+
+    .ds-site :where(p, a, span, strong, time) {
+        overflow-wrap: anywhere;
+    }
+
+    .ds-site :where(h1, h2, h3, h4, h5, h6) {
+        overflow-wrap: anywhere;
+        font-family: var(--ds-font-heading);
+        font-weight: 700;
+        line-height: var(--ds-line-height-heading);
+    }
+
+    .ds-site :where(a) {
+        color: inherit;
+        text-decoration-thickness: from-font;
+        text-underline-offset: 0.15em;
+    }
+
+    .ds-site :where(img, svg, video, canvas, iframe) {
+        display: block;
+        max-width: 100%;
+    }
+
+    .ds-site :where(img, video) {
+        height: auto;
+    }
+
+    .ds-site :where(button, input, select, textarea) {
+        max-width: 100%;
+        font: inherit;
+    }
+
+    .ds-site :where(a, button, input, select, textarea):focus-visible {
+        outline: 3px solid var(--ds-color-gold);
+        outline-offset: 3px;
+    }
+
+    .ds-site ::selection {
+        background: var(--ds-color-gold);
+        color: var(--ds-color-text);
+    }
+}
+
+@media (max-width: 639px) {
+    body.ds-site {
+        font-size: 16px;
+    }
+}

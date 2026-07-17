@@ -12,6 +12,11 @@ use Illuminate\Support\Facades\Schema;
 
 class HomepageQuery
 {
+    public function __construct(
+        private HomepageCategorySectionsQuery $categorySections,
+        private SidebarQuery $sidebar,
+    ) {}
+
     /**
      * @return array<string, mixed>
      */
@@ -21,22 +26,27 @@ class HomepageQuery
             return $this->emptyData();
         }
 
-        $heroPost = $this->publishedPosts()
+        $heroPosts = $this->publishedPosts()
             ->featured()
             ->latestPublished()
-            ->first();
+            ->limit(5)
+            ->get();
 
-        $heroPost ??= $this->publishedPosts()
-            ->latestPublished()
-            ->first();
+        if ($heroPosts->count() < 3) {
+            $fallbackPosts = $this->publishedPosts()
+                ->whereNotIn('id', $heroPosts->modelKeys())
+                ->latestPublished()
+                ->limit(3 - $heroPosts->count())
+                ->get();
+
+            $heroPosts = $heroPosts->concat($fallbackPosts)->values();
+        }
+
+        $sidebar = $this->sidebar->forHomepage();
 
         return [
-            'heroPost' => $heroPost,
-            'breakingNews' => $this->publishedPosts()
-                ->breaking()
-                ->latestPublished()
-                ->limit(10)
-                ->get(),
+            'heroPost' => $heroPosts->first(),
+            'heroPosts' => $heroPosts,
             'latestPosts' => $this->publishedPosts()
                 ->latestPublished()
                 ->paginate(12)
@@ -47,6 +57,11 @@ class HomepageQuery
                 ->limit(6)
                 ->get(),
             'categoryBlocks' => $this->categoryBlocks(),
+            'categorySections' => $this->categorySections->get(),
+            'sidebarWidgets' => $sidebar['widgets'],
+            'sidebarSticky' => $sidebar['sticky'],
+            'homepageTopAdvertisement' => $this->sidebar->advertisement('HEADER_TOP'),
+            'homepageInlineAdvertisement' => $this->sidebar->advertisement('HOME_BETWEEN_SECTIONS'),
         ];
     }
 
@@ -55,7 +70,7 @@ class HomepageQuery
     {
         return [
             'heroPost' => null,
-            'breakingNews' => new Collection,
+            'heroPosts' => new Collection,
             'latestPosts' => new LengthAwarePaginator(
                 items: [],
                 total: 0,
@@ -65,6 +80,11 @@ class HomepageQuery
             ),
             'featuredPosts' => new Collection,
             'categoryBlocks' => new Collection,
+            'categorySections' => new Collection,
+            'sidebarWidgets' => new Collection,
+            'sidebarSticky' => false,
+            'homepageTopAdvertisement' => null,
+            'homepageInlineAdvertisement' => null,
         ];
     }
 
@@ -74,6 +94,7 @@ class HomepageQuery
         return Post::query()
             ->select([
                 'id',
+                'author_id',
                 'title',
                 'slug',
                 'excerpt',
@@ -85,7 +106,10 @@ class HomepageQuery
                 'is_breaking',
                 'is_featured',
             ])
-            ->with('primaryCategory:id,name,slug');
+            ->with([
+                'author:id,name',
+                'primaryCategory:id,name,slug',
+            ]);
     }
 
     /** @return \Illuminate\Database\Eloquent\Collection<int, Category> */

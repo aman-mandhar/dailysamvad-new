@@ -13,17 +13,21 @@ class TrustedArticleHtml
 {
     /** @var array<int, string> */
     private const ALLOWED_ELEMENTS = [
-        'a', 'b', 'blockquote', 'br', 'code', 'em', 'figcaption', 'figure', 'h2', 'h3', 'h4', 'h5', 'h6',
-        'hr', 'i', 'img', 'li', 'ol', 'p', 'pre', 'strong', 'table', 'tbody', 'td', 'th', 'thead', 'tr', 'u', 'ul',
+        'a', 'b', 'blockquote', 'br', 'code', 'div', 'em', 'figcaption', 'figure', 'h2', 'h3', 'h4', 'h5', 'h6',
+        'hr', 'i', 'iframe', 'img', 'li', 'ol', 'p', 'pre', 'source', 'span', 'strong', 'table', 'tbody', 'td', 'th',
+        'thead', 'tr', 'u', 'ul', 'video',
     ];
 
     /** @var array<int, string> */
-    private const REMOVED_WITH_CONTENT = ['applet', 'embed', 'iframe', 'noscript', 'object', 'script', 'style', 'svg'];
+    private const REMOVED_WITH_CONTENT = ['applet', 'embed', 'noscript', 'object', 'script', 'style', 'svg'];
 
     /** @var array<string, array<int, string>> */
     private const ELEMENT_ATTRIBUTES = [
         'a' => ['href', 'rel', 'target', 'title'],
         'img' => ['alt', 'height', 'loading', 'src', 'title', 'width'],
+        'iframe' => ['allow', 'allowfullscreen', 'height', 'loading', 'src', 'title', 'width'],
+        'source' => ['src', 'type'],
+        'video' => ['controls', 'height', 'poster', 'preload', 'width'],
         'td' => ['colspan', 'rowspan'],
         'th' => ['colspan', 'rowspan', 'scope'],
     ];
@@ -101,7 +105,7 @@ class TrustedArticleHtml
 
     private function sanitizeAttributes(DOMElement $node, string $element): void
     {
-        $allowed = self::ELEMENT_ATTRIBUTES[$element] ?? [];
+        $allowed = [...(self::ELEMENT_ATTRIBUTES[$element] ?? []), 'class'];
         $attributes = iterator_to_array($node->attributes);
 
         foreach ($attributes as $attribute) {
@@ -122,6 +126,19 @@ class TrustedArticleHtml
         if ($element === 'img' && filled($node->getAttribute('src'))) {
             $node->setAttribute('loading', 'lazy');
         }
+
+        if ($element === 'iframe') {
+            if (! $this->isTrustedEmbedUrl($node->getAttribute('src'))) {
+                $node->parentNode?->removeChild($node);
+
+                return;
+            }
+
+            $node->setAttribute('loading', 'lazy');
+            if (blank($node->getAttribute('title'))) {
+                $node->setAttribute('title', 'Embedded media');
+            }
+        }
     }
 
     private function isSafeUrl(string $url, bool $image): bool
@@ -139,5 +156,17 @@ class TrustedArticleHtml
         }
 
         return in_array(strtolower($scheme), $image ? ['http', 'https'] : ['http', 'https', 'mailto'], true);
+    }
+
+    private function isTrustedEmbedUrl(string $url): bool
+    {
+        if (! $this->isSafeUrl($url, true)) {
+            return false;
+        }
+
+        $host = strtolower((string) parse_url($url, PHP_URL_HOST));
+
+        return collect(['youtube.com', 'youtube-nocookie.com', 'youtu.be', 'facebook.com', 'twitter.com', 'x.com'])
+            ->contains(fn (string $allowed): bool => $host === $allowed || str_ends_with($host, '.'.$allowed));
     }
 }

@@ -1,0 +1,43 @@
+:root {
+    --ds-site-container: 1140px;
+    --ds-content-width: 780px;
+    --ds-sidebar-width: 320px;
+    --ds-layout-gap: 20px;
+    --ds-page-gutter: 15px;
+    --ds-mobile-gutter: 10px;
+
+    --ds-color-red: #e60000;
+    --ds-color-ticker-red: #ed1010;
+    --ds-color-gold: #f5b400;
+    --ds-color-ticker-surface: #fffda0;
+    --ds-color-text: #000000;
+    --ds-color-muted: #666666;
+    --ds-color-border: #d7d7d7;
+    --ds-color-meta: #7a7700;
+    --ds-color-author: #ae0101;
+    --ds-color-whatsapp: #25d366;
+    --ds-color-white: #ffffff;
+
+    --ds-font-body: 'Anek Devanagari', 'Noto Sans Devanagari', Arial, sans-serif;
+    --ds-font-heading: 'Anek Devanagari', 'Noto Sans Devanagari', Arial, sans-serif;
+    --ds-font-size-body: 18px;
+    --ds-font-size-title: 24px;
+    --ds-font-size-section: 22px;
+    --ds-font-size-meta: 13px;
+    --ds-font-size-small: 12px;
+    --ds-line-height-body: 1.8;
+    --ds-line-height-heading: 1.35;
+
+    --ds-section-spacing: 32px;
+    --ds-card-gap: 16px;
+    --ds-compact-gap: 10px;
+    --ds-header-spacing: 15px;
+    --ds-navigation-height: 49px;
+    --ds-ticker-height: 49px;
+
+    --ds-ratio-news: 16 / 9;
+    --ds-ratio-square: 1 / 1;
+    --ds-card-radius: 0;
+    --ds-utility-radius: 4px;
+    --ds-card-shadow: none;
+}

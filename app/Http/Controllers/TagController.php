@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Queries\ArchiveQuery;
+use App\Queries\ArchivePageQuery;
 use Illuminate\Contracts\View\View;
 
 class TagController extends Controller
 {
-    public function __invoke(string $slug, ArchiveQuery $archives): View
+    public function __invoke(string $slug, ArchivePageQuery $archives): View
     {
-        return view('archives.index', $archives->tag($slug));
+        return view('archives.index', ['archive' => $archives->forTag($slug)]);
     }
 }

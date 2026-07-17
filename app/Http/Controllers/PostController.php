@@ -2,17 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Queries\ArticleQuery;
-use App\Support\TrustedArticleHtml;
+use App\Queries\ArticlePageQuery;
 use Illuminate\Contracts\View\View;
 
 class PostController extends Controller
 {
-    public function show(string $slug, ArticleQuery $articles, TrustedArticleHtml $html): View
+    public function show(string $slug, ArticlePageQuery $articles): View
     {
-        $data = $articles->find($slug);
-        $data['articleContent'] = $html->sanitize($data['post']->content);
-
-        return view('posts.show', $data);
+        return view('posts.show', ['article' => $articles->find($slug)]);
     }
 }

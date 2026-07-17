@@ -60,7 +60,7 @@ class HomepageTest extends TestCase
 
     public function test_category_blocks_include_only_published_posts(): void
     {
-        $category = Category::factory()->create(['name' => 'Punjab News']);
+        $category = Category::factory()->create(['name' => 'पंजाब', 'slug' => 'punjab']);
         $published = Post::factory()->published()->create(['title' => 'Published category report']);
         $draft = Post::factory()->create(['title' => 'Draft category report']);
         $category->posts()->attach([$published->id, $draft->id]);

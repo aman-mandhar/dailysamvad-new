@@ -24,9 +24,9 @@ class ProductionEssentialsTest extends TestCase
 
         $this->get('/search?q=UniqueSearchTerm&page=2')
             ->assertOk()
-            ->assertViewHas('posts', fn ($posts): bool => $posts->currentPage() === 2
-                && $posts->count() === 1
-                && str_contains((string) $posts->previousPageUrl(), 'q=UniqueSearchTerm'));
+            ->assertViewHas('archive', fn ($archive): bool => $archive->posts->currentPage() === 2
+                && $archive->posts->count() === 1
+                && str_contains((string) $archive->posts->previousPageUrl(), 'q=UniqueSearchTerm'));
     }
 
     public function test_rss_is_valid_and_excludes_drafts(): void

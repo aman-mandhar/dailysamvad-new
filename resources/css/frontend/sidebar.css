@@ -1,0 +1,45 @@
+@layer components {
+    .ds-sidebar { min-width: 0; width: 100%; }
+    .ds-sidebar__inner { display: grid; min-width: 0; gap: 20px; }
+    .ds-sidebar--sticky .ds-sidebar__inner { position: sticky; top: 18px; }
+    .ds-sidebar-widget { min-width: 0; border: 1px solid var(--ds-color-border); background: var(--ds-color-white); }
+    .ds-sidebar-widget__title { margin: 0; border-bottom: 1px solid var(--ds-color-border); border-left: 5px solid var(--ds-color-red); padding: 9px 11px 7px; color: var(--ds-color-text); font-size: 1.25rem; font-weight: 800; line-height: 1.25; }
+    .ds-sidebar-widget__body { padding-inline: 11px; }
+    .ds-sidebar-news-item { position: relative; display: grid; min-width: 0; grid-template-columns: 80px minmax(0, 1fr); gap: 10px; padding-block: 11px; border-bottom: 1px solid #e6e6e6; }
+    .ds-sidebar-news-item:last-child { border-bottom: 0; }
+    .ds-sidebar-news-item__image { display: block; width: 80px; aspect-ratio: 1; overflow: hidden; background: #eee; }
+    .ds-sidebar-news-item__image > :where(img, div) { width: 100%; height: 100%; object-fit: cover; }
+    .ds-sidebar-news-item__content { min-width: 0; }
+    .ds-sidebar-news-item h3 { margin: 0; color: var(--ds-color-text); font-size: .98rem; font-weight: 800; line-height: 1.28; overflow-wrap: anywhere; }
+    .ds-sidebar-news-item h3 a { color: inherit; text-decoration: none; }
+    .ds-sidebar-news-item h3 a:hover { color: #b40000; }
+    .ds-sidebar-news-item__meta { display: flex; min-width: 0; flex-wrap: wrap; gap: 2px 8px; margin-top: 5px; color: var(--ds-color-meta); font-size: .7rem; line-height: 1.3; }
+    .ds-sidebar-news-item__rank { position: absolute; z-index: 1; top: 11px; left: 0; display: grid; width: 22px; height: 22px; place-items: center; background: var(--ds-color-red); color: #fff; font-size: .7rem; font-weight: 800; }
+
+    .ds-sidebar-categories { margin: 0; padding: 4px 11px; list-style: none; }
+    .ds-sidebar-categories li + li { border-top: 1px solid #e6e6e6; }
+    .ds-sidebar-categories a { display: flex; min-height: 40px; align-items: center; justify-content: space-between; gap: 8px; color: var(--ds-color-text); font-size: .92rem; font-weight: 700; text-decoration: none; }
+    .ds-sidebar-categories__count { min-width: 28px; padding: 1px 6px; background: #f1f1f1; color: var(--ds-color-muted); font-size: .7rem; text-align: center; }
+    .ds-sidebar-social { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 12px; }
+    .ds-sidebar-social__link { display: flex; min-width: 0; min-height: 44px; align-items: center; gap: 7px; border: 1px solid var(--ds-color-border); padding: 6px 8px; color: var(--ds-color-text); font-size: .82rem; font-weight: 700; text-decoration: none; }
+    .ds-sidebar-social__link > span { display: grid; width: 26px; height: 26px; flex: none; place-items: center; background: #222; color: #fff; font-size: .72rem; }
+
+    .ds-ad-slot { display: grid; width: min(100%, calc(var(--ds-ad-width) * 1px)); max-width: 100%; min-height: min(calc(var(--ds-ad-height) * 1px), 80vw); margin-inline: auto; place-content: center; overflow: hidden; background: #f4f4f4; color: #777; text-align: center; }
+    .ds-ad-slot--placeholder { aspect-ratio: var(--ds-ad-width) / var(--ds-ad-height); border: 1px dashed #aaa; }
+    .ds-ad-slot--placeholder span { font-family: Arial, sans-serif; font-size: .72rem; font-weight: 700; letter-spacing: .12em; }
+    .ds-ad-slot--placeholder small { margin-top: 3px; font-family: Arial, sans-serif; font-size: .68rem; }
+    .ds-ad-slot img { display: block; width: auto; max-width: 100%; height: auto; max-height: calc(var(--ds-ad-height) * 1px); object-fit: contain; }
+    .ds-ad-slot__html, .ds-ad-slot__html > * { max-width: 100%; }
+}
+
+@media (max-width: 1023px) {
+    .ds-sidebar--sticky .ds-sidebar__inner { position: static; }
+    .ds-sidebar { margin-top: 8px; }
+}
+
+@media (max-width: 430px) {
+    .ds-sidebar__inner { gap: 16px; }
+    .ds-sidebar-widget__title { font-size: 1.12rem; }
+    .ds-sidebar-news-item { grid-template-columns: minmax(72px, 24vw) minmax(0, 1fr); }
+    .ds-sidebar-news-item__image { width: 100%; }
+}

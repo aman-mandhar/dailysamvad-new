@@ -1,0 +1,35 @@
+@layer utilities {
+    .ds-line-clamp-1,
+    .ds-line-clamp-2,
+    .ds-line-clamp-3 {
+        display: -webkit-box;
+        overflow: hidden;
+        -webkit-box-orient: vertical;
+    }
+
+    .ds-line-clamp-1 { -webkit-line-clamp: 1; }
+    .ds-line-clamp-2 { -webkit-line-clamp: 2; }
+    .ds-line-clamp-3 { -webkit-line-clamp: 3; }
+
+    .ds-visually-hidden {
+        position: absolute !important;
+        width: 1px !important;
+        height: 1px !important;
+        padding: 0 !important;
+        margin: -1px !important;
+        overflow: hidden !important;
+        clip: rect(0, 0, 0, 0) !important;
+        white-space: nowrap !important;
+        border: 0 !important;
+    }
+
+    .ds-media-safe {
+        max-width: 100%;
+        height: auto;
+        overflow: hidden;
+    }
+
+    .ds-no-scroll {
+        overflow: hidden !important;
+    }
+}

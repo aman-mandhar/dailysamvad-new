@@ -1,0 +1,41 @@
+<?php
+
+$placeholder = [
+    'enabled' => true,
+    'label' => 'Advertisement',
+    'type' => 'placeholder',
+    'html' => null,
+    'image' => null,
+    'url' => null,
+    'alt' => null,
+    'width' => 300,
+    'height' => 250,
+    'open_in_new_tab' => true,
+    'rel' => 'sponsored noopener noreferrer',
+];
+
+return [
+    'show_placeholders' => env('ADVERTISEMENT_PLACEHOLDERS', env('APP_ENV', 'production') !== 'production'),
+    'slots' => [
+        'HEADER_TOP' => [...$placeholder, 'width' => 970, 'height' => 90],
+        'HOME_SIDEBAR_TOP' => $placeholder,
+        'HOME_SIDEBAR_MIDDLE' => $placeholder,
+        'HOME_SIDEBAR_BOTTOM' => $placeholder,
+        'HOME_BETWEEN_SECTIONS' => [...$placeholder, 'width' => 970, 'height' => 90],
+        'ARTICLE_TOP' => [...$placeholder, 'width' => 728, 'height' => 90],
+        'ARTICLE_INLINE_1' => [...$placeholder, 'width' => 728, 'height' => 90],
+        'ARTICLE_INLINE_2' => [...$placeholder, 'width' => 728, 'height' => 90],
+        'ARTICLE_BOTTOM' => [...$placeholder, 'width' => 728, 'height' => 90],
+        'ARTICLE_SIDEBAR_TOP' => $placeholder,
+        'ARTICLE_SIDEBAR_BOTTOM' => $placeholder,
+        'CATEGORY_TOP' => [...$placeholder, 'width' => 970, 'height' => 90],
+        'CATEGORY_SIDEBAR' => $placeholder,
+        'TAG_TOP' => [...$placeholder, 'width' => 970, 'height' => 90],
+        'SEARCH_TOP' => [...$placeholder, 'width' => 970, 'height' => 90],
+        'SEARCH_INLINE' => [...$placeholder, 'width' => 728, 'height' => 90],
+        'ARCHIVE_TOP' => [...$placeholder, 'width' => 970, 'height' => 90],
+        'ARCHIVE_INLINE' => [...$placeholder, 'width' => 728, 'height' => 90],
+        'AUTHOR_TOP' => [...$placeholder, 'width' => 970, 'height' => 90],
+        'FOOTER_TOP' => [...$placeholder, 'width' => 970, 'height' => 90],
+    ],
+];

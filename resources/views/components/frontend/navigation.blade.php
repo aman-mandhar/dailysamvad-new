@@ -1,17 +1,27 @@
-@props(['mobile' => false])
+@props(['items' => collect()])
 
 @php
-    $items = ['Home', 'Latest', 'Punjab', 'India', 'World'];
+    $currentSlug = (string) request()->route('slug');
 @endphp
 
-<nav {{ $attributes->class([$mobile ? 'block' : 'hidden lg:block']) }} aria-label="{{ $mobile ? 'Mobile navigation' : 'Main navigation' }}">
-    <ul class="{{ $mobile ? 'flex flex-col gap-1' : 'flex items-center gap-1' }}">
-        @foreach ($items as $item)
+<nav class="ds-primary-nav" aria-label="Main navigation">
+    <div class="ds-container ds-primary-nav__inner">
+        <ul class="ds-primary-nav__list">
             <li>
-                <span class="block rounded-md px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-200">
-                    {{ $item }}
-                </span>
+                <a class="ds-nav-link {{ request()->routeIs('home') ? 'is-active' : '' }}" href="{{ route('home') }}" @if(request()->routeIs('home')) aria-current="page" @endif>होम</a>
             </li>
-        @endforeach
-    </ul>
+            @foreach ($items as $item)
+                @php
+                    $children = collect($item['children'] ?? []);
+                    $isActive = $item['slug'] === $currentSlug || $children->contains(fn ($child) => $child['slug'] === $currentSlug);
+                @endphp
+                <x-frontend.nav-item :item="$item" :active="$isActive" />
+            @endforeach
+        </ul>
+
+        <button class="ds-primary-nav__search {{ request()->routeIs('search') ? 'is-active' : '' }}" type="button" data-search-trigger aria-controls="ds-header-search" aria-expanded="false">
+            <span class="ds-visually-hidden">Open search</span>
+            <svg class="ds-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></svg>
+        </button>
+    </div>
 </nav>

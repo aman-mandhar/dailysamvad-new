@@ -1,0 +1,48 @@
+@layer components {
+    .ds-site .ds-article-page { padding-block: 1rem 3rem; }
+    .ds-site .ds-breadcrumbs { margin-block: .5rem 1.25rem; color: var(--ds-color-muted); font-size: .875rem; }
+    .ds-site .ds-breadcrumbs ol { display: flex; min-width: 0; flex-wrap: wrap; gap: .35rem; }
+    .ds-site .ds-breadcrumbs li { min-width: 0; overflow-wrap: anywhere; }
+    .ds-site .ds-breadcrumbs li + li::before { content: '/'; margin-right: .35rem; color: var(--ds-color-border); }
+    .ds-site .ds-breadcrumbs a:hover { color: var(--ds-color-red); }
+    .ds-site .ds-article-layout { display: grid; grid-template-columns: minmax(0, 1fr) 20rem; gap: 2.5rem; align-items: start; }
+    .ds-site .ds-article { min-width: 0; }
+    .ds-site .ds-article-header { border-bottom: 1px solid var(--ds-color-border); padding-bottom: 1.25rem; }
+    .ds-site .ds-article-category { display: inline-block; margin-bottom: .5rem; color: var(--ds-color-red); font-weight: 800; }
+    .ds-site .ds-article-header h1 { color: var(--ds-color-text); font-size: clamp(2rem, 4vw, 3.25rem); font-weight: 800; line-height: 1.12; overflow-wrap: anywhere; }
+    .ds-site .ds-article-lead { margin-top: 1rem; color: var(--ds-color-muted); font-size: 1.2rem; line-height: 1.65; }
+    .ds-site .ds-article-meta { display: flex; flex-wrap: wrap; gap: .4rem 1rem; margin-top: 1rem; color: var(--ds-color-muted); font-size: .875rem; }
+    .ds-site .ds-article-author { color: var(--ds-color-author); font-weight: 700; }
+    .ds-site .ds-article-featured-image { margin-top: 1.5rem; }
+    .ds-site .ds-article-featured-image img { aspect-ratio: 16/9; width: 100%; height: auto; object-fit: cover; }
+    .ds-site .ds-article-featured-image figcaption { margin-top: .4rem; color: var(--ds-color-muted); font-size: .82rem; }
+    .ds-site .ds-article-share { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin-block: 1.25rem; }
+    .ds-site .ds-article-share a, .ds-site .ds-article-share button { border: 1px solid var(--ds-color-border); border-radius: .25rem; padding: .45rem .7rem; font-size: .82rem; font-weight: 700; }
+    .ds-site .ds-article-share a:hover, .ds-site .ds-article-share button:hover { border-color: var(--ds-color-red); color: var(--ds-color-red); }
+    .ds-site .ds-share-status { font-size: .8rem; color: var(--ds-color-muted); }
+    .ds-site .ds-article-content { color: var(--ds-color-text); font-size: 1.125rem; line-height: 1.78; overflow-wrap: anywhere; }
+    .ds-site .ds-article-content > * + * { margin-top: 1.35em; }
+    .ds-site .ds-article-content h2, .ds-site .ds-article-content h3, .ds-site .ds-article-content h4 { color: var(--ds-color-text); font-weight: 800; line-height: 1.25; }
+    .ds-site .ds-article-content h2 { font-size: 1.8rem; } .ds-site .ds-article-content h3 { font-size: 1.5rem; } .ds-site .ds-article-content h4 { font-size: 1.25rem; }
+    .ds-site .ds-article-content a { color: var(--ds-color-red); text-decoration: underline; text-underline-offset: 3px; }
+    .ds-site .ds-article-content ul { list-style: disc; padding-left: 1.5rem; } .ds-site .ds-article-content ol { list-style: decimal; padding-left: 1.5rem; }
+    .ds-site .ds-article-content blockquote { border-left: 4px solid var(--ds-color-red); padding-left: 1rem; color: var(--ds-color-muted); font-style: italic; }
+    .ds-site .ds-article-content img, .ds-site .ds-article-content video, .ds-site .ds-article-content iframe { max-width: 100%; height: auto; }
+    .ds-site .ds-article-content iframe { width: 100%; aspect-ratio: 16/9; border: 0; }
+    .ds-site .ds-article-content .alignleft { float: left; margin: .35rem 1rem 1rem 0; } .ds-site .ds-article-content .alignright { float: right; margin: .35rem 0 1rem 1rem; }
+    .ds-site .ds-article-content .aligncenter, .ds-site .ds-article-content .wp-block-image { margin-inline: auto; text-align: center; }
+    .ds-site .ds-article-content .wp-caption { max-width: 100%; } .ds-site .ds-article-content .wp-caption-text, .ds-site .ds-article-content figcaption { color: var(--ds-color-muted); font-size: .82rem; line-height: 1.5; }
+    .ds-site .ds-article-table { max-width: 100%; overflow-x: auto; }
+    .ds-site .ds-article-table table { min-width: 36rem; width: 100%; border-collapse: collapse; font-size: .95rem; }
+    .ds-site .ds-article-table th, .ds-site .ds-article-table td { border: 1px solid var(--ds-color-border); padding: .55rem; text-align: left; }
+    .ds-site .ds-article-tags { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1.75rem; } .ds-site .ds-article-tags ul { display: flex; flex-wrap: wrap; gap: .4rem; }
+    .ds-site .ds-article-tags a { display: block; border-radius: 999px; background: #f3f3f3; padding: .25rem .7rem; font-size: .82rem; }
+    .ds-site .ds-article-navigation { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin-top: 2rem; }
+    .ds-site .ds-article-navigation a { border: 1px solid var(--ds-color-border); padding: 1rem; } .ds-site .ds-article-navigation a:last-child { text-align: right; }
+    .ds-site .ds-article-navigation span { display: block; color: var(--ds-color-muted); font-size: .78rem; } .ds-site .ds-article-navigation strong { display: block; margin-top: .25rem; overflow-wrap: anywhere; }
+    .ds-site .ds-related-news { margin-top: 2.5rem; } .ds-site .ds-related-news__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+    .ds-site .ds-article .ds-ad-slot { max-width: 100%; margin-block: 1.5rem; }
+    .ds-site :is(a, button):focus-visible { outline: 3px solid var(--ds-color-gold); outline-offset: 3px; }
+    @media (max-width: 1023px) { .ds-site .ds-article-layout { grid-template-columns: 1fr; } .ds-site .ds-sidebar--sticky .ds-sidebar__inner { position: static; } }
+    @media (max-width: 639px) { .ds-site .ds-article-header h1 { font-size: 2rem; } .ds-site .ds-article-content { font-size: 1.05rem; } .ds-site .ds-article-navigation, .ds-site .ds-related-news__grid { grid-template-columns: 1fr; } .ds-site .ds-article-navigation a:last-child { text-align: left; } .ds-site .ds-article-content .alignleft, .ds-site .ds-article-content .alignright { float: none; margin-inline: 0; } }
+}

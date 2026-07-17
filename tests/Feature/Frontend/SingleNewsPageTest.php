@@ -5,6 +5,7 @@ namespace Tests\Feature\Frontend;
 use App\Enums\PostStatus;
 use App\Models\Category;
 use App\Models\Post;
+use App\Models\Tag;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
@@ -107,5 +108,51 @@ class SingleNewsPageTest extends TestCase
             ->assertDontSee('onclick=', false)
             ->assertDontSee('<script>alert(2)</script>', false)
             ->assertDontSee('javascript:', false);
+    }
+
+    public function test_article_renders_semantics_metadata_tags_share_and_sidebar_once(): void
+    {
+        $post = Post::factory()->published()->create([
+            'title' => 'Semantic article headline',
+            'excerpt' => 'A concise article lead.',
+            'content' => '<p>First</p><h2>Inside heading</h2><p>Third</p>',
+        ]);
+        $tag = Tag::factory()->create(['name' => 'Punjab tag']);
+        $post->tags()->attach($tag);
+
+        $response = $this->get(route('news.show', $post->slug))->assertOk();
+        $html = $response->getContent();
+
+        $this->assertSame(1, substr_count($html, '<h1'));
+        $this->assertSame(1, substr_count($html, '<main'));
+        $this->assertSame(1, substr_count($html, 'data-sidebar-context="article"'));
+        $response->assertSee('<article class="ds-article"', false)
+            ->assertSee('datetime="'.$post->published_at->toIso8601String().'"', false)
+            ->assertSee('aria-label="Share on Facebook"', false)
+            ->assertSee(route('tags.show', $tag->slug), false);
+    }
+
+    public function test_trusted_youtube_embed_and_table_wrapper_render_without_scripts(): void
+    {
+        $post = Post::factory()->published()->create([
+            'content' => '<table><tr><td>Cell</td></tr></table><iframe src="https://www.youtube.com/embed/video"></iframe><iframe src="https://evil.example/embed"></iframe><script>alert(1)</script>',
+        ]);
+
+        $this->get(route('news.show', $post->slug))
+            ->assertOk()
+            ->assertSee('class="ds-article-table"', false)
+            ->assertSee('youtube.com/embed/video', false)
+            ->assertSee('title="Embedded media"', false)
+            ->assertDontSee('evil.example', false)
+            ->assertDontSee('<script>alert(1)</script>', false);
+    }
+
+    public function test_soft_deleted_and_missing_articles_return_not_found(): void
+    {
+        $post = Post::factory()->published()->create();
+        $post->delete();
+
+        $this->get(route('news.show', $post->slug))->assertNotFound();
+        $this->get('/news/not-a-real-article')->assertNotFound();
     }
 }

@@ -1,4 +1,5 @@
 @extends('layouts.frontend')
+@section('hide_breaking_news', '1')
 @section('title', 'Page Not Found')
 @section('robots', 'noindex, follow')
 @section('content')

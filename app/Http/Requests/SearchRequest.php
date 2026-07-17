@@ -14,7 +14,7 @@ class SearchRequest extends FormRequest
     /** @return array<string, array<int, string>> */
     public function rules(): array
     {
-        return ['q' => ['nullable', 'string', 'max:200']];
+        return ['q' => ['nullable', 'string', 'max:'.config('archive.search_max_length', 200)]];
     }
 
     public function queryText(): string

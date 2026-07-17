@@ -11,6 +11,10 @@ use App\Import\Services\FileCheckpointRepository;
 use App\Import\Services\FilesystemMediaSource;
 use App\Import\Services\ImportVerificationService;
 use App\Import\Services\WordPressConnection;
+use App\Queries\BreakingNewsQuery;
+use App\Queries\NavigationQuery;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -32,6 +36,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        View::composer('layouts.frontend', function ($view): void {
+            $view->with('mainMenu', app(NavigationQuery::class)->mainMenu());
+            $view->with(
+                'globalBreakingNews',
+                config('frontend.breaking_news.enabled', true) && ! View::hasSection('hide_breaking_news')
+                    ? app(BreakingNewsQuery::class)->latest((int) config('frontend.breaking_news.limit', 12))
+                    : new Collection,
+            );
+        });
     }
 }

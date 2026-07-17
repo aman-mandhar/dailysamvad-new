@@ -51,7 +51,7 @@ class ArchivePagesTest extends TestCase
 
         $this->get(route('categories.show', ['slug' => $category->slug, 'page' => 2]))
             ->assertOk()
-            ->assertViewHas('posts', fn ($paginator): bool => $paginator->currentPage() === 2 && $paginator->count() === 1);
+            ->assertViewHas('archive', fn ($archive): bool => $archive->posts->currentPage() === 2 && $archive->posts->count() === 1);
     }
 
     public function test_missing_archives_return_not_found(): void

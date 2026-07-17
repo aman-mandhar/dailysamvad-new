@@ -7,6 +7,16 @@ use Tests\TestCase;
 
 class StaticPagesTest extends TestCase
 {
+    /** @var array<int, string> */
+    private const SECONDARY_NAV_ROUTES = [
+        'pages.copyright',
+        'pages.fact-checking',
+        'pages.editorial',
+        'pages.disclaimer',
+        'pages.terms',
+        'pages.privacy',
+    ];
+
     public function test_every_configured_static_page_returns_successfully(): void
     {
         foreach (config('static-pages') as $page) {
@@ -49,5 +59,27 @@ class StaticPagesTest extends TestCase
         $names = collect(Route::getRoutes()->getRoutes())->map->getName()->filter();
 
         $this->assertSame($names->count(), $names->unique()->count());
+    }
+
+    public function test_secondary_navigation_pages_have_distinct_migrated_content(): void
+    {
+        $firstHeadings = [];
+
+        foreach (self::SECONDARY_NAV_ROUTES as $route) {
+            $page = collect(config('static-pages'))->firstWhere('route', $route);
+
+            $this->assertIsArray($page);
+            $this->assertSame('June 2026', $page['last_updated']);
+            $this->assertNotSame('Content migration pending', $page['sections'][0]['heading']);
+
+            $this->get(route($route))
+                ->assertOk()
+                ->assertSee($page['sections'][0]['heading'])
+                ->assertDontSee('Content migration pending');
+
+            $firstHeadings[] = $page['sections'][0]['heading'];
+        }
+
+        $this->assertCount(count(self::SECONDARY_NAV_ROUTES), array_unique($firstHeadings));
     }
 }
