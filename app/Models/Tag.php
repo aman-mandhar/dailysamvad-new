@@ -14,6 +14,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
     'name',
     'slug',
     'description',
+    'meta_title',
+    'meta_description',
 ])]
 class Tag extends Model
 {

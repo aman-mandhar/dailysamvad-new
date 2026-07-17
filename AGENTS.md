@@ -13,13 +13,13 @@ The new Laravel application is the replacement platform.
 ## Main Stack
 
 - PHP 8.3+
-- Laravel 13
+- Laravel 13.20
 - MySQL 8
-- Livewire 3
+- Livewire 4.3
 - Blade
 - Tailwind CSS
 - Vite
-- Filament
+- Filament 5.6
 - Redis later
 - React only for isolated interactive widgets when specifically required
 

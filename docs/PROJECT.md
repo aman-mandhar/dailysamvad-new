@@ -32,12 +32,12 @@ The new application will replace the existing WordPress CMS while preserving con
 
 The new application will be built with:
 
-- Laravel 13
+- Laravel 13.20
 - MySQL
 - Blade
-- Livewire 3
+- Livewire 4.3
 - Tailwind CSS
-- Filament
+- Filament 5.6
 - Redis queues later
 - Vite
 - React only where justified
