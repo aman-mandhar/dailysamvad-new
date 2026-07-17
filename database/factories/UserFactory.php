@@ -25,10 +25,23 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
+            'old_wp_id' => null,
             'name' => fake()->name(),
+            'username' => fake()->unique()->userName(),
+            'slug' => fake()->unique()->slug(2),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
+            'mobile_number' => fake()->optional()->numerify('##########'),
+            'avatar_path' => fake()->optional()->imageUrl(),
+            'bio' => fake()->optional()->paragraph(),
+            'designation' => fake()->optional()->jobTitle(),
+            'facebook_url' => fake()->optional()->url(),
+            'x_url' => fake()->optional()->url(),
+            'instagram_url' => fake()->optional()->url(),
+            'youtube_url' => fake()->optional()->url(),
+            'is_active' => true,
+            'last_login_at' => null,
             'remember_token' => Str::random(10),
         ];
     }
