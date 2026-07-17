@@ -11,6 +11,7 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
+    ->withCommands([app_path('Import/Commands')])
     ->withMiddleware(function (Middleware $middleware): void {
         //
     })

@@ -2,8 +2,10 @@
 
 namespace App\Policies;
 
+use App\Enums\PostStatus;
 use App\Models\Post;
 use App\Models\User;
+use App\Support\PostWorkflow;
 
 class PostPolicy
 {
@@ -35,5 +37,17 @@ class PostPolicy
     public function deleteAny(User $user): bool
     {
         return $user->hasPermissionTo('delete posts');
+    }
+
+    public function publish(User $user, Post $post): bool
+    {
+        return $user->hasPermissionTo('publish posts')
+            && PostWorkflow::canTransition($user, $post->status, PostStatus::Published);
+    }
+
+    public function archive(User $user, Post $post): bool
+    {
+        return $user->hasPermissionTo('publish posts')
+            && PostWorkflow::canTransition($user, $post->status, PostStatus::Archived);
     }
 }

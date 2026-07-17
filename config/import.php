@@ -1,0 +1,55 @@
+<?php
+
+return [
+    'chunk_size' => (int) env('IMPORT_CHUNK_SIZE', 500),
+    'batch_size' => (int) env('IMPORT_BATCH_SIZE', 100),
+    'dry_run' => (bool) env('IMPORT_DRY_RUN', false),
+    'download_images' => (bool) env('IMPORT_DOWNLOAD_IMAGES', false),
+    'logging' => ['enabled' => true, 'channel' => env('IMPORT_LOG_CHANNEL', 'stack')],
+    'reports' => ['disk' => env('IMPORT_REPORT_DISK', 'local'), 'path' => env('IMPORT_REPORT_PATH', 'imports/reports')],
+    'redirects' => ['disk' => env('IMPORT_REDIRECT_DISK', 'local'), 'path' => env('IMPORT_REDIRECT_PATH', 'imports/redirects')],
+    'resume' => (bool) env('IMPORT_RESUME', false),
+    'memory_limit' => env('IMPORT_MEMORY_LIMIT', '512M'),
+    'timeouts' => ['command' => (int) env('IMPORT_COMMAND_TIMEOUT', 3600), 'http' => (int) env('IMPORT_HTTP_TIMEOUT', 30)],
+    'checkpoint' => ['disk' => env('IMPORT_CHECKPOINT_DISK', 'local'), 'path' => 'imports/checkpoints'],
+    'pilot' => [
+        'limit' => (int) env('IMPORT_PILOT_LIMIT', 100),
+        'order' => env('IMPORT_PILOT_ORDER', 'latest'),
+        'default_language' => env('IMPORT_DEFAULT_LANGUAGE', 'hi'),
+    ],
+    'media' => [
+        'source_disk' => env('WORDPRESS_UPLOADS_DISK'),
+        'source_path' => env('WORDPRESS_UPLOADS_PATH'),
+        'destination_disk' => env('IMPORT_MEDIA_DISK', 'public'),
+        'destination_path' => env('IMPORT_MEDIA_PATH', 'wordpress/uploads'),
+        'supported_mime_types' => [
+            'image/jpeg', 'image/png', 'image/webp', 'image/gif',
+            'application/pdf', 'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'application/vnd.ms-excel',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'application/vnd.ms-powerpoint',
+            'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+            'audio/mpeg', 'audio/ogg', 'video/mp4', 'video/webm',
+        ],
+    ],
+    'profiles' => [
+        'wordpress' => [
+            'table_prefix' => env('WORDPRESS_DB_PREFIX', 'wp_'),
+            'site_url' => env('WORDPRESS_SITE_URL'),
+            'database' => [
+                'driver' => env('WORDPRESS_DB_CONNECTION', 'mysql'),
+                'host' => env('WORDPRESS_DB_HOST', '127.0.0.1'),
+                'port' => env('WORDPRESS_DB_PORT', '3306'),
+                'database' => env('WORDPRESS_DB_DATABASE'),
+                'username' => env('WORDPRESS_DB_USERNAME'),
+                'password' => env('WORDPRESS_DB_PASSWORD'),
+                'unix_socket' => env('WORDPRESS_DB_SOCKET', ''),
+                'charset' => env('WORDPRESS_DB_CHARSET', 'utf8mb4'),
+                'collation' => env('WORDPRESS_DB_COLLATION', 'utf8mb4_unicode_ci'),
+                'prefix' => '',
+                'strict' => true,
+            ],
+        ],
+    ],
+];

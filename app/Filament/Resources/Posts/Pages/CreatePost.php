@@ -2,9 +2,11 @@
 
 namespace App\Filament\Resources\Posts\Pages;
 
+use App\Enums\PostStatus;
 use App\Filament\Resources\Posts\PostResource;
 use App\Support\PostSeoData;
 use App\Support\PostTaxonomy;
+use App\Support\PostWorkflow;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Validation\ValidationException;
 
@@ -15,6 +17,7 @@ class CreatePost extends CreateRecord
     protected function beforeCreate(): void
     {
         $this->validateTaxonomy();
+        $this->validateWorkflow(PostStatus::Draft);
     }
 
     /**
@@ -24,6 +27,8 @@ class CreatePost extends CreateRecord
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         $data['seo_data'] = PostSeoData::mergeRobots(null, $this->data['robots'] ?? null);
+
+        $data = PostWorkflow::prepareForPersistence($data);
 
         return $data;
     }
@@ -36,6 +41,17 @@ class CreatePost extends CreateRecord
     private function validateTaxonomy(): void
     {
         $errors = PostTaxonomy::validate($this->data);
+
+        if ($errors !== []) {
+            throw ValidationException::withMessages(
+                collect($errors)->mapWithKeys(fn (string $message, string $field): array => ["data.{$field}" => $message])->all(),
+            );
+        }
+    }
+
+    private function validateWorkflow(PostStatus $from): void
+    {
+        $errors = PostWorkflow::validate(auth()->user(), $from, $this->data);
 
         if ($errors !== []) {
             throw ValidationException::withMessages(

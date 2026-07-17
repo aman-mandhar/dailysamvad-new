@@ -10,14 +10,19 @@ use App\Models\Category;
 use App\Models\Post;
 use App\Observers\PostObserver;
 use App\Support\PostSeoData;
+use App\Support\PostWorkflow;
 use BackedEnum;
+use Filament\Actions\BulkAction;
+use Filament\Actions\BulkActionGroup;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
+use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Resources\Pages\PageRegistration;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
@@ -28,9 +33,12 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Str;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use UnitEnum;
@@ -86,10 +94,26 @@ class PostResource extends Resource
                         ->searchable()
                         ->preload()
                         ->required(),
+                ]),
+            Section::make('Publishing')
+                ->columns(2)
+                ->schema([
                     Select::make('status')
                         ->options(static::statusOptions())
                         ->default(PostStatus::Draft->value)
                         ->required(),
+                    DateTimePicker::make('published_at')
+                        ->label('Published At')
+                        ->seconds(false),
+                    DateTimePicker::make('scheduled_at')
+                        ->label('Scheduled At')
+                        ->seconds(false),
+                    Toggle::make('is_featured')
+                        ->label('Is Featured')
+                        ->default(false),
+                    Toggle::make('is_breaking')
+                        ->label('Is Breaking')
+                        ->default(false),
                 ]),
             Section::make('Taxonomy')
                 ->columns(2)
@@ -209,6 +233,12 @@ class PostResource extends Resource
                     ->formatStateUsing(fn (PostStatus $state): string => $state->value)
                     ->badge(),
                 TextColumn::make('language'),
+                IconColumn::make('is_featured')
+                    ->label('Featured')
+                    ->boolean(),
+                IconColumn::make('is_breaking')
+                    ->label('Breaking')
+                    ->boolean(),
                 TextColumn::make('primaryCategory.name')
                     ->label('Primary Category')
                     ->badge()
@@ -226,6 +256,10 @@ class PostResource extends Resource
                     ->dateTime()
                     ->placeholder('—')
                     ->sortable(),
+                TextColumn::make('scheduled_at')
+                    ->label('Scheduled At')
+                    ->dateTime()
+                    ->placeholder('—'),
                 TextColumn::make('updated_at')
                     ->label('Updated At')
                     ->dateTime()
@@ -241,6 +275,17 @@ class PostResource extends Resource
             ])
             ->filters([
                 SelectFilter::make('status')->options(static::statusOptions()),
+                Filter::make('published')
+                    ->query(fn (Builder $query): Builder => $query->where('status', PostStatus::Published->value)),
+                Filter::make('draft')
+                    ->query(fn (Builder $query): Builder => $query->where('status', PostStatus::Draft->value)),
+                Filter::make('pending_review')
+                    ->label('Pending Review')
+                    ->query(fn (Builder $query): Builder => $query->where('status', PostStatus::PendingReview->value)),
+                Filter::make('scheduled')
+                    ->query(fn (Builder $query): Builder => $query->where('status', PostStatus::Scheduled->value)),
+                TernaryFilter::make('is_featured')->label('Featured'),
+                TernaryFilter::make('is_breaking')->label('Breaking'),
                 SelectFilter::make('author_id')
                     ->label('Author')
                     ->relationship('author', 'name')
@@ -271,6 +316,24 @@ class PostResource extends Resource
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),
+            ])
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    BulkAction::make('publish')
+                        ->label('Publish')
+                        ->authorizeIndividualRecords('publish')
+                        ->requiresConfirmation()
+                        ->action(fn (Collection $records): mixed => $records->each(
+                            fn (Post $post) => PostWorkflow::transition(auth()->user(), $post, PostStatus::Published),
+                        )),
+                    BulkAction::make('archive')
+                        ->label('Archive')
+                        ->authorizeIndividualRecords('archive')
+                        ->requiresConfirmation()
+                        ->action(fn (Collection $records): mixed => $records->each(
+                            fn (Post $post) => PostWorkflow::transition(auth()->user(), $post, PostStatus::Archived),
+                        )),
+                ]),
             ]);
     }
 

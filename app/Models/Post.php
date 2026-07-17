@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 #[ObservedBy([PostObserver::class])]
@@ -49,6 +50,51 @@ class Post extends Model
     use HasFactory, SoftDeletes;
 
     private ?string $featuredImageBeforeUpdate = null;
+
+    private bool $featuredImageUrlResolved = false;
+
+    private ?string $resolvedFeaturedImageUrl = null;
+
+    /**
+     * Get the public URL for an existing featured image.
+     */
+    public function getFeaturedImageUrlAttribute(): ?string
+    {
+        if ($this->featuredImageUrlResolved) {
+            return $this->resolvedFeaturedImageUrl;
+        }
+
+        $this->featuredImageUrlResolved = true;
+        $path = trim((string) $this->featured_image);
+
+        if ($path === '') {
+            return null;
+        }
+
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            return $this->resolvedFeaturedImageUrl = $path;
+        }
+
+        $path = ltrim(str_replace('\\', '/', $path), '/');
+        foreach (['public/storage/', 'storage/'] as $prefix) {
+            if (str_starts_with($path, $prefix)) {
+                $path = substr($path, strlen($prefix));
+                break;
+            }
+        }
+
+        $disk = Storage::disk('public');
+        if ($path === '' || ! $disk->exists($path)) {
+            return null;
+        }
+
+        $url = $disk->url($path);
+        $publicPath = parse_url($url, PHP_URL_PATH);
+
+        return $this->resolvedFeaturedImageUrl = is_string($publicPath) && $publicPath !== ''
+            ? '/'.ltrim($publicPath, '/')
+            : $url;
+    }
 
     public function rememberFeaturedImageBeforeUpdate(?string $path): void
     {

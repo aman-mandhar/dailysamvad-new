@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Posts\Pages;
 use App\Filament\Resources\Posts\PostResource;
 use App\Support\PostSeoData;
 use App\Support\PostTaxonomy;
+use App\Support\PostWorkflow;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Validation\ValidationException;
 
@@ -36,12 +37,19 @@ class EditPost extends EditRecord
             $this->data['robots'] ?? null,
         );
 
+        $data = PostWorkflow::prepareForPersistence($data, $this->record);
+
         return $data;
     }
 
     protected function beforeSave(): void
     {
         $errors = PostTaxonomy::validate($this->data);
+
+        $errors = [
+            ...$errors,
+            ...PostWorkflow::validate(auth()->user(), $this->record->status, $this->data),
+        ];
 
         if ($errors !== []) {
             throw ValidationException::withMessages(
