@@ -6,10 +6,14 @@ use App\Enums\PostStatus;
 use App\Filament\Resources\Posts\Pages\CreatePost;
 use App\Filament\Resources\Posts\Pages\EditPost;
 use App\Filament\Resources\Posts\Pages\ListPosts;
+use App\Models\Category;
 use App\Models\Post;
+use App\Observers\PostObserver;
+use App\Support\PostSeoData;
 use BackedEnum;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -21,11 +25,14 @@ use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use UnitEnum;
 
 class PostResource extends Resource
@@ -84,6 +91,104 @@ class PostResource extends Resource
                         ->default(PostStatus::Draft->value)
                         ->required(),
                 ]),
+            Section::make('Taxonomy')
+                ->columns(2)
+                ->schema([
+                    Select::make('categories')
+                        ->relationship(
+                            name: 'categories',
+                            titleAttribute: 'name',
+                            modifyQueryUsing: fn (Builder $query): Builder => $query->active()->orderBy('name'),
+                        )
+                        ->multiple()
+                        ->searchable()
+                        ->preload()
+                        ->live()
+                        ->required()
+                        ->minItems(1),
+                    Select::make('primary_category_id')
+                        ->label('Primary Category')
+                        ->options(fn (Get $get): array => Category::query()
+                            ->active()
+                            ->whereKey($get('categories') ?? [])
+                            ->orderBy('name')
+                            ->pluck('name', 'id')
+                            ->all())
+                        ->searchable()
+                        ->required()
+                        ->dehydrated(false),
+                    Select::make('tags')
+                        ->relationship(
+                            name: 'tags',
+                            titleAttribute: 'name',
+                            modifyQueryUsing: fn (Builder $query): Builder => $query->orderBy('name'),
+                        )
+                        ->multiple()
+                        ->searchable()
+                        ->preload()
+                        ->columnSpanFull(),
+                ]),
+            Section::make('Featured Image')
+                ->schema([
+                    FileUpload::make('featured_image')
+                        ->label('Featured Image')
+                        ->image()
+                        ->acceptedFileTypes([
+                            'image/jpeg',
+                            'image/png',
+                            'image/webp',
+                        ])
+                        ->maxSize(5120)
+                        ->disk('public')
+                        ->directory('posts/featured')
+                        ->visibility('public')
+                        ->deleteUploadedFileUsing(fn (string $file): bool => PostObserver::deleteManagedImage($file))
+                        ->getUploadedFileNameForStorageUsing(function (TemporaryUploadedFile $file): string {
+                            $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+                            $safeName = Str::slug($originalName) ?: 'featured-image';
+                            $extension = strtolower($file->getClientOriginalExtension());
+
+                            return Str::uuid().'-'.$safeName.'.'.$extension;
+                        }),
+                ]),
+            Section::make('SEO')
+                ->columns(2)
+                ->collapsible()
+                ->collapsed()
+                ->schema([
+                    TextInput::make('meta_title')
+                        ->label('Meta Title')
+                        ->maxLength(255),
+                    TextInput::make('focus_keyword')
+                        ->label('Focus Keyword')
+                        ->maxLength(255),
+                    Textarea::make('meta_description')
+                        ->label('Meta Description')
+                        ->maxLength(160)
+                        ->helperText('Keep the description at or below the recommended 160 characters.')
+                        ->rows(3)
+                        ->columnSpanFull(),
+                    TextInput::make('canonical_url')
+                        ->label('Canonical URL')
+                        ->url()
+                        ->helperText('Use only when search engines should treat another URL as the preferred version.')
+                        ->columnSpanFull(),
+                    Select::make('robots')
+                        ->options(PostSeoData::robotsOptions())
+                        ->placeholder('Use site default')
+                        ->dehydrated(false),
+                    TextInput::make('source_name')
+                        ->label('Source Name')
+                        ->maxLength(255),
+                    TextInput::make('source_url')
+                        ->label('Source URL')
+                        ->url()
+                        ->columnSpanFull(),
+                    TextInput::make('old_url')
+                        ->label('Historical URL')
+                        ->helperText('For imported WordPress redirect mapping only; historical values may not be valid URLs.')
+                        ->columnSpanFull(),
+                ]),
         ]);
     }
 
@@ -91,6 +196,11 @@ class PostResource extends Resource
     {
         return $table
             ->columns([
+                ImageColumn::make('featured_image')
+                    ->label('Image')
+                    ->disk('public')
+                    ->width(60)
+                    ->height(40),
                 TextColumn::make('title')
                     ->searchable(['title', 'slug'])
                     ->sortable(),
@@ -99,6 +209,18 @@ class PostResource extends Resource
                     ->formatStateUsing(fn (PostStatus $state): string => $state->value)
                     ->badge(),
                 TextColumn::make('language'),
+                TextColumn::make('primaryCategory.name')
+                    ->label('Primary Category')
+                    ->badge()
+                    ->placeholder('—'),
+                TextColumn::make('categories.name')
+                    ->label('Categories')
+                    ->badge()
+                    ->limitList(3),
+                TextColumn::make('tags.name')
+                    ->label('Tags')
+                    ->badge()
+                    ->limitList(3),
                 TextColumn::make('published_at')
                     ->label('Published At')
                     ->dateTime()
@@ -108,6 +230,14 @@ class PostResource extends Resource
                     ->label('Updated At')
                     ->dateTime()
                     ->sortable(),
+                IconColumn::make('has_seo_metadata')
+                    ->label('SEO')
+                    ->state(fn (Post $record): bool => filled($record->meta_title)
+                        || filled($record->meta_description)
+                        || filled($record->focus_keyword)
+                        || filled($record->canonical_url)
+                        || filled(data_get($record->seo_data, 'robots')))
+                    ->boolean(),
             ])
             ->filters([
                 SelectFilter::make('status')->options(static::statusOptions()),
@@ -121,6 +251,22 @@ class PostResource extends Resource
                     'pa' => 'Punjabi',
                     'en' => 'English',
                 ]),
+                SelectFilter::make('category')
+                    ->relationship(
+                        name: 'categories',
+                        titleAttribute: 'name',
+                        modifyQueryUsing: fn (Builder $query): Builder => $query->active()->orderBy('name'),
+                    )
+                    ->searchable()
+                    ->preload(),
+                SelectFilter::make('tag')
+                    ->relationship(
+                        name: 'tags',
+                        titleAttribute: 'name',
+                        modifyQueryUsing: fn (Builder $query): Builder => $query->orderBy('name'),
+                    )
+                    ->searchable()
+                    ->preload(),
             ])
             ->recordActions([
                 ViewAction::make(),
@@ -131,7 +277,12 @@ class PostResource extends Resource
     /** @return Builder<Post> */
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->with('author');
+        return parent::getEloquentQuery()->with([
+            'author',
+            'primaryCategory',
+            'categories',
+            'tags',
+        ]);
     }
 
     /** @return array<string, string> */

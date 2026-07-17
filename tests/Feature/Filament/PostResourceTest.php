@@ -7,6 +7,7 @@ use App\Filament\Resources\Posts\Pages\CreatePost;
 use App\Filament\Resources\Posts\Pages\EditPost;
 use App\Filament\Resources\Posts\Pages\ListPosts;
 use App\Filament\Resources\Posts\PostResource;
+use App\Models\Category;
 use App\Models\Post;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
@@ -23,6 +24,8 @@ class PostResourceTest extends TestCase
 
     private User $editor;
 
+    private Category $category;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -31,6 +34,7 @@ class PostResourceTest extends TestCase
 
         $this->editor = User::factory()->create();
         $this->editor->assignRole('editor');
+        $this->category = Category::factory()->create();
 
         Filament::setCurrentPanel(Filament::getPanel('admin'));
     }
@@ -85,6 +89,8 @@ class PostResourceTest extends TestCase
                 'language' => 'pa',
                 'author_id' => $author->id,
                 'status' => PostStatus::PendingReview->value,
+                'categories' => [$this->category->id],
+                'primary_category_id' => $this->category->id,
             ])
             ->call('create')
             ->assertHasNoFormErrors();
@@ -99,6 +105,7 @@ class PostResourceTest extends TestCase
     public function test_post_can_be_edited(): void
     {
         $post = Post::factory()->create(['status' => PostStatus::Draft, 'language' => 'hi']);
+        $post->categories()->attach($this->category, ['is_primary' => true]);
 
         Livewire::actingAs($this->editor)
             ->test(EditPost::class, ['record' => $post->getRouteKey()])
@@ -122,6 +129,7 @@ class PostResourceTest extends TestCase
     public function test_slug_must_be_unique_and_ignores_the_current_post(): void
     {
         $existing = Post::factory()->create(['slug' => 'unique-news-slug']);
+        $existing->categories()->attach($this->category, ['is_primary' => true]);
 
         Livewire::actingAs($this->editor)
             ->test(CreatePost::class)
@@ -132,6 +140,8 @@ class PostResourceTest extends TestCase
                 'language' => 'hi',
                 'author_id' => $this->editor->id,
                 'status' => PostStatus::Draft->value,
+                'categories' => [$this->category->id],
+                'primary_category_id' => $this->category->id,
             ])
             ->call('create')
             ->assertHasFormErrors(['slug' => 'unique']);
