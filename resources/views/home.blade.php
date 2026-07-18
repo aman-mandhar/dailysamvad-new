@@ -15,11 +15,11 @@
 @endif
 
 @section('content')
-    <div class="ds-container py-6">
+    <div class="ds-container py-4 sm:py-5">
         <x-news.advertisement-slot :advertisement="$homepageTopAdvertisement" />
 
-        <div class="ds-home-top ds-main-grid mt-8">
-            <div class="min-w-0 space-y-12">
+        <div class="ds-home-top ds-main-grid mt-6">
+            <div class="min-w-0 space-y-8">
                 @if ($heroPosts->isNotEmpty())
                     <x-news.lead-slider :posts="$heroPosts" />
                 @elseif (app()->environment(['local', 'development']))
@@ -28,20 +28,20 @@
 
                 <section aria-labelledby="latest-news-heading">
                     <x-frontend.section-heading id="latest-news-heading">Latest News</x-frontend.section-heading>
-                    <div class="grid gap-6 sm:grid-cols-2">
+                    <div class="grid gap-4 sm:grid-cols-2">
                         @forelse ($latestPosts as $post)
                             <x-news.medium-card :post="$post" />
                         @empty
                             <p class="text-slate-500 dark:text-slate-400">No published news is available yet.</p>
                         @endforelse
                     </div>
-                    <div class="mt-8">{{ $latestPosts->links() }}</div>
+                    <div class="mt-6">{{ $latestPosts->links() }}</div>
                 </section>
 
                 @if ($featuredPosts->isNotEmpty())
                     <section aria-labelledby="featured-news-heading">
                         <x-frontend.section-heading id="featured-news-heading">Featured News</x-frontend.section-heading>
-                        <div class="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+                        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                             @foreach ($featuredPosts as $post)
                                 <x-news.medium-card :post="$post" />
                             @endforeach
