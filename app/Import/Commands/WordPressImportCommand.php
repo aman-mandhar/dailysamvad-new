@@ -14,6 +14,7 @@ use App\Import\Importers\UserImporter;
 use App\Import\Importers\WordPressMediaImporter;
 use App\Import\Services\ImportReportStore;
 use App\Import\Support\ImportMode;
+use App\SEO\Sitemap\SitemapCache;
 use Illuminate\Console\Command;
 
 class WordPressImportCommand extends Command
@@ -40,6 +41,7 @@ class WordPressImportCommand extends Command
         WordPressMediaImporter $media,
         SeoImporter $seo,
         ImportReportStore $reports,
+        SitemapCache $sitemapCache,
     ): int {
         $chunk = (int) ($this->option('chunk') ?: config('import.chunk_size', 500));
         $limit = $this->option('limit') !== null ? (int) $this->option('limit') : null;
@@ -91,11 +93,16 @@ class WordPressImportCommand extends Command
         // Copying files is intentionally opt-in; a command without --only retains the earlier data-import behavior.
         $chosen = $selected === [] ? $importers->except(['media', 'seo']) : $importers->only($selected);
 
-        foreach ($chosen as $importer) {
-            $result = $importer->import($context);
-            foreach ($totals as $key => $value) {
-                $totals[$key] += $result->statistics->{$key};
+        $sitemapCache->beginBatch();
+        try {
+            foreach ($chosen as $importer) {
+                $result = $importer->import($context);
+                foreach ($totals as $key => $value) {
+                    $totals[$key] += $result->statistics->{$key};
+                }
             }
+        } finally {
+            $sitemapCache->endBatch();
         }
 
         $statistics = new ImportStatistics(...$totals);

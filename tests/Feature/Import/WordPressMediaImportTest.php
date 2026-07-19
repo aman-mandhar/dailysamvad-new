@@ -3,6 +3,7 @@
 namespace Tests\Feature\Import;
 
 use App\Import\Services\WordPressConnection;
+use App\Models\Media;
 use App\Models\Post;
 use Illuminate\Database\Connection;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -66,6 +67,16 @@ class WordPressMediaImportTest extends TestCase
         $this->assertSame($path, $post->refresh()->featured_image);
         $this->assertSame('Press conference', $post->featured_image_alt);
         $this->assertSame('Imported caption', $post->featured_image_caption);
+        $this->assertNotNull($post->featured_media_id);
+        $this->assertDatabaseHas('media', [
+            'id' => $post->featured_media_id,
+            'old_wp_id' => 100,
+            'disk' => 'public',
+            'path' => $path,
+            'mime_type' => 'image/png',
+            'alt_text' => 'Press conference',
+            'caption' => 'Imported caption',
+        ]);
     }
 
     public function test_duplicate_run_skips_unchanged_file_without_creating_another_copy(): void
@@ -76,6 +87,7 @@ class WordPressMediaImportTest extends TestCase
         $this->runImport();
 
         $this->assertCount(1, Storage::disk('public')->allFiles('wordpress/uploads'));
+        $this->assertSame(1, Media::query()->where('old_wp_id', 100)->count());
         $this->assertStringContainsString('1', Artisan::output());
     }
 

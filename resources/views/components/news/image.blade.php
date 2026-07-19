@@ -1,9 +1,15 @@
-@props(['post', 'class' => '', 'loading' => 'lazy'])
+@props(['post', 'class' => '', 'loading' => 'lazy', 'sizes' => '(max-width: 640px) 100vw, 33vw', 'fetchpriority' => null])
+@php($image = $post->responsiveFeaturedImage())
 
-@if ($post->featured_image_url)
-    <img src="{{ $post->featured_image_url }}" alt="{{ $post->meta_title ?: $post->title }}" loading="{{ $loading }}" {{ $attributes->class($class) }}>
-@else
-    <div {{ $attributes->class(['flex items-center justify-center bg-slate-200 text-sm font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-400', $class]) }} role="img" aria-label="No image available">
-        Daily Samvad
-    </div>
-@endif
+<x-news.responsive-image
+    :src="$image['src']"
+    :srcset="$image['srcset']"
+    :sizes="$sizes"
+    :width="$image['width']"
+    :height="$image['height']"
+    :alt="$post->featured_image_alt ?: ($post->meta_title ?: $post->title)"
+    :loading="$loading"
+    :fetchpriority="$fetchpriority"
+    :class="$class"
+    {{ $attributes }}
+/>

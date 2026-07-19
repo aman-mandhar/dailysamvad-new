@@ -6,6 +6,7 @@ use App\Filament\Resources\Tags\Pages\CreateTag;
 use App\Filament\Resources\Tags\Pages\EditTag;
 use App\Filament\Resources\Tags\Pages\ListTags;
 use App\Models\Tag;
+use App\Support\TagSlug;
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -24,7 +25,6 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Str;
 use UnitEnum;
 
 class TagResource extends Resource
@@ -46,19 +46,21 @@ class TagResource extends Resource
                     TextInput::make('name')
                         ->required()
                         ->maxLength(255)
+                        ->unique(ignoreRecord: true)
                         ->live(onBlur: true)
                         ->afterStateUpdated(function (Get $get, Set $set, ?string $old, ?string $state): void {
-                            if (filled($get('slug')) && $get('slug') !== Str::slug($old ?? '')) {
+                            if (filled($get('slug')) && $get('slug') !== TagSlug::fromName($old)) {
                                 return;
                             }
 
-                            $set('slug', Str::slug($state ?? ''));
+                            $set('slug', TagSlug::fromName($state));
                         }),
                     TextInput::make('slug')
                         ->required()
                         ->maxLength(255)
                         ->unique(ignoreRecord: true),
                     Textarea::make('description')
+                        ->maxLength(5000)
                         ->rows(5)
                         ->columnSpanFull(),
                 ]),
@@ -66,7 +68,7 @@ class TagResource extends Resource
                 ->columns(2)
                 ->schema([
                     TextInput::make('meta_title')->maxLength(255),
-                    Textarea::make('meta_description')->rows(4),
+                    Textarea::make('meta_description')->maxLength(160)->rows(4),
                 ]),
         ]);
     }

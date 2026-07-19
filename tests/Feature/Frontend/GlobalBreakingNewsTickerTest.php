@@ -39,7 +39,7 @@ class GlobalBreakingNewsTickerTest extends TestCase
         $category = Category::factory()->create(['name' => 'Punjab']);
         $article->categories()->attach($category, ['is_primary' => true]);
 
-        foreach ([route('news.show', $article->slug), route('categories.show', $category->slug)] as $url) {
+        foreach ([$article->publicUrl(), route('categories.show', $category->slug)] as $url) {
             $response = $this->get($url)->assertOk();
             $html = $response->getContent();
             $this->assertSame(1, substr_count($html, '<section class="ds-breaking'));
@@ -50,9 +50,12 @@ class GlobalBreakingNewsTickerTest extends TestCase
 
     public function test_ticker_covers_tag_search_date_and_author_archives(): void
     {
-        Post::factory()->published()->breaking()->create(['title' => 'Everywhere ticker report']);
         $tag = Tag::factory()->create();
         $author = User::factory()->create(['is_active' => true]);
+        Post::factory()->published()->breaking()->create([
+            'title' => 'Everywhere ticker report',
+            'author_id' => $author->id,
+        ]);
         $urls = [
             route('tags.show', $tag->slug),
             route('search'),

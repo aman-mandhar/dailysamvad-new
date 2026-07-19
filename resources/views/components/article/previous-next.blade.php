@@ -5,13 +5,13 @@
         <div>
             @if ($previous)
                 <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">Previous article</span>
-                <a href="{{ route('news.show', $previous->slug) }}" class="mt-1 block font-bold text-slate-950 hover:text-amber-700 dark:text-white dark:hover:text-amber-400">{{ $previous->title }}</a>
+                <a href="{{ $previous->publicUrl() }}" class="mt-1 block font-bold text-slate-950 hover:text-amber-700 dark:text-white dark:hover:text-amber-400">{{ $previous->title }}</a>
             @endif
         </div>
         <div class="sm:text-right">
             @if ($next)
                 <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">Next article</span>
-                <a href="{{ route('news.show', $next->slug) }}" class="mt-1 block font-bold text-slate-950 hover:text-amber-700 dark:text-white dark:hover:text-amber-400">{{ $next->title }}</a>
+                <a href="{{ $next->publicUrl() }}" class="mt-1 block font-bold text-slate-950 hover:text-amber-700 dark:text-white dark:hover:text-amber-400">{{ $next->title }}</a>
             @endif
         </div>
     </nav>

@@ -42,11 +42,16 @@ class HomepageSidebarTest extends TestCase
     public function test_sidebar_news_and_category_routes_and_image_alt_are_rendered(): void
     {
         $category = Category::factory()->create(['name' => 'पंजाब', 'slug' => 'punjab']);
-        $post = Post::factory()->published()->create(['title' => 'Accessible headline', 'featured_image' => 'https://cdn.test/headline.jpg']);
+        $post = Post::factory()->published()->create([
+            'title' => 'Accessible headline',
+            'meta_title' => null,
+            'featured_image' => 'https://cdn.test/headline.jpg',
+            'featured_image_alt' => null,
+        ]);
         $category->posts()->attach($post, ['is_primary' => true]);
 
         $this->get('/')
-            ->assertSee(route('news.show', $post->slug), false)
+            ->assertSee($post->publicUrl(), false)
             ->assertSee(route('categories.show', $category->slug), false)
             ->assertSee('alt="Accessible headline"', false);
     }

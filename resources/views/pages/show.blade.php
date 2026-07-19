@@ -1,15 +1,5 @@
 @extends('layouts.frontend')
 
-@section('title', $page['seo_title'])
-@section('meta_description', $page['seo_description'])
-@section('canonical', route($page['route']))
-@section('robots', $page['robots'])
-@section('og_title', $page['seo_title'])
-@section('og_description', $page['seo_description'])
-@section('og_url', route($page['route']))
-@section('twitter_title', $page['seo_title'])
-@section('twitter_description', $page['seo_description'])
-
 @section('content')
     <div class="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
         <nav aria-label="Breadcrumb">

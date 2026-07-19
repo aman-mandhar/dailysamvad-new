@@ -14,13 +14,44 @@ class SingleNewsPageTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_post_uses_wordpress_date_url_and_previous_laravel_urls_redirect_permanently(): void
+    {
+        $post = Post::factory()->published()->create([
+            'slug' => 'wordpress-style-story',
+            'published_at' => '2026-07-19 10:00:00',
+        ]);
+
+        $this->assertSame(url('/2026/07/wordpress-style-story'), $post->publicUrl());
+        $this->get($post->publicUrl())->assertOk();
+        $this->get('/wordpress-style-story')
+            ->assertRedirect($post->publicUrl())
+            ->assertStatus(301);
+        $this->get('/news/wordpress-style-story')
+            ->assertRedirect($post->publicUrl())
+            ->assertStatus(301);
+    }
+
+    public function test_dated_wordpress_url_requires_the_actual_publication_year_and_month(): void
+    {
+        $post = Post::factory()->published()->create([
+            'slug' => 'dated-wordpress-story',
+            'published_at' => '2024-07-10 10:00:00',
+        ]);
+
+        $this->get('/2024/07/dated-wordpress-story')->assertOk();
+        $this->get('/2025/07/dated-wordpress-story')->assertNotFound();
+        $this->get('/2024/08/dated-wordpress-story')->assertNotFound();
+        $this->get('/2024/13/dated-wordpress-story')->assertNotFound();
+        $this->get('/2024/07/missing-wordpress-story')->assertNotFound();
+    }
+
     public function test_published_article_loads_with_its_relationships(): void
     {
         $category = Category::factory()->create(['name' => 'Punjab']);
         $post = Post::factory()->published()->create(['title' => 'Published public article']);
         $post->categories()->attach($category, ['is_primary' => true]);
 
-        $this->get(route('news.show', $post->slug))
+        $this->get($post->publicUrl())
             ->assertOk()
             ->assertViewIs('posts.show')
             ->assertSee($post->title)
@@ -37,7 +68,7 @@ class SingleNewsPageTest extends TestCase
             'scheduled_at' => $status === PostStatus::Scheduled ? now()->addDay() : null,
         ]);
 
-        $this->get(route('news.show', $post->slug))->assertNotFound();
+        $this->get($post->publicUrl())->assertNotFound();
     }
 
     /** @return array<string, array{PostStatus}> */
@@ -60,7 +91,7 @@ class SingleNewsPageTest extends TestCase
         $post->categories()->attach($category, ['is_primary' => true]);
         $related->categories()->attach($category, ['is_primary' => true]);
 
-        $this->get(route('news.show', $post->slug))
+        $this->get($post->publicUrl())
             ->assertOk()
             ->assertSee('data-related-post="'.$related->getKey().'"', false)
             ->assertDontSee('data-related-post="'.$post->getKey().'"', false);
@@ -72,7 +103,7 @@ class SingleNewsPageTest extends TestCase
         $post = Post::factory()->published()->create(['title' => 'Breadcrumb article']);
         $post->categories()->attach($category, ['is_primary' => true]);
 
-        $this->get(route('news.show', $post->slug))
+        $this->get($post->publicUrl())
             ->assertOk()
             ->assertSee('aria-label="Breadcrumb"', false)
             ->assertSeeInOrder(['Home', 'India', 'Breadcrumb article']);
@@ -86,7 +117,7 @@ class SingleNewsPageTest extends TestCase
             'canonical_url' => 'https://example.com/canonical-article',
         ]);
 
-        $this->get(route('news.show', $post->slug))
+        $this->get($post->publicUrl())
             ->assertOk()
             ->assertSee('<title>Stored SEO title</title>', false)
             ->assertSee('content="Stored SEO description"', false)
@@ -101,7 +132,7 @@ class SingleNewsPageTest extends TestCase
             'content' => '<p onclick="alert(1)">Safe text</p><script>alert(2)</script><a href="javascript:alert(3)">Unsafe link</a>',
         ]);
 
-        $this->get(route('news.show', $post->slug))
+        $this->get($post->publicUrl())
             ->assertOk()
             ->assertSee('<p>Safe text</p>', false)
             ->assertSee('Unsafe link')
@@ -120,7 +151,7 @@ class SingleNewsPageTest extends TestCase
         $tag = Tag::factory()->create(['name' => 'Punjab tag']);
         $post->tags()->attach($tag);
 
-        $response = $this->get(route('news.show', $post->slug))->assertOk();
+        $response = $this->get($post->publicUrl())->assertOk();
         $html = $response->getContent();
 
         $this->assertSame(1, substr_count($html, '<h1'));
@@ -138,7 +169,7 @@ class SingleNewsPageTest extends TestCase
             'content' => '<table><tr><td>Cell</td></tr></table><iframe src="https://www.youtube.com/embed/video"></iframe><iframe src="https://evil.example/embed"></iframe><script>alert(1)</script>',
         ]);
 
-        $this->get(route('news.show', $post->slug))
+        $this->get($post->publicUrl())
             ->assertOk()
             ->assertSee('class="ds-article-table"', false)
             ->assertSee('youtube.com/embed/video', false)
@@ -152,7 +183,7 @@ class SingleNewsPageTest extends TestCase
         $post = Post::factory()->published()->create();
         $post->delete();
 
-        $this->get(route('news.show', $post->slug))->assertNotFound();
+        $this->get($post->publicUrl())->assertNotFound();
         $this->get('/news/not-a-real-article')->assertNotFound();
     }
 }

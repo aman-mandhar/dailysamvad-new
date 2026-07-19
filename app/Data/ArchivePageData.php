@@ -10,8 +10,6 @@ final readonly class ArchivePageData
     /**
      * @param  Collection<int, array{label: string, url: ?string, current: bool}>  $breadcrumbs
      * @param  Collection<int, SidebarWidgetData>  $sidebarWidgets
-     * @param  array<string, mixed>  $structuredData
-     * @param  array<string, mixed>  $breadcrumbStructuredData
      */
     public function __construct(
         public string $contextType,
@@ -30,8 +28,6 @@ final readonly class ArchivePageData
         public string $seoDescription,
         public string $canonicalUrl,
         public string $robots,
-        public array $structuredData,
-        public array $breadcrumbStructuredData,
         public ?string $searchQuery,
         public string $emptyState,
         public ?string $authorAvatarUrl = null,

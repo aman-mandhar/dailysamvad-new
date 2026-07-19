@@ -40,6 +40,7 @@ class WordPressTaxonomyImportTest extends TestCase
         $schema->create('wp_users', function ($table): void {
             $table->unsignedBigInteger('ID')->primary();
             $table->string('user_login')->nullable();
+            $table->string('user_nicename')->nullable();
             $table->string('user_email')->nullable();
             $table->string('display_name')->nullable();
             $table->dateTime('user_registered')->nullable();
@@ -85,13 +86,14 @@ class WordPressTaxonomyImportTest extends TestCase
 
     public function test_existing_user_email_is_linked_without_duplication(): void
     {
-        $user = User::factory()->create(['email' => 'editor@example.com', 'old_wp_id' => null]);
+        $user = User::factory()->create(['email' => 'editor@example.com', 'old_wp_id' => null, 'slug' => null]);
         $this->insertUser(10, 'wp-editor', 'editor@example.com');
 
         $this->runImport(['--only' => ['users']]);
 
         $this->assertDatabaseCount('users', 1);
         $this->assertSame(10, $user->refresh()->old_wp_id);
+        $this->assertSame('wp-editor', $user->slug);
     }
 
     public function test_duplicate_category_slug_is_linked_and_rerun_is_idempotent(): void
@@ -124,6 +126,23 @@ class WordPressTaxonomyImportTest extends TestCase
         $this->runImport(['--only' => ['tags']]);
 
         $this->assertSame(1, Tag::query()->count());
+    }
+
+    public function test_tag_import_reuses_matching_name_without_replacing_existing_slug(): void
+    {
+        $existing = Tag::factory()->create([
+            'old_wp_id' => null,
+            'name' => 'Punjab Politics',
+            'slug' => 'editorial-punjab-politics',
+        ]);
+        $this->insertTerm(31, 'Punjab Politics', 'wordpress-punjab-politics', 'post_tag');
+
+        $this->runImport(['--only' => ['tags']]);
+        $this->runImport(['--only' => ['tags']]);
+
+        $this->assertDatabaseCount('tags', 1);
+        $this->assertSame(31, $existing->refresh()->old_wp_id);
+        $this->assertSame('editorial-punjab-politics', $existing->slug);
     }
 
     public function test_resume_continues_after_the_last_checkpoint(): void
@@ -184,7 +203,8 @@ class WordPressTaxonomyImportTest extends TestCase
     {
         $this->wordpress->table('wp_users')->insert([
             'ID' => $id, 'user_login' => $login, 'user_email' => $email,
-            'display_name' => ucfirst($login), 'user_registered' => '2020-01-01 12:00:00',
+            'user_nicename' => $login, 'display_name' => ucfirst($login),
+            'user_registered' => '2020-01-01 12:00:00',
         ]);
     }
 

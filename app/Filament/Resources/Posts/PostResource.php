@@ -7,6 +7,7 @@ use App\Filament\Resources\Posts\Pages\CreatePost;
 use App\Filament\Resources\Posts\Pages\EditPost;
 use App\Filament\Resources\Posts\Pages\ListPosts;
 use App\Models\Category;
+use App\Models\Media;
 use App\Models\Post;
 use App\Observers\PostObserver;
 use App\Support\PostSeoData;
@@ -90,9 +91,13 @@ class PostResource extends Resource
                         ->required(),
                     Select::make('author_id')
                         ->label('Author')
-                        ->relationship('author', 'name')
+                        ->relationship(
+                            name: 'author',
+                            titleAttribute: 'name',
+                            modifyQueryUsing: fn (Builder $query): Builder => $query->where('is_active', true)->orderBy('name'),
+                        )
                         ->searchable()
-                        ->preload()
+                        ->default(fn (): ?int => auth()->id())
                         ->required(),
                 ]),
             Section::make('Publishing')
@@ -149,11 +154,29 @@ class PostResource extends Resource
                         )
                         ->multiple()
                         ->searchable()
-                        ->preload()
                         ->columnSpanFull(),
                 ]),
             Section::make('Featured Image')
                 ->schema([
+                    Select::make('featured_media_id')
+                        ->label('Select from Media Library')
+                        ->relationship(
+                            name: 'featuredMedia',
+                            titleAttribute: 'original_filename',
+                            modifyQueryUsing: fn (Builder $query): Builder => $query
+                                ->whereNull('missing_at')
+                                ->where('mime_type', 'like', 'image/%')
+                                ->orderByDesc('created_at'),
+                        )
+                        ->getOptionLabelFromRecordUsing(fn (Media $record): string => $record->original_filename ?: basename($record->path))
+                        ->searchable(['original_filename', 'path', 'alt_text'])
+                        ->preload(false)
+                        ->live()
+                        ->afterStateUpdated(function (Set $set, mixed $state): void {
+                            $path = filled($state) ? Media::query()->whereKey($state)->value('path') : null;
+                            $set('featured_image', $path);
+                        })
+                        ->helperText('Search existing media. Detaching does not delete the binary.'),
                     FileUpload::make('featured_image')
                         ->label('Featured Image')
                         ->image()
@@ -166,6 +189,8 @@ class PostResource extends Resource
                         ->disk('public')
                         ->directory('posts/featured')
                         ->visibility('public')
+                        ->live()
+                        ->afterStateUpdated(fn (Set $set): mixed => $set('featured_media_id', null))
                         ->deleteUploadedFileUsing(fn (string $file): bool => PostObserver::deleteManagedImage($file))
                         ->getUploadedFileNameForStorageUsing(function (TemporaryUploadedFile $file): string {
                             $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
@@ -289,8 +314,7 @@ class PostResource extends Resource
                 SelectFilter::make('author_id')
                     ->label('Author')
                     ->relationship('author', 'name')
-                    ->searchable()
-                    ->preload(),
+                    ->searchable(),
                 SelectFilter::make('language')->options([
                     'hi' => 'Hindi',
                     'pa' => 'Punjabi',
@@ -302,8 +326,7 @@ class PostResource extends Resource
                         titleAttribute: 'name',
                         modifyQueryUsing: fn (Builder $query): Builder => $query->active()->orderBy('name'),
                     )
-                    ->searchable()
-                    ->preload(),
+                    ->searchable(),
                 SelectFilter::make('tag')
                     ->relationship(
                         name: 'tags',

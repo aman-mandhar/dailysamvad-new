@@ -101,6 +101,7 @@ class HomepageQuery
                 'content',
                 'meta_title',
                 'featured_image',
+                'featured_media_id',
                 'featured_image_alt',
                 'published_at',
                 'is_breaking',
@@ -109,6 +110,7 @@ class HomepageQuery
             ->with([
                 'author:id,name',
                 'primaryCategory:id,name,slug',
+                'featuredMedia:id,disk,path,width,height,missing_at,metadata',
             ]);
     }
 
@@ -129,12 +131,14 @@ class HomepageQuery
                     'posts.content',
                     'posts.meta_title',
                     'posts.featured_image',
+                    'posts.featured_media_id',
                     'posts.featured_image_alt',
                     'posts.published_at',
                 ])
                 ->published()
                 ->orderByDesc('published_at')
                 ->limit(5),
+                'posts.featuredMedia:id,disk,path,width,height,missing_at,metadata',
             ])
             ->ordered()
             ->limit(6)

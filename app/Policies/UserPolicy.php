@@ -42,6 +42,10 @@ class UserPolicy
             return Response::deny('The final active super-admin cannot be deleted.');
         }
 
+        if ($model->posts()->exists()) {
+            return Response::deny('Reassign all attributed posts before deleting this author.');
+        }
+
         return Response::allow();
     }
 

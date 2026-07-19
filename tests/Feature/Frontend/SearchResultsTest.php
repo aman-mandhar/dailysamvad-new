@@ -29,6 +29,16 @@ class SearchResultsTest extends TestCase
         $this->get(route('search', ['q' => '%_']))->assertOk()->assertDontSee('data-archive-post="'.$post->id.'"', false);
     }
 
+    public function test_no_results_state_repeats_the_escaped_search_phrase(): void
+    {
+        $this->get(route('search', ['q' => '<script>alert(1)</script>Missing']))
+            ->assertOk()
+            ->assertSee('No news found')
+            ->assertSee('Searched for:')
+            ->assertSee('alert(1)Missing')
+            ->assertDontSee('<script>', false);
+    }
+
     public function test_query_is_escaped_and_pagination_preserves_normalized_query_and_canonical(): void
     {
         Post::factory()->published()->count(13)->create(['title' => 'Punjab query report']);

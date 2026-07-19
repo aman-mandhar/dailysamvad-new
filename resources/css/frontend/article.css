@@ -1,10 +1,11 @@
 @layer components {
     .ds-site .ds-article-page { padding-block: 1rem 3rem; }
-    .ds-site .ds-breadcrumbs { margin-block: .5rem 1.25rem; color: var(--ds-color-muted); font-size: .875rem; }
+    .ds-site .ds-breadcrumbs { min-width: 0; margin-block: .5rem 1rem; color: var(--ds-color-muted); font-size: .82rem; line-height: 1.45; }
     .ds-site .ds-breadcrumbs ol { display: flex; min-width: 0; flex-wrap: wrap; gap: .35rem; }
-    .ds-site .ds-breadcrumbs li { min-width: 0; overflow-wrap: anywhere; }
+    .ds-site .ds-breadcrumbs li { min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
     .ds-site .ds-breadcrumbs li + li::before { content: '/'; margin-right: .35rem; color: var(--ds-color-border); }
     .ds-site .ds-breadcrumbs a:hover { color: var(--ds-color-red); }
+    .ds-site .ds-breadcrumbs [aria-current='page'] { color: var(--ds-color-text); font-weight: 600; }
     .ds-site .ds-article-layout { display: grid; grid-template-columns: minmax(0, 1fr) 20rem; gap: 2.5rem; align-items: start; }
     .ds-site .ds-article { min-width: 0; }
     .ds-site .ds-article-header { border-bottom: 1px solid var(--ds-color-border); padding-bottom: 1.25rem; }
@@ -14,7 +15,7 @@
     .ds-site .ds-article-meta { display: flex; flex-wrap: wrap; gap: .4rem 1rem; margin-top: 1rem; color: var(--ds-color-muted); font-size: .875rem; }
     .ds-site .ds-article-author { color: var(--ds-color-author); font-weight: 700; }
     .ds-site .ds-article-featured-image { margin-top: 1.5rem; }
-    .ds-site .ds-article-featured-image img { aspect-ratio: 16/9; width: 100%; height: auto; object-fit: cover; }
+    .ds-site .ds-article-featured-image img { width: 100%; height: auto; object-fit: contain; }
     .ds-site .ds-article-featured-image figcaption { margin-top: .4rem; color: var(--ds-color-muted); font-size: .82rem; }
     .ds-site .ds-article-share { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin-block: 1.25rem; }
     .ds-site .ds-article-share a, .ds-site .ds-article-share button { border: 1px solid var(--ds-color-border); border-radius: .25rem; padding: .45rem .7rem; font-size: .82rem; font-weight: 700; }

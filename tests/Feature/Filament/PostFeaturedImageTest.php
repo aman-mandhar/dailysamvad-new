@@ -6,8 +6,10 @@ use App\Enums\PostStatus;
 use App\Filament\Resources\Posts\Pages\CreatePost;
 use App\Filament\Resources\Posts\Pages\EditPost;
 use App\Models\Category;
+use App\Models\Media;
 use App\Models\Post;
 use App\Models\User;
+use App\Observers\PostObserver;
 use Database\Seeders\RolePermissionSeeder;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -90,6 +92,27 @@ class PostFeaturedImageTest extends TestCase
         Storage::disk('public')->assertMissing('posts/featured/remove-me.jpg');
     }
 
+    public function test_existing_media_can_be_selected_and_detached_without_deleting_binary(): void
+    {
+        $media = Media::query()->create([
+            'disk' => 'public', 'path' => 'media/library/selectable.jpg', 'mime_type' => 'image/jpeg',
+        ]);
+        Storage::disk('public')->put($media->path, 'image');
+        $post = $this->postWithFeaturedImage('posts/featured/previous.jpg');
+
+        Livewire::actingAs($this->editor)->test(EditPost::class, ['record' => $post->getRouteKey()])
+            ->set('data.featured_media_id', $media->id)->call('save')->assertHasNoFormErrors();
+
+        $this->assertSame($media->id, $post->refresh()->featured_media_id);
+        $this->assertSame($media->path, $post->featured_image);
+
+        Livewire::actingAs($this->editor)->test(EditPost::class, ['record' => $post->getRouteKey()])
+            ->set('data.featured_media_id', null)->call('save')->assertHasNoFormErrors();
+
+        $this->assertNull($post->refresh()->featured_media_id);
+        Storage::disk('public')->assertExists($media->path);
+    }
+
     public function test_non_image_upload_is_rejected(): void
     {
         Livewire::actingAs($this->editor)
@@ -131,6 +154,33 @@ class PostFeaturedImageTest extends TestCase
 
         Storage::disk('public')->assertExists('posts/featured/soft-delete.jpg');
         $this->assertNotNull($post->fresh()->deleted_at);
+    }
+
+    public function test_replacing_one_shared_featured_image_preserves_the_binary(): void
+    {
+        $path = 'posts/featured/shared.jpg';
+        $post = $this->postWithFeaturedImage($path);
+        Post::factory()->create(['featured_image' => $path]);
+        Storage::disk('public')->put('posts/featured/replacement.jpg', 'replacement');
+
+        $post->update(['featured_image' => 'posts/featured/replacement.jpg']);
+
+        Storage::disk('public')->assertExists($path);
+    }
+
+    public function test_media_owned_or_content_referenced_file_is_not_deleted(): void
+    {
+        $owned = 'posts/featured/media-owned.jpg';
+        $referenced = 'posts/featured/content-reference.jpg';
+        Storage::disk('public')->put($owned, 'owned');
+        Storage::disk('public')->put($referenced, 'referenced');
+        Media::query()->create(['disk' => 'public', 'path' => $owned]);
+        Post::factory()->create(['content' => '<img src="/storage/'.$referenced.'">']);
+
+        $this->assertFalse(PostObserver::deleteManagedImage($owned));
+        $this->assertFalse(PostObserver::deleteManagedImage($referenced));
+        Storage::disk('public')->assertExists($owned);
+        Storage::disk('public')->assertExists($referenced);
     }
 
     private function postWithFeaturedImage(string $path): Post

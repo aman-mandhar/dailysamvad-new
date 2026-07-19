@@ -44,10 +44,13 @@ class ProductionEssentialsTest extends TestCase
     public function test_sitemap_is_valid_and_contains_public_article(): void
     {
         $post = Post::factory()->published()->create();
-        $content = $this->get('/sitemap.xml')->assertOk()->assertHeader('content-type', 'application/xml; charset=UTF-8')->streamedContent();
+        $index = $this->get('/sitemap.xml')->assertOk()->assertHeader('content-type', 'application/xml; charset=UTF-8')->streamedContent();
+        $content = $this->get('/sitemaps/posts-1.xml')->assertOk()->streamedContent();
 
+        $this->assertNotFalse(simplexml_load_string($index));
         $this->assertNotFalse(simplexml_load_string($content));
-        $this->assertStringContainsString(route('news.show', $post->slug), $content);
+        $this->assertStringContainsString(route('seo.sitemap.posts', 1), $index);
+        $this->assertStringContainsString($post->publicUrl(), $content);
     }
 
     public function test_robots_loads_with_sitemap_and_admin_rule(): void

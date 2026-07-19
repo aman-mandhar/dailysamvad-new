@@ -2,11 +2,14 @@
 
 namespace Tests\Feature\Frontend;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
 
 class StaticPagesTest extends TestCase
 {
+    use RefreshDatabase;
+
     /** @var array<int, string> */
     private const SECONDARY_NAV_ROUTES = [
         'pages.copyright',

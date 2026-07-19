@@ -3,6 +3,7 @@
 namespace Tests\Feature\Frontend;
 
 use App\Models\Post;
+use App\Support\MediaUrlResolver;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Storage;
@@ -31,10 +32,15 @@ class FeaturedImageRenderingTest extends TestCase
         Storage::disk('public')->assertExists($path);
     }
 
-    public function test_accessor_returns_null_for_null_or_missing_featured_image(): void
+    public function test_accessor_returns_null_for_null_or_malformed_featured_image(): void
     {
         $this->assertNull(Post::factory()->make(['featured_image' => null])->featured_image_url);
-        $this->assertNull(Post::factory()->make(['featured_image' => 'wordpress/uploads/missing.jpg'])->featured_image_url);
+        $this->assertNull(Post::factory()->make(['featured_image' => '../missing.jpg'])->featured_image_url);
+    }
+
+    public function test_explicit_existence_resolution_returns_null_for_missing_media(): void
+    {
+        $this->assertNull(app(MediaUrlResolver::class)->resolveExisting('wordpress/uploads/missing.jpg'));
     }
 
     public function test_placeholder_renders_only_when_featured_image_is_unavailable(): void
@@ -53,6 +59,7 @@ class FeaturedImageRenderingTest extends TestCase
         Storage::disk('public')->put($path, 'hero');
         $post = Post::factory()->make([
             'featured_image' => $path,
+            'featured_image_alt' => null,
             'meta_title' => 'SEO headline',
             'title' => 'Visible headline',
         ]);

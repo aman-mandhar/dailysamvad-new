@@ -7,18 +7,15 @@ use App\Models\Category;
 use App\Models\Post;
 use App\Models\Tag;
 use App\Models\User;
-use App\Support\ArchiveStructuredData;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class ArchivePageQuery
 {
     public function __construct(
         private readonly SidebarQuery $sidebar,
-        private readonly ArchiveStructuredData $structuredData,
     ) {}
 
     public function forCategory(string $slug): ArchivePageData
@@ -57,8 +54,10 @@ class ArchivePageQuery
     {
         abort_unless((bool) config('archive.author_archives_enabled', true), 404);
         $author = User::query()
-            ->select(['id', 'name', 'username', 'slug', 'bio', 'avatar_path', 'facebook_url', 'x_url', 'instagram_url', 'youtube_url'])
-            ->where('is_active', true)->where('username', $username)->whereNotNull('name')->whereNotNull('username')->firstOrFail();
+            ->select(['id', 'name', 'username', 'slug', 'bio', 'designation', 'avatar_path', 'facebook_url', 'x_url', 'instagram_url', 'youtube_url', 'is_public'])
+            ->publicAuthor()
+            ->where('username', $username)
+            ->firstOrFail();
 
         return $this->build(
             type: 'author',
@@ -155,18 +154,13 @@ class ArchivePageQuery
         $description = $description ?: 'Browse published news from '.config('organization.website_name').'.';
         $seoDescription = $this->plainText($metaDescription) ?: $description;
         $breadcrumbs = $this->breadcrumbs($type, $title, $baseUrl, $dateParts);
-        $schema = $this->structuredData->build($type, $metaTitle.$pageSuffix, $seoDescription, $canonical, $breadcrumbs);
         $sidebarContext = (string) config("archive.sidebar_contexts.$type", 'archive');
         $sidebar = $this->sidebar->forContext($sidebarContext);
         $ads = (array) config("archive.advertisements.$type", []);
         $authorAvatarUrl = null;
         $authorSocialLinks = [];
         if ($entity instanceof User) {
-            if (filled($entity->avatar_path)) {
-                $authorAvatarUrl = Str::startsWith($entity->avatar_path, ['http://', 'https://'])
-                    ? $entity->avatar_path
-                    : Storage::disk('public')->url($entity->avatar_path);
-            }
+            $authorAvatarUrl = $entity->avatar_url;
             foreach (['facebook_url' => 'Facebook', 'x_url' => 'X', 'instagram_url' => 'Instagram', 'youtube_url' => 'YouTube'] as $field => $label) {
                 if (filter_var($entity->{$field}, FILTER_VALIDATE_URL)) {
                     $authorSocialLinks[] = ['label' => $label, 'url' => $entity->{$field}];
@@ -191,8 +185,6 @@ class ArchivePageQuery
             seoDescription: $seoDescription.($page > 1 ? ' Page '.$page.'.' : ''),
             canonicalUrl: $canonical,
             robots: (string) config("archive.robots.$type", 'index, follow'),
-            structuredData: $schema['page'],
-            breadcrumbStructuredData: $schema['breadcrumbs'],
             searchQuery: $searchQuery,
             emptyState: $searchQuery === '' ? 'Enter a keyword to search published news.' : (string) config("archive.empty_states.$type"),
             authorAvatarUrl: $authorAvatarUrl,
@@ -204,8 +196,8 @@ class ArchivePageQuery
     private function postQuery(): Builder
     {
         return Post::query()
-            ->select(['id', 'title', 'slug', 'excerpt', 'meta_title', 'featured_image', 'featured_image_alt', 'published_at'])
-            ->published()->with('primaryCategory:id,name,slug')
+            ->select(['id', 'title', 'slug', 'excerpt', 'meta_title', 'featured_image', 'featured_media_id', 'featured_image_alt', 'published_at'])
+            ->published()->with(['primaryCategory:id,name,slug', 'featuredMedia:id,disk,path,width,height,missing_at,metadata'])
             ->orderByDesc('published_at')->orderByDesc('id');
     }
 

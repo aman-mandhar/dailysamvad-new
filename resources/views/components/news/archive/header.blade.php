@@ -2,10 +2,13 @@
 
 <header class="ds-archive-header">
     @if ($archive->contextType === 'author' && $archive->authorAvatarUrl)
-        <img class="ds-archive-author-avatar" src="{{ $archive->authorAvatarUrl }}" alt="{{ $archive->title }}" width="96" height="96" loading="lazy">
+        <img class="ds-archive-author-avatar" src="{{ $archive->authorAvatarUrl }}" alt="Portrait of {{ $archive->title }}" width="96" height="96">
     @endif
     <p class="ds-archive-label">{{ $archive->label }}</p>
     <h1 id="archive-heading" class="ds-archive-title">{{ $archive->title }}</h1>
+    @if ($archive->contextType === 'author' && filled($archive->entity?->designation))
+        <p class="ds-archive-author-designation">{{ $archive->entity->designation }}</p>
+    @endif
     @if ($archive->description)
         <p class="ds-archive-description">{{ $archive->description }}</p>
     @endif

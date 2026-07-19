@@ -18,7 +18,7 @@ class UserImporter extends AbstractWordPressImporter
     protected function sourceRecords(int $cursor, int $limit): Collection
     {
         return $this->source->connection()->table($this->source->table('users'))
-            ->selectRaw('ID as source_id, user_login, user_email, display_name, user_registered')
+            ->selectRaw('ID as source_id, user_login, user_nicename, user_email, display_name, user_registered')
             ->where('ID', '>', $cursor)->orderBy('ID')->limit($limit)->get();
     }
 
@@ -50,7 +50,10 @@ class UserImporter extends AbstractWordPressImporter
             }
 
             if (! $dryRun) {
-                $byEmail->forceFill(['old_wp_id' => $record->source_id])->save();
+                $byEmail->forceFill([
+                    'old_wp_id' => $record->source_id,
+                    'slug' => $byEmail->slug ?: $this->authorSlug($record, $byEmail),
+                ])->save();
             }
             $counter->updated++;
 
@@ -70,13 +73,30 @@ class UserImporter extends AbstractWordPressImporter
                 'old_wp_id' => $record->source_id,
                 'name' => trim((string) $record->display_name) ?: $username,
                 'username' => $username,
+                'slug' => $this->authorSlug($record),
                 'email' => $email,
                 'password' => Str::password(40),
                 'is_active' => true,
+                'is_public' => true,
                 'created_at' => $registered,
                 'updated_at' => $registered,
             ])->save();
         }
         $counter->imported++;
+    }
+
+    private function authorSlug(object $record, ?User $existing = null): ?string
+    {
+        $slug = trim((string) $record->user_nicename);
+        if ($slug === '') {
+            return null;
+        }
+
+        $conflict = User::query()
+            ->where('slug', $slug)
+            ->when($existing, fn ($query) => $query->whereKeyNot($existing->getKey()))
+            ->exists();
+
+        return $conflict ? $slug.'-'.$record->source_id : $slug;
     }
 }

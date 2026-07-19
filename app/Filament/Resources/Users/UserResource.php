@@ -65,6 +65,11 @@ class UserResource extends Resource
                         TextInput::make('username')
                             ->maxLength(255)
                             ->unique(ignoreRecord: true),
+                        TextInput::make('slug')
+                            ->label('Public author slug')
+                            ->maxLength(255)
+                            ->unique(ignoreRecord: true)
+                            ->helperText('Preserved for WordPress compatibility; public URLs currently use username.'),
                         TextInput::make('mobile_number')
                             ->tel()
                             ->maxLength(20),
@@ -83,6 +88,9 @@ class UserResource extends Resource
                         Toggle::make('is_active')
                             ->label('Active')
                             ->default(true),
+                        Toggle::make('is_public')
+                            ->label('Public author profile')
+                            ->default(true),
                     ]),
                 Section::make('Profile')
                     ->columns(2)
@@ -93,12 +101,15 @@ class UserResource extends Resource
                             ->label('Avatar')
                             ->image()
                             ->avatar()
-                            ->maxSize(5120)
+                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                            ->maxSize(2048)
                             ->disk('public')
                             ->directory('avatars')
                             ->visibility('public'),
                         Textarea::make('bio')
                             ->rows(5)
+                            ->maxLength(2000)
+                            ->helperText('Plain text only, up to 2,000 characters.')
                             ->columnSpanFull(),
                     ]),
                 Section::make('Social Links')

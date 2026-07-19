@@ -121,6 +121,18 @@ class PostTaxonomyResourceTest extends TestCase
         $this->assertSame('Duplicate tag assignments are not allowed.', $errors['tags']);
     }
 
+    public function test_invalid_tag_assignment_is_rejected_server_side(): void
+    {
+        $category = Category::factory()->create();
+        $errors = PostTaxonomy::validate([
+            'categories' => [$category->id],
+            'primary_category_id' => $category->id,
+            'tags' => [999999],
+        ]);
+
+        $this->assertSame('Every selected tag must exist.', $errors['tags']);
+    }
+
     public function test_removing_the_current_primary_category_fails_validation(): void
     {
         $primary = Category::factory()->create();

@@ -21,7 +21,7 @@
                             <a class="ds-lead-slide__badge" href="{{ route('categories.show', $category->slug) }}" @if(! $isActive) tabindex="-1" @endif>{{ $category->name }}</a>
                         @endif
                         <h2 class="ds-lead-slide__title">
-                            <a href="{{ route('news.show', $post->slug) }}" @if(! $isActive) tabindex="-1" @endif>{{ $post->title }}</a>
+                            <a href="{{ $post->publicUrl() }}" @if(! $isActive) tabindex="-1" @endif>{{ $post->title }}</a>
                         </h2>
                         @if ($post->author || $post->published_at)
                             <div class="ds-lead-slide__meta">

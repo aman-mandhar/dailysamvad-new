@@ -1,9 +1,7 @@
 @props(['author'])
 
 @php
-    $avatarUrl = filled($author->avatar_path)
-        ? (str_starts_with($author->avatar_path, 'http') ? $author->avatar_path : Storage::disk('public')->url($author->avatar_path))
-        : null;
+    $avatarUrl = $author->avatar_url;
     $socials = array_filter([
         'Facebook' => $author->facebook_url,
         'X' => $author->x_url,

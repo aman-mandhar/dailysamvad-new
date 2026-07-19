@@ -46,4 +46,16 @@ class ArchivePageQueryTest extends TestCase
             ->assertSee('aria-current="page"', false)
             ->assertSee('aria-label="Pagination"', false);
     }
+
+    public function test_pagination_uses_accessible_current_page_and_ellipsis_for_long_archives(): void
+    {
+        config()->set('archive.per_page', 1);
+        $category = Category::factory()->create();
+        $category->posts()->attach(Post::factory()->published()->count(20)->create());
+
+        $this->get(route('categories.show', ['slug' => $category->slug, 'page' => 10]))
+            ->assertOk()
+            ->assertSee('aria-label="Page 10, current page"', false)
+            ->assertSee('ds-archive-pagination__ellipsis', false);
+    }
 }

@@ -5,35 +5,21 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>@yield('title', 'Daily Samvad')</title>
-        <meta name="description" content="@yield('meta_description', 'Daily Samvad multilingual news platform.')">
-        <meta name="robots" content="@yield('robots', 'index, follow')">
-        <link rel="canonical" href="@yield('canonical', url()->current())">
-
-        <meta property="og:type" content="@yield('og_type', 'website')">
-        <meta property="og:site_name" content="Daily Samvad">
-        <meta property="og:title" content="@yield('og_title', 'Daily Samvad')">
-        <meta property="og:description" content="@yield('og_description', 'Daily Samvad multilingual news platform.')">
-        <meta property="og:url" content="@yield('og_url', url()->current())">
-        @hasSection('og_image')
-            <meta property="og:image" content="@yield('og_image')">
-        @endif
-        @hasSection('article_published_time')
-            <meta property="article:published_time" content="@yield('article_published_time')">
-        @endif
-
-        <meta name="twitter:card" content="@yield('twitter_card', 'summary_large_image')">
-        <meta name="twitter:title" content="@yield('twitter_title', 'Daily Samvad')">
-        <meta name="twitter:description" content="@yield('twitter_description', 'Daily Samvad multilingual news platform.')">
-        @hasSection('twitter_image')
-            <meta name="twitter:image" content="@yield('twitter_image')">
-        @endif
+        <x-seo.meta :data="app(\App\SEO\SEOManager::class)->forCurrentPage([
+            'article' => $article ?? null,
+            'archive' => $archive ?? null,
+            'page' => $page ?? null,
+            'heroPost' => $heroPost ?? (isset($heroPosts) ? $heroPosts->first() : null),
+            'title' => trim($__env->yieldContent('title')),
+            'description' => trim($__env->yieldContent('meta_description')),
+            'robots' => trim($__env->yieldContent('robots')),
+            'canonical' => trim($__env->yieldContent('canonical')) ?: null,
+        ])" />
 
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Anek+Devanagari:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-        @stack('json-ld')
         @stack('head')
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>

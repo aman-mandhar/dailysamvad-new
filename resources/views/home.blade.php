@@ -1,19 +1,5 @@
 @extends('layouts.frontend')
 
-@section('title', 'Daily Samvad - Latest Hindi, Punjabi and English News')
-@section('meta_description', 'Read the latest breaking, featured and regional news from Daily Samvad in Hindi, Punjabi and English.')
-@section('canonical', route('home'))
-@section('og_title', 'Daily Samvad - Latest News')
-@section('og_description', 'Breaking news and trusted reporting in Hindi, Punjabi and English.')
-@section('og_url', route('home'))
-@section('twitter_title', 'Daily Samvad - Latest News')
-@section('twitter_description', 'Breaking news and trusted reporting in Hindi, Punjabi and English.')
-
-@if ($heroPosts->first()?->featured_image_url)
-    @section('og_image', $heroPosts->first()->featured_image_url)
-    @section('twitter_image', $heroPosts->first()->featured_image_url)
-@endif
-
 @section('content')
     <div class="ds-container py-4 sm:py-5">
         <x-news.advertisement-slot :advertisement="$homepageTopAdvertisement" />

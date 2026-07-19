@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Enums\PostStatus;
 use App\Observers\PostObserver;
+use App\Support\MediaUrlResolver;
+use App\Support\ResponsiveImageData;
 use Database\Factories\PostFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
@@ -13,7 +15,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 #[ObservedBy([PostObserver::class])]
@@ -25,6 +26,7 @@ use Illuminate\Support\Str;
     'excerpt',
     'content',
     'featured_image',
+    'featured_media_id',
     'featured_image_alt',
     'featured_image_caption',
     'status',
@@ -65,35 +67,16 @@ class Post extends Model
         }
 
         $this->featuredImageUrlResolved = true;
-        $path = trim((string) $this->featured_image);
 
-        if ($path === '') {
-            return null;
-        }
+        return $this->resolvedFeaturedImageUrl = app(MediaUrlResolver::class)->resolve($this->featured_image);
+    }
 
-        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
-            return $this->resolvedFeaturedImageUrl = $path;
-        }
+    /** @return array{src: ?string, srcset: ?string, width: ?int, height: ?int} */
+    public function responsiveFeaturedImage(): array
+    {
+        $media = $this->relationLoaded('featuredMedia') ? $this->getRelation('featuredMedia') : null;
 
-        $path = ltrim(str_replace('\\', '/', $path), '/');
-        foreach (['public/storage/', 'storage/'] as $prefix) {
-            if (str_starts_with($path, $prefix)) {
-                $path = substr($path, strlen($prefix));
-                break;
-            }
-        }
-
-        $disk = Storage::disk('public');
-        if ($path === '' || ! $disk->exists($path)) {
-            return null;
-        }
-
-        $url = $disk->url($path);
-        $publicPath = parse_url($url, PHP_URL_PATH);
-
-        return $this->resolvedFeaturedImageUrl = is_string($publicPath) && $publicPath !== ''
-            ? '/'.ltrim($publicPath, '/')
-            : $url;
+        return app(ResponsiveImageData::class)->for($this->featured_image, $media);
     }
 
     public function rememberFeaturedImageBeforeUpdate(?string $path): void
@@ -119,6 +102,12 @@ class Post extends Model
         return $this->belongsTo(User::class, 'author_id');
     }
 
+    /** @return BelongsTo<Media, $this> */
+    public function featuredMedia(): BelongsTo
+    {
+        return $this->belongsTo(Media::class, 'featured_media_id');
+    }
+
     /**
      * Get the post's categories.
      *
@@ -126,7 +115,7 @@ class Post extends Model
      */
     public function categories(): BelongsToMany
     {
-        return $this->belongsToMany(Category::class)->withPivot('is_primary');
+        return $this->belongsToMany(Category::class)->using(CategoryPost::class)->withPivot('is_primary');
     }
 
     /**
@@ -136,7 +125,7 @@ class Post extends Model
      */
     public function tags(): BelongsToMany
     {
-        return $this->belongsToMany(Tag::class);
+        return $this->belongsToMany(Tag::class)->using(PostTag::class);
     }
 
     /**
@@ -187,6 +176,23 @@ class Post extends Model
         return filled($this->canonical_url) ? $this->canonical_url : null;
     }
 
+    /** @return array{year: string, month: string, slug: string} */
+    public function publicRouteParameters(): array
+    {
+        $date = $this->published_at ?? $this->scheduled_at ?? $this->created_at ?? now();
+
+        return [
+            'year' => $date->format('Y'),
+            'month' => $date->format('m'),
+            'slug' => $this->slug,
+        ];
+    }
+
+    public function publicUrl(): string
+    {
+        return route('news.show', $this->publicRouteParameters());
+    }
+
     /**
      * Scope the query to currently published posts.
      *
@@ -199,6 +205,12 @@ class Post extends Model
             ->where('status', PostStatus::Published->value)
             ->whereNotNull('published_at')
             ->where('published_at', '<=', now());
+    }
+
+    /** @param Builder<Post> $query */
+    public function scopeIndexable(Builder $query): Builder
+    {
+        return $query->whereRaw("(seo_data IS NULL OR JSON_EXTRACT(seo_data, '$.robots.index') IS NULL OR JSON_EXTRACT(seo_data, '$.robots.index') != false)");
     }
 
     /**

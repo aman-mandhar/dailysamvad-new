@@ -5,6 +5,7 @@ namespace Tests\Feature\Filament;
 use App\Filament\Resources\Users\Pages\CreateUser;
 use App\Filament\Resources\Users\Pages\EditUser;
 use App\Filament\Resources\Users\UserResource;
+use App\Models\Post;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
 use Filament\Facades\Filament;
@@ -140,5 +141,30 @@ class UserResourceTest extends TestCase
 
         $this->assertSame('Updated Name', $target->name);
         $this->assertSame($originalPassword, $target->password);
+    }
+
+    public function test_author_with_attributed_posts_cannot_be_deleted(): void
+    {
+        $author = User::factory()->create();
+        Post::factory()->create(['author_id' => $author->id]);
+
+        $this->assertFalse(Gate::forUser($this->admin)->allows('delete', $author));
+    }
+
+    public function test_author_profile_fields_are_validated_and_saved(): void
+    {
+        $target = User::factory()->create();
+
+        Livewire::actingAs($this->admin)
+            ->test(EditUser::class, ['record' => $target->getRouteKey()])
+            ->fillForm([
+                'name' => 'Public Author',
+                'slug' => 'public-author',
+                'designation' => 'Reporter',
+                'bio' => str_repeat('a', 2001),
+                'is_public' => false,
+            ])
+            ->call('save')
+            ->assertHasFormErrors(['bio']);
     }
 }

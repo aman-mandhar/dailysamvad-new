@@ -94,6 +94,28 @@ class TagResourceTest extends TestCase
             ->assertHasFormErrors(['slug' => 'unique']);
     }
 
+    public function test_name_must_be_unique_when_creating_a_tag(): void
+    {
+        Tag::factory()->create(['name' => 'Election Updates']);
+
+        Livewire::actingAs($this->admin)
+            ->test(CreateTag::class)
+            ->fillForm([
+                'name' => 'Election Updates',
+                'slug' => 'different-election-slug',
+            ])
+            ->call('create')
+            ->assertHasFormErrors(['name' => 'unique']);
+    }
+
+    public function test_unicode_name_generates_a_non_empty_unicode_slug(): void
+    {
+        Livewire::actingAs($this->admin)
+            ->test(CreateTag::class)
+            ->set('data.name', 'ਪੰਜਾਬ ਖ਼ਬਰਾਂ')
+            ->assertSet('data.slug', 'ਪੰਜਾਬ-ਖ਼ਬਰਾਂ');
+    }
+
     public function test_slug_uniqueness_ignores_the_tag_being_edited(): void
     {
         $tag = Tag::factory()->create(['slug' => 'sports']);

@@ -38,6 +38,15 @@ class TagTest extends TestCase
         Tag::factory()->create(['slug' => 'politics']);
     }
 
+    public function test_name_must_be_unique(): void
+    {
+        Tag::factory()->create(['name' => 'Punjab Politics']);
+
+        $this->expectException(QueryException::class);
+
+        Tag::factory()->create(['name' => 'Punjab Politics']);
+    }
+
     public function test_old_wp_id_must_be_unique_when_present(): void
     {
         Tag::factory()->create(['old_wp_id' => 123]);

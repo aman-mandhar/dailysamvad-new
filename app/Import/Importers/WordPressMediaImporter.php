@@ -13,7 +13,9 @@ use App\Import\DTOs\MediaImportVerification;
 use App\Import\Services\WordPressConnection;
 use App\Import\Support\ImportMode;
 use App\Import\Support\StatisticsCounter;
+use App\Models\Media;
 use App\Models\Post;
+use App\Support\MediaPathNormalizer;
 use DateTimeImmutable;
 use Illuminate\Filesystem\FilesystemManager;
 use Illuminate\Support\Collection;
@@ -32,6 +34,7 @@ class WordPressMediaImporter implements MediaImporter
         private readonly FilesystemManager $filesystems,
         private readonly CheckpointRepository $checkpoints,
         private readonly Logger $logger,
+        private readonly MediaPathNormalizer $paths,
     ) {
         $this->verification = new MediaImportVerification;
     }
@@ -169,7 +172,15 @@ class WordPressMediaImporter implements MediaImporter
 
         if (isset($this->seenPaths[$relativePath])) {
             $counter->duplicates++;
-            $this->mapFeaturedImages($references, $this->destinationPath($relativePath), $this->seenPaths[$relativePath], $attachment, $altText, $dryRun);
+            $media = $this->mapMedia(
+                $attachment,
+                $this->destinationPath($relativePath),
+                $this->seenPaths[$relativePath],
+                $this->sourceMedia->size($relativePath),
+                $altText,
+                $dryRun,
+            );
+            $this->mapFeaturedImages($references, $media, $this->destinationPath($relativePath), $this->seenPaths[$relativePath], $attachment, $altText, $dryRun);
 
             return 0;
         }
@@ -222,7 +233,8 @@ class WordPressMediaImporter implements MediaImporter
                 $counter->imported++;
             }
 
-            $this->mapFeaturedImages($references, $destinationPath, (string) $mimeType, $attachment, $altText, $dryRun);
+            $media = $this->mapMedia($attachment, $destinationPath, (string) $mimeType, $size, $altText, $dryRun);
+            $this->mapFeaturedImages($references, $media, $destinationPath, (string) $mimeType, $attachment, $altText, $dryRun);
 
             return $unchanged || $dryRun ? 0 : $size;
         } catch (Throwable $exception) {
@@ -235,16 +247,37 @@ class WordPressMediaImporter implements MediaImporter
         }
     }
 
-    private function mapFeaturedImages(Collection $references, string $destinationPath, string $mimeType, object $attachment, mixed $altText, bool $dryRun): void
+    private function mapMedia(object $attachment, string $destinationPath, string $mimeType, int $size, mixed $altText, bool $dryRun): ?Media
+    {
+        if ($dryRun) {
+            return null;
+        }
+
+        return Media::query()->updateOrCreate(
+            ['old_wp_id' => (int) $attachment->source_id],
+            [
+                'disk' => (string) config('import.media.destination_disk', 'public'),
+                'path' => $destinationPath,
+                'original_url' => $this->originalUrl((string) $attachment->relative_path),
+                'mime_type' => $mimeType,
+                'size' => $size,
+                'alt_text' => filled($altText) ? (string) $altText : null,
+                'caption' => filled($attachment->post_excerpt) ? (string) $attachment->post_excerpt : null,
+            ],
+        );
+    }
+
+    private function mapFeaturedImages(Collection $references, ?Media $media, string $destinationPath, string $mimeType, object $attachment, mixed $altText, bool $dryRun): void
     {
         if ($dryRun || ! str_starts_with($mimeType, 'image/')) {
             return;
         }
 
         $postIds = $references->pluck('post_id')->map(fn ($id) => (int) $id);
-        Post::query()->whereIn('old_wp_id', $postIds)->get()->each(function (Post $post) use ($destinationPath, $attachment, $altText): void {
+        Post::query()->whereIn('old_wp_id', $postIds)->get()->each(function (Post $post) use ($media, $destinationPath, $attachment, $altText): void {
             $post->update([
                 'featured_image' => $destinationPath,
+                'featured_media_id' => $media?->getKey(),
                 'featured_image_alt' => filled($altText) ? (string) $altText : $post->featured_image_alt,
                 'featured_image_caption' => filled($attachment->post_excerpt) ? (string) $attachment->post_excerpt : $post->featured_image_caption,
             ]);
@@ -253,9 +286,9 @@ class WordPressMediaImporter implements MediaImporter
 
     private function safeRelativePath(mixed $path): ?string
     {
-        $path = ltrim(str_replace('\\', '/', trim((string) $path)), '/');
+        $path = $this->paths->normalize((string) $path);
 
-        return $path === '' || str_contains($path, '../') || str_contains($path, "\0") ? null : $path;
+        return $path !== null && ! str_starts_with($path, 'http') ? $path : null;
     }
 
     private function sourceExists(string $relativePath, object $attachment): ?bool
@@ -275,6 +308,13 @@ class WordPressMediaImporter implements MediaImporter
     private function destinationPath(string $relativePath): string
     {
         return trim((string) config('import.media.destination_path', 'wordpress/uploads'), '/').'/'.$relativePath;
+    }
+
+    private function originalUrl(string $relativePath): ?string
+    {
+        $siteUrl = rtrim((string) config('import.profiles.wordpress.site_url'), '/');
+
+        return $siteUrl === '' ? null : $siteUrl.'/wp-content/uploads/'.ltrim($relativePath, '/');
     }
 
     /** @param resource|false|null $stream */

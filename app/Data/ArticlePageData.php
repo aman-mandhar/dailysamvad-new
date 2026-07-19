@@ -14,8 +14,6 @@ final readonly class ArticlePageData
      * @param  array<string, string>  $shareUrls
      * @param  Collection<int, SidebarWidgetData>  $sidebarWidgets
      * @param  EloquentCollection<int, Post>  $relatedPosts
-     * @param  array<string, mixed>  $structuredData
-     * @param  array<string, mixed>  $breadcrumbStructuredData
      */
     public function __construct(
         public Post $post,
@@ -34,7 +32,5 @@ final readonly class ArticlePageData
         public string $seoTitle,
         public string $seoDescription,
         public string $robots,
-        public array $structuredData,
-        public array $breadcrumbStructuredData,
     ) {}
 }

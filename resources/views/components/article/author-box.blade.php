@@ -1,11 +1,7 @@
 @props(['author'])
 
 @if ($author)
-    @php
-        $avatarUrl = filled($author->avatar_path)
-            ? (str_starts_with($author->avatar_path, 'http') ? $author->avatar_path : Storage::disk('public')->url($author->avatar_path))
-            : null;
-    @endphp
+    @php($avatarUrl = $author->avatar_url)
     <aside {{ $attributes->class('flex gap-4 rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900') }} aria-labelledby="author-box-heading">
         @if ($avatarUrl)
             <img src="{{ $avatarUrl }}" alt="{{ $author->name }}" loading="lazy" class="size-16 shrink-0 rounded-full object-cover">

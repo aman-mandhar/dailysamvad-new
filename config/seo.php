@@ -1,0 +1,48 @@
+<?php
+
+return [
+    'default_social_image' => env('SEO_DEFAULT_SOCIAL_IMAGE', '/images/seo/default-social.png'),
+    'default_social_image_width' => (int) env('SEO_DEFAULT_SOCIAL_IMAGE_WIDTH', 1200),
+    'default_social_image_height' => (int) env('SEO_DEFAULT_SOCIAL_IMAGE_HEIGHT', 630),
+    'default_social_image_mime' => env('SEO_DEFAULT_SOCIAL_IMAGE_MIME', 'image/png'),
+    'site_logo' => env('SEO_SITE_LOGO'),
+    'publisher_url' => env('SEO_PUBLISHER_URL', env('ORGANIZATION_FACEBOOK_URL')),
+    'twitter_site' => env('SEO_TWITTER_SITE', env('ORGANIZATION_X_URL')),
+    'locale_country' => env('SEO_LOCALE_COUNTRY', 'IN'),
+    'site_description' => env('SEO_SITE_DESCRIPTION', 'Read the latest breaking, featured and regional news from Daily Samvad in Hindi, Punjabi and English.'),
+    'publisher_type' => env('SEO_PUBLISHER_TYPE', 'NewsMediaOrganization'),
+    'publisher_logo' => env('SEO_PUBLISHER_LOGO', env('SEO_SITE_LOGO')),
+    'publisher_alternate_name' => env('SEO_PUBLISHER_ALTERNATE_NAME'),
+    'publisher_description' => env('SEO_PUBLISHER_DESCRIPTION'),
+    'schema_search_action' => env('SEO_SCHEMA_SEARCH_ACTION', true),
+    'article_body_limit' => (int) env('SEO_ARTICLE_BODY_LIMIT', 5000),
+    'sitemaps' => [
+        'enabled' => env('SEO_SITEMAPS_ENABLED', true),
+        'urls_per_sitemap' => min(50000, max(1, (int) env('SEO_SITEMAP_URL_LIMIT', 10000))),
+        'cache_ttl' => max(0, (int) env('SEO_SITEMAP_CACHE_TTL', 3600)),
+        'news_cache_ttl' => max(0, (int) env('SEO_NEWS_SITEMAP_CACHE_TTL', 300)),
+        'robots_cache_ttl' => max(0, (int) env('SEO_ROBOTS_CACHE_TTL', 300)),
+        'include_categories' => env('SEO_SITEMAP_CATEGORIES', true),
+        'include_tags' => env('SEO_SITEMAP_TAGS', true),
+        'include_authors' => env('SEO_SITEMAP_AUTHORS', true),
+        'include_pages' => env('SEO_SITEMAP_PAGES', true),
+        'include_news' => env('SEO_NEWS_SITEMAP_ENABLED', true),
+        'include_images' => env('SEO_IMAGE_SITEMAP_ENABLED', true),
+    ],
+    'news' => [
+        'publication_name' => env('SEO_NEWS_PUBLICATION_NAME', env('WEBSITE_NAME', env('APP_NAME', 'Daily Samvad'))),
+        'language' => env('SEO_NEWS_LANGUAGE', env('APP_LOCALE', 'en')),
+        'hours' => 48,
+        'limit' => 1000,
+    ],
+    'robots' => [
+        'allow_indexing' => env('SEO_ALLOW_INDEXING', env('APP_ENV', 'production') === 'production'),
+        'disallow' => ['/admin'],
+    ],
+    'indexnow' => [
+        'enabled' => env('INDEXNOW_ENABLED', false),
+        'key' => env('INDEXNOW_KEY'),
+        'endpoint' => env('INDEXNOW_ENDPOINT', 'https://api.indexnow.org/indexnow'),
+        'timeout' => max(1, (int) env('INDEXNOW_TIMEOUT', 5)),
+    ],
+];

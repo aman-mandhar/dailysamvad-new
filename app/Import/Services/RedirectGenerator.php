@@ -18,7 +18,7 @@ class RedirectGenerator
         $duplicates = 0;
         $broken = 0;
 
-        Post::query()->whereNotNull('old_wp_id')->select(['id', 'slug', 'old_url'])->orderBy('id')
+        Post::query()->whereNotNull('old_wp_id')->select(['id', 'slug', 'published_at', 'old_url'])->orderBy('id')
             ->each(function (Post $post) use (&$redirects, &$seen, &$duplicates, &$broken): void {
                 $old = $this->normalizeOldUrl($post->old_url);
                 if ($old === null || blank($post->slug)) {
@@ -33,7 +33,7 @@ class RedirectGenerator
                     return;
                 }
                 $seen[$old] = true;
-                $redirects[] = ['old_url' => $old, 'new_url' => route('news.show', $post->slug), 'status' => 301];
+                $redirects[] = ['old_url' => $old, 'new_url' => $post->publicUrl(), 'status' => 301];
             });
 
         return compact('redirects', 'duplicates', 'broken');

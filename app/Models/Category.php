@@ -2,8 +2,11 @@
 
 namespace App\Models;
 
+use App\Observers\SitemapObserver;
+use App\Support\MediaUrlResolver;
 use Database\Factories\CategoryFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+#[ObservedBy([SitemapObserver::class])]
 #[Fillable([
     'old_wp_id',
     'parent_id',
@@ -28,6 +32,11 @@ class Category extends Model
 {
     /** @use HasFactory<CategoryFactory> */
     use HasFactory;
+
+    public function getImageUrlAttribute(): ?string
+    {
+        return app(MediaUrlResolver::class)->resolve($this->image_path);
+    }
 
     /**
      * Get the parent category.

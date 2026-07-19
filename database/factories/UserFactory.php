@@ -41,6 +41,7 @@ class UserFactory extends Factory
             'instagram_url' => fake()->optional()->url(),
             'youtube_url' => fake()->optional()->url(),
             'is_active' => true,
+            'is_public' => true,
             'last_login_at' => null,
             'remember_token' => Str::random(10),
         ];

@@ -9,8 +9,8 @@
     @foreach ($posts as $post)
         <item>
             <title>{{ $post->title }}</title>
-            <link>{{ route('news.show', $post->slug) }}</link>
-            <guid isPermaLink="true">{{ route('news.show', $post->slug) }}</guid>
+            <link>{{ $post->publicUrl() }}</link>
+            <guid isPermaLink="true">{{ $post->publicUrl() }}</guid>
             <description>{{ $post->effectiveMetaDescription() }}</description>
             <pubDate>{{ $post->published_at->toRssString() }}</pubDate>
             @if ($post->author)<author>{{ $post->author->name }}</author>@endif

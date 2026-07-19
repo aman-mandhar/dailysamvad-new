@@ -22,7 +22,7 @@
                             @if ($post->featured_image_url)
                                 <img class="ds-breaking__thumb" src="{{ $post->featured_image_url }}" alt="" width="40" height="40" loading="lazy">
                             @endif
-                            <a class="ds-breaking__title" href="{{ route('news.show', $post->slug) }}">{{ $post->title }}</a>
+                            <a class="ds-breaking__title" href="{{ $post->publicUrl() }}">{{ $post->title }}</a>
                         </article>
                     @endforeach
                 </div>
@@ -33,7 +33,7 @@
                                 @if ($post->featured_image_url)
                                     <img class="ds-breaking__thumb" src="{{ $post->featured_image_url }}" alt="" width="40" height="40" loading="lazy">
                                 @endif
-                                <a class="ds-breaking__title" href="{{ route('news.show', $post->slug) }}" tabindex="-1">{{ $post->title }}</a>
+                                <a class="ds-breaking__title" href="{{ $post->publicUrl() }}" tabindex="-1">{{ $post->title }}</a>
                             </article>
                         @endforeach
                     </div>

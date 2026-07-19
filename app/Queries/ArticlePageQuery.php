@@ -5,7 +5,6 @@ namespace App\Queries;
 use App\Data\ArticlePageData;
 use App\Models\Post;
 use App\Services\ArticleContentComposer;
-use App\Support\NewsArticleStructuredData;
 use App\Support\PostSeoData;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -16,7 +15,6 @@ class ArticlePageQuery
     public function __construct(
         private readonly SidebarQuery $sidebar,
         private readonly ArticleContentComposer $contentComposer,
-        private readonly NewsArticleStructuredData $structuredData,
     ) {}
 
     public function find(string $slug): ArticlePageData
@@ -24,15 +22,16 @@ class ArticlePageQuery
         $post = Post::query()
             ->published()
             ->with([
-                'author:id,name,slug,bio,avatar_path',
+                'author:id,name,username,slug,bio,avatar_path,is_public,x_url',
                 'primaryCategory:id,name,slug',
                 'categories:id,name,slug',
                 'tags:id,name,slug',
+                'featuredMedia:id,disk,path,alt_text,mime_type,width,height,missing_at,metadata',
             ])
             ->where('slug', $slug)
             ->firstOrFail();
 
-        $canonicalUrl = $post->effectiveCanonicalUrl() ?? route('news.show', $post->slug);
+        $canonicalUrl = $post->effectiveCanonicalUrl() ?? $post->publicUrl();
         $category = $post->primaryCategory->first();
         $breadcrumbs = collect([
             ['label' => 'Home', 'url' => route('home'), 'current' => false],
@@ -40,7 +39,6 @@ class ArticlePageQuery
             ['label' => $post->title, 'url' => $canonicalUrl, 'current' => true],
         ]);
         $seoDescription = $post->effectiveMetaDescription();
-        $schema = $this->structuredData->build($post, $canonicalUrl, $seoDescription, $breadcrumbs);
         $sidebar = $this->sidebar->forContext('article');
         $inlineAdvertisements = collect(array_keys((array) config('article.inline_ad_positions', [])))
             ->mapWithKeys(fn (string $slot): array => [$slot => $this->sidebar->advertisement($slot)])
@@ -63,8 +61,6 @@ class ArticlePageQuery
             seoTitle: $post->effectiveMetaTitle(),
             seoDescription: $seoDescription,
             robots: $this->robots($post),
-            structuredData: $schema['article'],
-            breadcrumbStructuredData: $schema['breadcrumbs'],
         );
     }
 
@@ -112,8 +108,8 @@ class ArticlePageQuery
     /** @return Builder<Post> */
     private function cardQuery(): Builder
     {
-        return Post::query()->select(['id', 'title', 'slug', 'excerpt', 'meta_title', 'featured_image', 'featured_image_alt', 'published_at'])
-            ->with('primaryCategory:id,name,slug');
+        return Post::query()->select(['id', 'title', 'slug', 'excerpt', 'meta_title', 'featured_image', 'featured_media_id', 'featured_image_alt', 'published_at'])
+            ->with(['primaryCategory:id,name,slug', 'featuredMedia:id,disk,path,width,height,missing_at,metadata']);
     }
 
     /** @return Builder<Post> */
