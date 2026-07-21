@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Posts\Pages;
 
 use App\Enums\PostStatus;
 use App\Filament\Resources\Posts\PostResource;
+use App\Support\Authorization\ContentAccess;
 use App\Support\PostSeoData;
 use App\Support\PostTaxonomy;
 use App\Support\PostWorkflow;
@@ -29,6 +30,10 @@ class CreatePost extends CreateRecord
         $data['seo_data'] = PostSeoData::mergeRobots(null, $this->data['robots'] ?? null);
 
         $data = PostWorkflow::prepareForPersistence($data);
+
+        if (! ContentAccess::canAssignPostAuthor(auth()->user())) {
+            $data['author_id'] = auth()->id();
+        }
 
         return $data;
     }

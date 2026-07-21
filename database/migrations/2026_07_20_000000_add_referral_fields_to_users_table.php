@@ -1,0 +1,25 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::table('users', function (Blueprint $table): void {
+            $table->string('refcode', 20)->nullable()->unique()->after('id');
+            $table->foreignId('ref_id')->nullable()->index()->after('refcode');
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('users', function (Blueprint $table): void {
+            $table->dropIndex(['ref_id']);
+            $table->dropUnique(['refcode']);
+            $table->dropColumn(['refcode', 'ref_id']);
+        });
+    }
+};

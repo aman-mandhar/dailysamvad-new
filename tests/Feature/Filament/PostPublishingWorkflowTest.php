@@ -13,6 +13,7 @@ use Database\Seeders\RolePermissionSeeder;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -189,6 +190,22 @@ class PostPublishingWorkflowTest extends TestCase
             ->callTableBulkAction('archive', [$reporterPost]);
 
         $this->assertSame(PostStatus::Published, $reporterPost->refresh()->status);
+    }
+
+    public function test_stale_transition_revalidates_the_locked_database_status(): void
+    {
+        $post = $this->postWithStatus(PostStatus::PendingReview);
+        $stale = Post::query()->findOrFail($post->id);
+        $post->update(['status' => PostStatus::Draft]);
+
+        try {
+            PostWorkflow::transition($this->editor, $stale, PostStatus::Published);
+            $this->fail('A stale transition should not overwrite a newer workflow status.');
+        } catch (ValidationException $exception) {
+            $this->assertArrayHasKey('status', $exception->errors());
+        }
+
+        $this->assertSame(PostStatus::Draft, $post->refresh()->status);
     }
 
     /** @param array<string, mixed> $attributes */

@@ -8,8 +8,10 @@ use App\Filament\Resources\Posts\Pages\EditPost;
 use App\Filament\Resources\Posts\Pages\ListPosts;
 use App\Filament\Resources\Posts\PostResource;
 use App\Models\Category;
+use App\Models\Media;
 use App\Models\Post;
 use App\Models\User;
+use App\Support\Authorization\ContentAccess;
 use Database\Seeders\RolePermissionSeeder;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -41,7 +43,7 @@ class PostResourceTest extends TestCase
 
     public function test_post_policy_uses_post_permissions(): void
     {
-        $post = Post::factory()->create();
+        $post = Post::factory()->create(['reviewed_by' => User::factory()->create()]);
         $reviewer = User::factory()->create();
         $reviewer->assignRole('reviewer');
 
@@ -49,7 +51,7 @@ class PostResourceTest extends TestCase
         $this->assertTrue(Gate::forUser($this->editor)->allows('view', $post));
         $this->assertTrue(Gate::forUser($this->editor)->allows('create', Post::class));
         $this->assertTrue(Gate::forUser($this->editor)->allows('update', $post));
-        $this->assertTrue(Gate::forUser($this->editor)->allows('delete', $post));
+        $this->assertFalse(Gate::forUser($this->editor)->allows('delete', $post));
         $this->assertTrue(Gate::forUser($reviewer)->allows('view', $post));
         $this->assertFalse(Gate::forUser($reviewer)->allows('create', Post::class));
         $this->assertFalse(Gate::forUser($reviewer)->allows('update', $post));
@@ -77,8 +79,6 @@ class PostResourceTest extends TestCase
 
     public function test_post_can_be_created_with_author_status_and_language(): void
     {
-        $author = User::factory()->create();
-
         Livewire::actingAs($this->editor)
             ->test(CreatePost::class)
             ->fillForm([
@@ -87,7 +87,7 @@ class PostResourceTest extends TestCase
                 'excerpt' => 'The assembly reviewed a proposed education plan.',
                 'content' => '<p>Members discussed the proposed education plan during the session.</p>',
                 'language' => 'pa',
-                'author_id' => $author->id,
+                'author_id' => $this->editor->id,
                 'status' => PostStatus::PendingReview->value,
                 'categories' => [$this->category->id],
                 'primary_category_id' => $this->category->id,
@@ -97,7 +97,7 @@ class PostResourceTest extends TestCase
 
         $post = Post::query()->where('slug', 'punjab-assembly-education-plan')->firstOrFail();
 
-        $this->assertTrue($post->author->is($author));
+        $this->assertTrue($post->author->is($this->editor));
         $this->assertSame(PostStatus::PendingReview, $post->status);
         $this->assertSame('pa', $post->language);
     }
@@ -198,12 +198,60 @@ class PostResourceTest extends TestCase
             ->assertCanNotSeeTableRecords([$other]);
     }
 
+    public function test_views_column_renders_formatted_values_and_sorts_descending(): void
+    {
+        $low = Post::factory()->create(['views_count' => 7]);
+        $high = Post::factory()->create(['views_count' => 1234567]);
+
+        Livewire::actingAs($this->editor)
+            ->test(ListPosts::class)
+            ->assertTableColumnStateSet('views_count', 1234567, $high)
+            ->assertSee('1,234,567')
+            ->sortTable('views_count', 'desc')
+            ->assertCanSeeTableRecords([$high, $low], inOrder: true);
+    }
+
     public function test_resource_query_eager_loads_authors(): void
     {
         $post = Post::factory()->create();
 
+        $this->actingAs($this->editor);
+
         $record = PostResource::getEloquentQuery()->findOrFail($post->id);
 
         $this->assertTrue($record->relationLoaded('author'));
+        $this->assertTrue($record->relationLoaded('reviewer'));
+        $this->assertSame($post->views_count, $record->views_count);
+    }
+
+    public function test_reporter_featured_media_lookup_is_scoped_to_owned_media(): void
+    {
+        $reporter = User::factory()->create();
+        $other = User::factory()->create();
+        $reporter->assignRole('reporter');
+        $owned = Media::query()->create(['disk' => 'public', 'path' => 'media/owned.jpg', 'mime_type' => 'image/jpeg', 'uploaded_by' => $reporter->id]);
+        $foreign = Media::query()->create(['disk' => 'public', 'path' => 'media/foreign.jpg', 'mime_type' => 'image/jpeg', 'uploaded_by' => $other->id]);
+
+        $this->actingAs($reporter);
+
+        $this->assertTrue(ContentAccess::scopeMedia(Media::query(), $reporter)->whereKey($owned)->exists());
+        $this->assertFalse(ContentAccess::scopeMedia(Media::query(), $reporter)->whereKey($foreign)->exists());
+
+        Livewire::actingAs($reporter)
+            ->test(CreatePost::class)
+            ->fillForm([
+                'title' => 'Scoped media story',
+                'slug' => 'scoped-media-story',
+                'content' => '<p>Scoped media story.</p>',
+                'language' => 'en',
+                'status' => PostStatus::Draft->value,
+                'featured_media_id' => $foreign->id,
+                'categories' => [$this->category->id],
+                'primary_category_id' => $this->category->id,
+            ])
+            ->call('create')
+            ->assertHasFormErrors(['featured_media_id']);
+
+        $this->assertDatabaseMissing('posts', ['slug' => 'scoped-media-story']);
     }
 }

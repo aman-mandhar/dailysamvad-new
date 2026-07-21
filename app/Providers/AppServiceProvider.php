@@ -14,6 +14,7 @@ use App\Import\Services\WordPressConnection;
 use App\Queries\BreakingNewsQuery;
 use App\Queries\NavigationQuery;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -36,6 +37,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Gate::before(function ($user, string $ability): ?bool {
+            if (! $user->is_active) {
+                return false;
+            }
+
+            return $user->hasRole('super-admin') ? true : null;
+        });
+
         View::composer('layouts.frontend', function ($view): void {
             $view->with('mainMenu', app(NavigationQuery::class)->mainMenu());
             $view->with(

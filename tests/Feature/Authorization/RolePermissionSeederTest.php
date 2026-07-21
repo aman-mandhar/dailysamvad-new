@@ -4,6 +4,7 @@ namespace Tests\Feature\Authorization;
 
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
+use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -21,6 +22,8 @@ class RolePermissionSeederTest extends TestCase
         'admin',
         'editor',
         'reporter',
+        'author',
+        'subscriber',
         'reviewer',
         'seo-manager',
         'media-manager',
@@ -29,21 +32,7 @@ class RolePermissionSeederTest extends TestCase
     /**
      * @var list<string>
      */
-    private array $permissions = [
-        'view posts',
-        'create posts',
-        'update posts',
-        'delete posts',
-        'publish posts',
-        'review posts',
-        'manage categories',
-        'manage tags',
-        'manage pages',
-        'manage media',
-        'manage users',
-        'manage roles',
-        'manage settings',
-    ];
+    private array $permissions = RolesAndPermissionsSeeder::PERMISSIONS;
 
     protected function setUp(): void
     {

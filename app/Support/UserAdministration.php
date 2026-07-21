@@ -17,6 +17,8 @@ class UserAdministration
         'seo-manager' => 300,
         'media-manager' => 300,
         'reporter' => 200,
+        'author' => 100,
+        'subscriber' => 0,
     ];
 
     public static function canManageRoles(User $actor, ?User $target = null): bool
@@ -117,8 +119,18 @@ class UserAdministration
 
         $requestedRoles = Role::query()->whereKey($roleIds)->pluck('name');
 
+        if ($requestedRoles->count() !== collect($roleIds)->unique()->count()) {
+            return ['roles' => 'One or more selected roles are invalid.'];
+        }
+
         if ($requestedRoles->contains('super-admin') && ! $actor->hasRole('super-admin')) {
             return ['roles' => 'Only a super-admin may assign the super-admin role.'];
+        }
+
+        $assignableRoleIds = self::assignableRoles($actor)->modelKeys();
+
+        if (collect($roleIds)->map(fn ($id): int => (int) $id)->diff($assignableRoleIds)->isNotEmpty()) {
+            return ['roles' => 'You cannot assign a role at or above your own authority.'];
         }
 
         return [];

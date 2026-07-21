@@ -1,0 +1,5 @@
+@extends('layouts.account')
+@section('title', 'Preferences')
+@section('account-content')
+<h1 id="account-heading" class="text-3xl font-black">Preferences</h1><p class="mt-2 text-slate-600">Only preferences currently supported by the site are shown.</p><form method="POST" action="{{ route('account.preferences.update') }}" class="mt-6 space-y-5">@csrf @method('PATCH')<div><label for="preferred_language" class="font-semibold">Preferred content language</label><select id="preferred_language" name="preferred_language" class="mt-2 w-full rounded-lg border p-3"><option value="">Site default</option>@foreach(['hi'=>'Hindi','pa'=>'Punjabi','en'=>'English'] as $value=>$label)<option value="{{ $value }}" @selected(old('preferred_language',$user->preferred_language)===$value)>{{ $label }}</option>@endforeach</select>@error('preferred_language')<p class="text-sm text-red-700">{{ $message }}</p>@enderror</div><button class="rounded-lg bg-red-700 px-5 py-3 font-bold text-white">Save preference</button></form>
+@endsection

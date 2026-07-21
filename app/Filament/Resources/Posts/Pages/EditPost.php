@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Posts\Pages;
 
 use App\Filament\Resources\Posts\PostResource;
+use App\Support\Authorization\ContentAccess;
 use App\Support\PostSeoData;
 use App\Support\PostTaxonomy;
 use App\Support\PostWorkflow;
@@ -38,6 +39,10 @@ class EditPost extends EditRecord
         );
 
         $data = PostWorkflow::prepareForPersistence($data, $this->record);
+
+        if (! ContentAccess::canAssignPostAuthor(auth()->user())) {
+            $data['author_id'] = $this->record->author_id;
+        }
 
         return $data;
     }

@@ -6,10 +6,12 @@ use App\Enums\PostStatus;
 use App\Filament\Resources\Posts\Pages\CreatePost;
 use App\Filament\Resources\Posts\Pages\EditPost;
 use App\Filament\Resources\Posts\Pages\ListPosts;
+use App\Filament\Tables\Columns\MediaImageColumn;
 use App\Models\Category;
 use App\Models\Media;
 use App\Models\Post;
 use App\Observers\PostObserver;
+use App\Support\Authorization\ContentAccess;
 use App\Support\PostSeoData;
 use App\Support\PostWorkflow;
 use BackedEnum;
@@ -32,7 +34,6 @@ use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
-use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
@@ -94,17 +95,27 @@ class PostResource extends Resource
                         ->relationship(
                             name: 'author',
                             titleAttribute: 'name',
-                            modifyQueryUsing: fn (Builder $query): Builder => $query->where('is_active', true)->orderBy('name'),
+                            modifyQueryUsing: fn (Builder $query): Builder => $query
+                                ->where('is_active', true)
+                                ->where(function (Builder $query): void {
+                                    $query->whereHas('roles', fn (Builder $roles): Builder => $roles->whereIn('name', [
+                                        'super-admin', 'admin', 'editor', 'reporter', 'author',
+                                    ]))->orWhereHas('authoredPosts');
+                                })
+                                ->orderBy('name'),
                         )
                         ->searchable()
                         ->default(fn (): ?int => auth()->id())
+                        ->visible(fn (): bool => auth()->user()?->can('edit all posts') ?? false)
+                        ->disabled(fn (): bool => ! ContentAccess::canAssignPostAuthor(auth()->user()))
+                        ->dehydrated(fn (): bool => ContentAccess::canAssignPostAuthor(auth()->user()))
                         ->required(),
                 ]),
             Section::make('Publishing')
                 ->columns(2)
                 ->schema([
                     Select::make('status')
-                        ->options(static::statusOptions())
+                        ->options(fn (): array => static::statusOptions())
                         ->default(PostStatus::Draft->value)
                         ->required(),
                     DateTimePicker::make('published_at')
@@ -164,6 +175,7 @@ class PostResource extends Resource
                             name: 'featuredMedia',
                             titleAttribute: 'original_filename',
                             modifyQueryUsing: fn (Builder $query): Builder => $query
+                                ->tap(fn (Builder $query): Builder => ContentAccess::scopeMedia($query, auth()->user()))
                                 ->whereNull('missing_at')
                                 ->where('mime_type', 'like', 'image/%')
                                 ->orderByDesc('created_at'),
@@ -173,7 +185,9 @@ class PostResource extends Resource
                         ->preload(false)
                         ->live()
                         ->afterStateUpdated(function (Set $set, mixed $state): void {
-                            $path = filled($state) ? Media::query()->whereKey($state)->value('path') : null;
+                            $path = filled($state)
+                                ? ContentAccess::scopeMedia(Media::query(), auth()->user())->whereKey($state)->value('path')
+                                : null;
                             $set('featured_image', $path);
                         })
                         ->helperText('Search existing media. Detaching does not delete the binary.'),
@@ -245,7 +259,7 @@ class PostResource extends Resource
     {
         return $table
             ->columns([
-                ImageColumn::make('featured_image')
+                MediaImageColumn::make('featured_image')
                     ->label('Image')
                     ->disk('public')
                     ->width(60)
@@ -254,10 +268,25 @@ class PostResource extends Resource
                     ->searchable(['title', 'slug'])
                     ->sortable(),
                 TextColumn::make('author.name')->label('Author')->placeholder('—'),
+                TextColumn::make('reviewer.name')
+                    ->label('Reviewer')
+                    ->placeholder('—'),
+                TextColumn::make('reviewed_at')
+                    ->label('Reviewed At')
+                    ->dateTime()
+                    ->placeholder('—')
+                    ->sortable(),
                 TextColumn::make('status')
                     ->formatStateUsing(fn (PostStatus $state): string => $state->value)
                     ->badge(),
                 TextColumn::make('language'),
+                TextColumn::make('views_count')
+                    ->label('Views')
+                    ->default(0)
+                    ->numeric()
+                    ->sortable()
+                    ->alignEnd()
+                    ->toggleable(),
                 IconColumn::make('is_featured')
                     ->label('Featured')
                     ->boolean(),
@@ -314,7 +343,8 @@ class PostResource extends Resource
                 SelectFilter::make('author_id')
                     ->label('Author')
                     ->relationship('author', 'name')
-                    ->searchable(),
+                    ->searchable()
+                    ->visible(fn (): bool => auth()->user()?->can('view all posts') ?? false),
                 SelectFilter::make('language')->options([
                     'hi' => 'Hindi',
                     'pa' => 'Punjabi',
@@ -363,18 +393,53 @@ class PostResource extends Resource
     /** @return Builder<Post> */
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->with([
+        return ContentAccess::scopePosts(parent::getEloquentQuery(), auth()->user())->with([
             'author',
+            'reviewer',
             'primaryCategory',
             'categories',
             'tags',
         ]);
     }
 
+    public static function getRecordRouteBindingEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with(['author', 'reviewer', 'primaryCategory', 'categories', 'tags']);
+    }
+
+    public static function getNavigationGroup(): string|UnitEnum|null
+    {
+        return auth()->user()?->can('view all posts') ? 'Editorial' : 'My Work';
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return auth()->user()?->can('view all posts') ? 'Posts' : 'My Posts';
+    }
+
+    public static function getNavigationBadge(): ?string
+    {
+        $user = auth()->user();
+        if (! $user || ! $user->can('view posts')) {
+            return null;
+        }
+
+        $query = ContentAccess::scopePosts(Post::query(), $user);
+        $count = $user->can('review posts')
+            ? $query->where('status', PostStatus::PendingReview)->count()
+            : $query->whereIn('status', [PostStatus::Draft, PostStatus::PendingReview])->count();
+
+        return $count > 0 ? (string) $count : null;
+    }
+
     /** @return array<string, string> */
     public static function statusOptions(): array
     {
-        return collect(PostStatus::cases())
+        $statuses = auth()->user()?->can('publish posts')
+            ? PostStatus::cases()
+            : [PostStatus::Draft, PostStatus::PendingReview];
+
+        return collect($statuses)
             ->mapWithKeys(fn (PostStatus $status): array => [
                 $status->value => Str::of($status->value)->replace('_', ' ')->title()->toString(),
             ])

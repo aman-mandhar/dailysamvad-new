@@ -205,6 +205,8 @@ class PostTaxonomyResourceTest extends TestCase
         $post->categories()->attach($category, ['is_primary' => true]);
         $post->tags()->attach($tag);
 
+        $this->actingAs($this->editor);
+
         $record = PostResource::getEloquentQuery()->findOrFail($post->id);
 
         $this->assertTrue($record->relationLoaded('author'));

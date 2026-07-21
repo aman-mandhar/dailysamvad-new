@@ -25,7 +25,8 @@ class UserPolicy
 
     public function update(User $user, User $model): bool
     {
-        return $user->hasPermissionTo('manage users');
+        return $user->hasPermissionTo('manage users')
+            && (! $model->hasRole('super-admin') || $user->hasRole('super-admin'));
     }
 
     public function delete(User $user, User $model): Response
@@ -40,6 +41,10 @@ class UserPolicy
 
         if (UserAdministration::isFinalActiveSuperAdmin($model)) {
             return Response::deny('The final active super-admin cannot be deleted.');
+        }
+
+        if ($model->hasRole('super-admin') && ! $user->hasRole('super-admin')) {
+            return Response::deny('Only a super-admin may delete another super-admin account.');
         }
 
         if ($model->posts()->exists()) {

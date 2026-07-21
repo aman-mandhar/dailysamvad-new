@@ -5,7 +5,9 @@ namespace App\Filament\Resources\Media;
 use App\Filament\Resources\Media\Pages\CreateMedia;
 use App\Filament\Resources\Media\Pages\EditMedia;
 use App\Filament\Resources\Media\Pages\ListMedia;
+use App\Filament\Tables\Columns\MediaImageColumn;
 use App\Models\Media;
+use App\Support\Authorization\ContentAccess;
 use BackedEnum;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
@@ -18,7 +20,6 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
-use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
@@ -34,7 +35,7 @@ class MediaResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedPhoto;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Content';
+    protected static string|UnitEnum|null $navigationGroup = 'Media';
 
     protected static ?string $recordTitleAttribute = 'original_filename';
 
@@ -60,7 +61,7 @@ class MediaResource extends Resource
     public static function table(Table $table): Table
     {
         return $table->defaultPaginationPageOption(25)->columns([
-            ImageColumn::make('path')->label('Preview')->disk(fn (Media $record): string => $record->disk)->square(),
+            MediaImageColumn::make('path')->label('Preview')->disk(fn (Media $record): string => $record->disk)->square(),
             TextColumn::make('original_filename')->label('Filename')->searchable()->placeholder(fn (Media $record): string => basename($record->path))->limit(40),
             TextColumn::make('alt_text')->searchable()->limit(40)->placeholder('—'),
             TextColumn::make('mime_type')->label('MIME')->sortable(),
@@ -83,6 +84,14 @@ class MediaResource extends Resource
     }
 
     public static function getEloquentQuery(): Builder
+    {
+        return ContentAccess::scopeMedia(
+            parent::getEloquentQuery()->withoutGlobalScopes([SoftDeletingScope::class]),
+            auth()->user(),
+        )->with('uploader')->withCount('featuredPosts');
+    }
+
+    public static function getRecordRouteBindingEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()->withoutGlobalScopes([SoftDeletingScope::class])->with('uploader')->withCount('featuredPosts');
     }

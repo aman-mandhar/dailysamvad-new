@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
@@ -100,6 +101,28 @@ class Post extends Model
     public function author(): BelongsTo
     {
         return $this->belongsTo(User::class, 'author_id');
+    }
+
+    /** @return BelongsTo<User, $this> */
+    public function reviewer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reviewed_by');
+    }
+
+    /** @return HasMany<PostVisit, $this> */
+    public function visits(): HasMany
+    {
+        return $this->hasMany(PostVisit::class);
+    }
+
+    public function bookmarks(): HasMany
+    {
+        return $this->hasMany(PostBookmark::class);
+    }
+
+    public function bookmarkedByUsers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'post_bookmarks')->withTimestamps();
     }
 
     /** @return BelongsTo<Media, $this> */
@@ -285,6 +308,8 @@ class Post extends Model
             'allow_comments' => 'boolean',
             'published_at' => 'datetime',
             'scheduled_at' => 'datetime',
+            'submitted_at' => 'datetime',
+            'reviewed_at' => 'datetime',
             'source_data' => 'array',
             'seo_data' => 'array',
         ];

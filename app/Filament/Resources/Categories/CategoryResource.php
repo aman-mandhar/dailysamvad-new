@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Categories;
 use App\Filament\Resources\Categories\Pages\CreateCategory;
 use App\Filament\Resources\Categories\Pages\EditCategory;
 use App\Filament\Resources\Categories\Pages\ListCategories;
+use App\Filament\Tables\Columns\MediaImageColumn;
 use App\Models\Category;
 use App\Rules\ValidCategoryParent;
 use BackedEnum;
@@ -25,7 +26,6 @@ use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
-use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
@@ -107,7 +107,7 @@ class CategoryResource extends Resource
     {
         return $table
             ->columns([
-                ImageColumn::make('image_path')->label('Image')->disk('public'),
+                MediaImageColumn::make('image_path')->label('Image')->disk('public'),
                 TextColumn::make('name')->searchable()->sortable(),
                 TextColumn::make('parent.name')->label('Parent')->placeholder('Root')->sortable(),
                 TextColumn::make('slug')->searchable()->sortable(),

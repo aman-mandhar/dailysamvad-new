@@ -50,6 +50,20 @@ class MediaUploadTest extends TestCase
         $this->assertCount(1, Storage::disk('public')->allFiles('media/library'));
     }
 
+    public function test_duplicate_binary_does_not_reuse_another_users_owned_media_record(): void
+    {
+        $service = app(MediaUploadService::class);
+        $firstUser = User::factory()->create();
+        $secondUser = User::factory()->create();
+        $first = $service->store(UploadedFile::fake()->image('one.png'), $firstUser->id);
+        $second = $service->store(UploadedFile::fake()->image('two.png'), $secondUser->id);
+
+        $this->assertFalse($first->is($second));
+        $this->assertSame($firstUser->id, $first->uploaded_by);
+        $this->assertSame($secondUser->id, $second->uploaded_by);
+        $this->assertCount(2, Storage::disk('public')->allFiles('media/library'));
+    }
+
     public function test_disguised_executable_and_empty_file_are_rejected(): void
     {
         foreach ([

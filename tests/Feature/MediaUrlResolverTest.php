@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Filament\Tables\Columns\MediaImageColumn;
 use App\Support\MediaPathNormalizer;
 use App\Support\MediaUrlResolver;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -73,5 +74,18 @@ class MediaUrlResolverTest extends TestCase
         app(MediaUrlResolver::class)->resolve('wordpress/uploads/photo.jpg');
 
         $this->assertCount(0, DB::getQueryLog());
+    }
+
+    public function test_filament_media_preview_uses_a_host_neutral_existing_file_url(): void
+    {
+        Storage::disk('public')->put('wordpress/uploads/2026/06/photo.jpg', 'image');
+
+        $column = MediaImageColumn::make('path')->disk('public');
+
+        $this->assertSame(
+            '/storage/wordpress/uploads/2026/06/photo.jpg',
+            $column->getImageUrl('wordpress/uploads/2026/06/photo.jpg'),
+        );
+        $this->assertNull($column->getImageUrl('wordpress/uploads/2026/06/missing.jpg'));
     }
 }

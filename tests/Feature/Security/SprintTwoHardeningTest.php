@@ -4,10 +4,12 @@ namespace Tests\Feature\Security;
 
 use App\Filament\Resources\Users\Pages\EditUser;
 use App\Filament\Resources\Users\Pages\ListUsers;
+use App\Filament\Resources\Users\UserResource;
 use App\Models\User;
 use App\Support\UserAdministration;
 use Database\Seeders\DatabaseSeeder;
 use Database\Seeders\RolePermissionSeeder;
+use Database\Seeders\RolesAndPermissionsSeeder;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Gate;
@@ -153,11 +155,9 @@ class SprintTwoHardeningTest extends TestCase
         $superAdmin = $this->userWithRole('super-admin');
         $admin = $this->userWithRole('admin');
 
-        Livewire::actingAs($admin)
-            ->test(EditUser::class, ['record' => $superAdmin->getRouteKey()])
-            ->set('data.is_active', false)
-            ->call('save')
-            ->assertHasFormErrors(['is_active']);
+        $this->actingAs($admin)
+            ->get(UserResource::getUrl('edit', ['record' => $superAdmin]))
+            ->assertForbidden();
 
         $this->assertTrue($superAdmin->refresh()->is_active);
     }
@@ -199,8 +199,8 @@ class SprintTwoHardeningTest extends TestCase
 
         $this->seed(DatabaseSeeder::class);
 
-        $this->assertSame(7, Role::query()->count());
-        $this->assertSame(13, Permission::query()->count());
+        $this->assertSame(9, Role::query()->count());
+        $this->assertSame(count(RolesAndPermissionsSeeder::PERMISSIONS), Permission::query()->count());
         $this->assertTrue(Role::findByName('super-admin')->hasAllPermissions(Permission::all()));
     }
 

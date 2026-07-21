@@ -6,6 +6,7 @@ use App\Enums\PostStatus;
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class PostWorkflow
@@ -13,7 +14,7 @@ class PostWorkflow
     public static function canTransition(User $actor, PostStatus $from, PostStatus $to): bool
     {
         if ($from === $to) {
-            return $actor->hasPermissionTo('update posts');
+            return $actor->hasAnyPermission(['edit own posts', 'edit all posts', 'update posts']);
         }
 
         if ($actor->hasPermissionTo('manage roles')) {
@@ -21,7 +22,7 @@ class PostWorkflow
         }
 
         return match ([$from, $to]) {
-            [PostStatus::Draft, PostStatus::PendingReview] => $actor->hasPermissionTo('update posts'),
+            [PostStatus::Draft, PostStatus::PendingReview] => $actor->hasPermissionTo('submit own posts'),
             [PostStatus::PendingReview, PostStatus::Published],
             [PostStatus::PendingReview, PostStatus::Scheduled],
             [PostStatus::Scheduled, PostStatus::Published],
@@ -81,17 +82,21 @@ class PostWorkflow
 
     public static function transition(User $actor, Post $post, PostStatus $to): void
     {
-        $errors = self::validate($actor, $post->status, [
-            'status' => $to->value,
-            'scheduled_at' => $post->scheduled_at,
-        ]);
+        DB::transaction(function () use ($actor, $post, $to): void {
+            $current = Post::query()->lockForUpdate()->findOrFail($post->getKey());
+            $errors = self::validate($actor, $current->status, [
+                'status' => $to->value,
+                'scheduled_at' => $current->scheduled_at,
+            ]);
 
-        if ($errors !== []) {
-            throw ValidationException::withMessages($errors);
-        }
+            if ($errors !== []) {
+                throw ValidationException::withMessages($errors);
+            }
 
-        $data = self::prepareForPersistence(['status' => $to->value], $post);
-        $post->update($data);
+            $data = self::prepareForPersistence(['status' => $to->value], $current);
+            $current->update($data);
+            $post->setRawAttributes($current->getAttributes(), true);
+        });
     }
 
     private static function statusFrom(mixed $status): ?PostStatus

@@ -10,6 +10,18 @@
                 <x-news.advertisement-slot :advertisement="$article->topAdvertisement" />
                 <x-news.article.featured-image :article="$article" />
                 <x-news.article.share :share="$article->shareUrls" />
+                <div class="my-4">
+                    @auth
+                        @php($bookmark = auth()->user()->bookmarks()->where('post_id', $article->post->getKey())->first())
+                        @if($bookmark)
+                            <form method="POST" action="{{ route('account.saved.destroy', $bookmark) }}">@csrf @method('DELETE')<button class="rounded-lg border border-slate-300 px-4 py-2 font-bold" type="submit">Remove saved article</button></form>
+                        @else
+                            <form method="POST" action="{{ route('account.saved.store', $article->post) }}">@csrf<button class="rounded-lg border border-slate-300 px-4 py-2 font-bold" type="submit">Save article</button></form>
+                        @endif
+                    @else
+                        <a class="inline-block rounded-lg border border-slate-300 px-4 py-2 font-bold" href="{{ route('login') }}">Log in to save article</a>
+                    @endauth
+                </div>
                 <x-news.article.content :blocks="$article->contentBlocks" />
                 <x-news.article.tags :tags="$article->post->tags" />
                 <x-news.advertisement-slot :advertisement="$article->bottomAdvertisement" />

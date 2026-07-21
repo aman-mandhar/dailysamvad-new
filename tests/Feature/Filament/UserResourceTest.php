@@ -122,6 +122,24 @@ class UserResourceTest extends TestCase
         $this->assertTrue($user->hasAllRoles(['editor', 'reporter']));
     }
 
+    public function test_tampered_create_form_cannot_assign_admins_role_at_its_own_authority(): void
+    {
+        Livewire::actingAs($this->admin)
+            ->test(CreateUser::class)
+            ->fillForm([
+                'name' => 'Forged Admin',
+                'email' => 'forged-admin@example.com',
+                'password' => 'Strong!Password123',
+                'password_confirmation' => 'Strong!Password123',
+                'is_active' => true,
+                'roles' => [Role::findByName('admin')->getKey()],
+            ])
+            ->call('create')
+            ->assertHasFormErrors(['roles']);
+
+        $this->assertDatabaseMissing('users', ['email' => 'forged-admin@example.com']);
+    }
+
     public function test_password_is_optional_when_editing_a_user(): void
     {
         $target = User::factory()->create(['password' => 'Existing!Password123']);

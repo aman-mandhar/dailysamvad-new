@@ -19,7 +19,11 @@ class MediaUploadService
     {
         $this->validate($file);
         $checksum = hash_file('sha256', $file->getRealPath());
-        $existing = Media::query()->where('checksum', $checksum)->where('size', $file->getSize())->first();
+        $existing = Media::query()
+            ->where('checksum', $checksum)
+            ->where('size', $file->getSize())
+            ->when($uploaderId !== null, fn ($query) => $query->where('uploaded_by', $uploaderId))
+            ->first();
         if ($existing) {
             return $existing;
         }

@@ -1,0 +1,6 @@
+@extends('layouts.account')
+@section('title', 'Notifications')
+@section('account-content')
+<div class="flex flex-wrap items-center justify-between gap-3"><h1 id="account-heading" class="text-3xl font-black">Notifications</h1><form method="POST" action="{{ route('account.notifications.read-all') }}">@csrf @method('PATCH')<button class="text-sm font-bold text-red-700 underline">Mark all as read</button></form></div>
+<div class="mt-6 space-y-3">@forelse($notifications as $notification)@php($message=Str::limit(strip_tags((string) data_get($notification->data,'message','Account notification.')),240))<article class="rounded-xl border p-4 {{ $notification->read_at ? 'bg-white' : 'bg-amber-50' }}"><p>{{ $message }}</p><p class="mt-2 text-xs text-slate-500">{{ $notification->created_at->diffForHumans() }} · {{ $notification->read_at ? 'Read' : 'Unread' }}</p>@unless($notification->read_at)<form method="POST" action="{{ route('account.notifications.read',$notification->id) }}" class="mt-2">@csrf @method('PATCH')<button class="text-sm font-bold text-red-700 underline">Mark as read</button></form>@endunless</article>@empty<p class="rounded-lg bg-slate-50 p-5">You have no account notifications.</p>@endforelse</div>{{ $notifications->links() }}
+@endsection
