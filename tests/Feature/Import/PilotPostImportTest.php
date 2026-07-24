@@ -171,9 +171,10 @@ class PilotPostImportTest extends TestCase
     {
         $this->insertPost(10);
         $this->meta(10, '_thumbnail_id', '100');
-        $media = Media::factory()->create([
+        $media = Media::query()->create([
             'old_wp_id' => 100, 'path' => 'wordpress/uploads/photo.jpg',
             'alt_text' => 'Photo alt', 'caption' => 'Photo caption',
+            'disk' => 'public', 'mime_type' => 'image/jpeg', 'size' => 1,
         ]);
 
         $this->runImport();

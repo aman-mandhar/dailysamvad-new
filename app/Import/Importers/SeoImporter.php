@@ -41,9 +41,15 @@ class SeoImporter extends AbstractWordPressImporter
         }
 
         $direction = $context->order === 'oldest' ? 'asc' : 'desc';
-        $query->orderBy('post_date', $direction)->orderBy('ID', $direction)->offset($context->offset);
+        $query->orderBy('post_date', $direction)->orderBy('ID', $direction);
         if ($context->limit !== null) {
             $query->limit($context->limit);
+        }
+        if ($context->offset > 0) {
+            if ($context->limit === null) {
+                $query->limit(PHP_INT_MAX);
+            }
+            $query->offset($context->offset);
         }
         $posts = $query->get();
         $metadata = $this->source->connection()->table($this->source->table('postmeta'))

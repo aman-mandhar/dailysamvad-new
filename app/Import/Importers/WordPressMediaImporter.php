@@ -70,7 +70,7 @@ class WordPressMediaImporter implements MediaImporter
         while ($context->limit === null || $processed < $context->limit) {
             $take = min($context->chunk, $context->limit === null ? $context->chunk : $context->limit - $processed);
             $selectedPostIds = $context->ids === [] ? $this->selectedPostIds($context, $position, $take) : null;
-            if ($selectedPostIds === [] && $position === $context->offset && ! $this->hasSourcePosts()) {
+            if ($selectedPostIds === [] && ! $this->hasSourcePosts()) {
                 $selectedPostIds = null;
             }
             $attachments = $this->attachments($context, $position, $take, $selectedPostIds);
