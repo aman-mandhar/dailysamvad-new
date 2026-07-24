@@ -43,7 +43,7 @@ class MediaResource extends Resource
     {
         return $schema->components([
             Section::make('Image')->schema([
-                FileUpload::make('upload')->image()->storeFiles(false)->requiredOn('create')
+                FileUpload::make('upload')->image()->storeFiles(false)->required()
                     ->acceptedFileTypes(config('media.allowed_mime_types'))->maxSize(config('media.max_upload_kilobytes'))
                     ->helperText('JPEG, PNG, GIF, or WebP. SVG and executable files are rejected.')
                     ->visibleOn('create'),
