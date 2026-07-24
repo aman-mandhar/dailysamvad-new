@@ -9,12 +9,12 @@ class CategoryPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->hasPermissionTo('manage categories');
+        return $user->hasAnyPermission(['view categories', 'manage categories']);
     }
 
     public function view(User $user, Category $category): bool
     {
-        return $user->hasPermissionTo('manage categories');
+        return $user->hasAnyPermission(['view categories', 'manage categories']);
     }
 
     public function create(User $user): bool

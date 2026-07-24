@@ -9,97 +9,147 @@ use Spatie\Permission\PermissionRegistrar;
 
 class RolesAndPermissionsSeeder extends Seeder
 {
-    /** @var array<int, string> */
-    public const PERMISSIONS = [
-        'access admin panel',
-        'view admin dashboard',
-        'view posts',
-        'view own posts',
-        'view all posts',
-        'create posts',
-        'edit own posts',
-        'edit all posts',
-        'delete own drafts',
-        'delete all posts',
-        'submit own posts',
-        'review posts',
-        'approve posts',
-        'reject posts',
-        'request post corrections',
-        'schedule posts',
-        'publish posts',
-        'manage users',
-        'manage roles',
-        'manage permissions',
-        'manage categories',
-        'manage tags',
-        'manage media',
-        'manage advertisements',
-        'manage seo',
-        'manage settings',
-        'view analytics',
-        'manage analytics',
-        'manage own profile',
+    public const GUARD = 'web';
 
-        // Retained because existing policies and workflow code use these names.
-        'update posts',
-        'delete posts',
-        'manage pages',
+    /** @var list<string> */
+    public const CANONICAL_ROLES = [
+        'super-admin', 'admin', 'editor', 'reviewer', 'reporter', 'seo-manager',
+        'media-manager', 'analytics-manager', 'contributor', 'subscriber',
     ];
 
-    /** @var array<string, array<int, string>> */
+    /** @var list<string> */
+    public const PERMISSIONS = [
+        'access admin panel', 'view admin dashboard',
+        'view posts', 'view own posts', 'view assigned posts', 'view all posts', 'create posts',
+        'update own posts', 'update assigned posts', 'update all posts', 'delete own posts', 'delete all posts',
+        'submit posts for review', 'review posts', 'request post corrections', 'approve posts', 'reject posts',
+        'assign reviewers', 'view workflow history', 'schedule posts', 'publish posts', 'archive posts', 'restore posts',
+        'view categories', 'manage categories', 'view tags', 'manage tags',
+        'view media', 'upload media', 'update own media', 'update all media', 'delete own media', 'delete all media', 'manage media',
+        'view seo', 'manage seo',
+        'view own analytics', 'view editorial analytics', 'view all analytics', 'export analytics',
+        'view users', 'create users', 'update users', 'disable users', 'delete users', 'manage users',
+        'view roles', 'manage roles and permissions',
+        'manage advertisements', 'manage settings', 'manage own profile', 'manage pages',
+
+        // Compatibility aliases retained for existing roles, users, policies, and extensions.
+        'edit own posts', 'edit all posts', 'delete own drafts', 'submit own posts',
+        'view analytics', 'manage analytics', 'manage roles', 'manage permissions',
+        'update posts', 'delete posts',
+    ];
+
+    /** @var array<string, list<string>> */
     public const ROLE_PERMISSIONS = [
         'admin' => [
             'access admin panel', 'view admin dashboard', 'view posts', 'view own posts', 'view all posts',
-            'create posts', 'edit own posts', 'edit all posts', 'delete own drafts', 'delete all posts',
-            'submit own posts', 'review posts', 'approve posts', 'reject posts', 'request post corrections',
-            'schedule posts', 'publish posts', 'manage users', 'manage categories', 'manage tags', 'manage media',
-            'manage advertisements', 'manage seo', 'view analytics', 'manage own profile',
-            'update posts', 'delete posts', 'manage pages',
+            'create posts', 'update own posts', 'update all posts', 'delete own posts', 'delete all posts',
+            'submit posts for review', 'review posts', 'request post corrections', 'approve posts', 'reject posts',
+            'assign reviewers', 'view workflow history', 'schedule posts', 'publish posts', 'archive posts', 'restore posts',
+            'view categories', 'manage categories', 'view tags', 'manage tags',
+            'view media', 'upload media', 'update all media', 'delete all media', 'manage media',
+            'view seo', 'manage seo', 'view editorial analytics',
+            'view users', 'create users', 'update users', 'disable users', 'delete users', 'manage users',
+            'manage advertisements', 'manage own profile', 'manage pages',
         ],
         'editor' => [
             'access admin panel', 'view admin dashboard', 'view posts', 'view own posts', 'view all posts',
-            'create posts', 'edit own posts', 'edit all posts', 'delete own drafts', 'submit own posts',
-            'review posts', 'approve posts', 'reject posts', 'request post corrections', 'schedule posts',
-            'publish posts', 'manage categories', 'manage tags', 'manage media', 'view analytics',
-            'manage own profile', 'update posts', 'manage pages',
+            'create posts', 'update own posts', 'update all posts', 'delete own posts',
+            'submit posts for review', 'review posts', 'request post corrections', 'approve posts', 'reject posts',
+            'assign reviewers', 'view workflow history', 'schedule posts', 'publish posts', 'archive posts', 'restore posts',
+            'view categories', 'manage categories', 'view tags', 'manage tags',
+            'view media', 'upload media', 'update all media', 'delete own media', 'manage media',
+            'view editorial analytics', 'manage own profile', 'manage pages',
+        ],
+        'reviewer' => [
+            'access admin panel', 'view admin dashboard', 'view posts', 'view assigned posts',
+            'review posts', 'request post corrections', 'approve posts', 'reject posts',
+            'view workflow history', 'view categories', 'view tags', 'view media', 'manage own profile',
         ],
         'reporter' => [
             'access admin panel', 'view admin dashboard', 'view posts', 'view own posts', 'create posts',
-            'edit own posts', 'delete own drafts', 'submit own posts', 'manage media', 'manage own profile',
+            'update own posts', 'delete own posts', 'submit posts for review',
+            'view workflow history',
+            'view media', 'upload media', 'update own media', 'delete own media',
+            'view own analytics', 'manage own profile',
         ],
-        'author' => [
-            'access admin panel', 'view admin dashboard', 'view posts', 'view own posts', 'create posts',
-            'edit own posts', 'delete own drafts', 'submit own posts', 'manage own profile',
+        'seo-manager' => [
+            'access admin panel', 'view admin dashboard', 'view posts', 'view all posts',
+            'view categories', 'view tags', 'view media', 'view seo', 'manage seo',
+            'view editorial analytics', 'manage own profile',
+        ],
+        'media-manager' => [
+            'access admin panel', 'view admin dashboard', 'view media', 'upload media',
+            'update all media', 'delete all media', 'manage media', 'manage own profile',
+        ],
+        'analytics-manager' => [
+            'access admin panel', 'view admin dashboard', 'view all analytics', 'export analytics', 'manage own profile',
+        ],
+        'contributor' => [
+            'access admin panel', 'view admin dashboard', 'view posts', 'view own posts',
+            'create posts', 'update own posts', 'delete own posts', 'submit posts for review', 'manage own profile',
         ],
         'subscriber' => ['manage own profile'],
+        // Active legacy compatibility role; intentionally mirrors contributor.
+        'author' => [
+            'access admin panel', 'view admin dashboard', 'view posts', 'view own posts',
+            'create posts', 'update own posts', 'delete own posts', 'submit posts for review', 'manage own profile',
+        ],
     ];
 
     public function run(): void
     {
         $registrar = app(PermissionRegistrar::class);
+
+        // Clear stale permission cache before seeding.
         $registrar->forgetCachedPermissions();
 
-        foreach (self::PERMISSIONS as $permission) {
-            Permission::findOrCreate($permission, 'web');
+        // Create all permissions first.
+        foreach (self::PERMISSIONS as $permissionName) {
+            Permission::findOrCreate($permissionName, self::GUARD);
         }
 
-        $superAdmin = Role::findOrCreate('super-admin', 'web');
-        $superAdmin->givePermissionTo(Permission::query()->where('guard_name', 'web')->get());
+        // Important: refresh cache after permissions have been created.
+        $registrar->forgetCachedPermissions();
 
-        foreach (self::ROLE_PERMISSIONS as $roleName => $permissions) {
-            Role::findOrCreate($roleName, 'web')->givePermissionTo($permissions);
+        // Create all canonical and compatibility roles.
+        foreach ([...self::CANONICAL_ROLES, 'author'] as $roleName) {
+            Role::findOrCreate($roleName, self::GUARD);
         }
 
-        // Historical roles remain available with their former minimum access.
-        foreach ([
-            'reviewer' => ['view posts', 'view all posts', 'review posts'],
-            'seo-manager' => ['view posts', 'view all posts', 'edit all posts', 'update posts', 'manage categories', 'manage tags', 'manage pages'],
-            'media-manager' => ['view posts', 'view all posts', 'manage media'],
-        ] as $roleName => $permissions) {
-            Role::findOrCreate($roleName, 'web')->givePermissionTo($permissions);
+        // Assign the configured permission set to each role.
+        foreach (self::ROLE_PERMISSIONS as $roleName => $permissionNames) {
+            $role = Role::findByName($roleName, self::GUARD);
+
+            $permissions = Permission::query()
+                ->where('guard_name', self::GUARD)
+                ->whereIn('name', $permissionNames)
+                ->get();
+
+            $missingPermissions = array_values(array_diff(
+                $permissionNames,
+                $permissions->pluck('name')->all()
+            ));
+
+            if ($missingPermissions !== []) {
+                throw new \RuntimeException(
+                    "Missing permissions for role [{$roleName}]: "
+                    .implode(', ', $missingPermissions)
+                );
+            }
+
+            $role->givePermissionTo($permissions);
         }
 
+        // Super Admin receives every permission.
+        $superAdmin = Role::findByName('super-admin', self::GUARD);
+
+        $superAdmin->givePermissionTo(
+            Permission::query()
+                ->where('guard_name', self::GUARD)
+                ->get()
+        );
+
+        // Clear cache after all assignments.
         $registrar->forgetCachedPermissions();
     }
 }

@@ -7,6 +7,7 @@ use App\Models\Post;
 use App\SEO\Sitemap\IndexNowService;
 use App\SEO\Sitemap\SitemapCache;
 use App\Support\MediaPathNormalizer;
+use App\Services\CacheInvalidationService;
 use Illuminate\Support\Facades\Storage;
 
 class PostObserver
@@ -56,7 +57,7 @@ class PostObserver
     private function invalidateAndNotify(Post $post): void
     {
         $cache = app(SitemapCache::class);
-        $cache->invalidate();
+        app(CacheInvalidationService::class)->invalidatePost($post);
         if (! $cache->batching()) {
             app(IndexNowService::class)->submit([$post->effectiveCanonicalUrl() ?? $post->publicUrl()]);
         }

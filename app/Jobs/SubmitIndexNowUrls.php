@@ -18,7 +18,10 @@ class SubmitIndexNowUrls implements ShouldQueue
 
     public array $backoff = [60, 300];
 
-    public function __construct(public readonly array $urls) {}
+    public function __construct(public readonly array $urls)
+    {
+        $this->onQueue('external');
+    }
 
     public function handle(): void
     {

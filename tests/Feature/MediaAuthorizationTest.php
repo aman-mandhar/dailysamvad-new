@@ -26,7 +26,7 @@ class MediaAuthorizationTest extends TestCase
         $this->assertTrue(Gate::forUser($editor)->allows('viewAny', Media::class));
         $this->assertTrue(Gate::forUser($editor)->allows('create', Media::class));
         $this->assertTrue(Gate::forUser($editor)->allows('update', $media));
-        $this->assertFalse(Gate::forUser($reviewer)->allows('viewAny', Media::class));
+        $this->assertTrue(Gate::forUser($reviewer)->allows('viewAny', Media::class));
         $this->assertFalse(Gate::forUser($reviewer)->allows('create', Media::class));
 
         Post::factory()->create(['featured_media_id' => $media->id, 'featured_image' => $media->path]);

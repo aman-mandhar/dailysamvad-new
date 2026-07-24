@@ -3,6 +3,7 @@
 namespace App\SEO\Sitemap;
 
 use App\Jobs\SubmitIndexNowUrls;
+use Illuminate\Support\Facades\DB;
 
 class IndexNowService
 {
@@ -30,7 +31,7 @@ class IndexNowService
             return false;
         }
 
-        SubmitIndexNowUrls::dispatch($urls);
+        DB::afterCommit(fn () => SubmitIndexNowUrls::dispatch($urls));
 
         return true;
     }

@@ -27,6 +27,8 @@ class RolePermissionSeederTest extends TestCase
         'reviewer',
         'seo-manager',
         'media-manager',
+        'analytics-manager',
+        'contributor',
     ];
 
     /**
@@ -86,5 +88,23 @@ class RolePermissionSeederTest extends TestCase
 
         $this->assertDatabaseCount('roles', count($this->roles));
         $this->assertDatabaseCount('permissions', count($this->permissions));
+    }
+
+    public function test_custom_roles_permissions_assignments_and_direct_permissions_are_preserved(): void
+    {
+        $customPermission = Permission::findOrCreate('custom newsroom permission', 'web');
+        $customRole = Role::findOrCreate('custom-newsroom-role', 'web');
+        $customRole->givePermissionTo($customPermission);
+        $user = User::factory()->create();
+        $user->assignRole($customRole);
+        $user->givePermissionTo($customPermission);
+
+        $this->seed(RolePermissionSeeder::class);
+
+        $this->assertTrue($user->fresh()->hasRole('custom-newsroom-role'));
+        $this->assertTrue($user->fresh()->hasDirectPermission('custom newsroom permission'));
+        $this->assertTrue($customRole->fresh()->hasPermissionTo('custom newsroom permission'));
+        $this->assertSame('web', Role::findByName('analytics-manager')->guard_name);
+        $this->assertSame('web', Permission::findByName('view all analytics')->guard_name);
     }
 }

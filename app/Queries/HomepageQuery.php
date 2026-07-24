@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
+use App\Services\CacheQueryService;
 
 class HomepageQuery
 {
@@ -21,6 +22,15 @@ class HomepageQuery
      * @return array<string, mixed>
      */
     public function get(): array
+    {
+        if (config('cache_architecture.enabled') && config('cache_architecture.query')) {
+            return app(CacheQueryService::class)->remember('query', 'homepage', 'public', 'default', (int) config('cache_architecture.ttls.short', 300), fn (): array => $this->uncachedGet());
+        }
+        return $this->uncachedGet();
+    }
+
+    /** @return array<string, mixed> */
+    private function uncachedGet(): array
     {
         if (! Schema::hasTable('posts') || ! Schema::hasTable('categories')) {
             return $this->emptyData();

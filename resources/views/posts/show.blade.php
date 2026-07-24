@@ -33,3 +33,9 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+    @if (config('analytics.beacon_enabled'))
+        <script>(()=>{const id=crypto.randomUUID(); fetch('{{ route('analytics.beacon',$article->post) }}',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':'{{ csrf_token() }}'},body:JSON.stringify({event_id:id}),keepalive:true}).catch(()=>{});})();</script>
+    @endif
+@endpush

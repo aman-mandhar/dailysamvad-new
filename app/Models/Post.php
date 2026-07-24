@@ -109,6 +109,11 @@ class Post extends Model
         return $this->belongsTo(User::class, 'reviewed_by');
     }
 
+    public function workflowEvents(): HasMany
+    {
+        return $this->hasMany(PostWorkflowEvent::class)->orderBy('created_at')->orderBy('id');
+    }
+
     /** @return HasMany<PostVisit, $this> */
     public function visits(): HasMany
     {
@@ -261,6 +266,16 @@ class Post extends Model
             ->where('scheduled_at', '>', now());
     }
 
+    public function scopeDueForPublishing(Builder $query): Builder
+    {
+        return $query->where('status', PostStatus::Scheduled->value)->whereNotNull('scheduled_at')->where('scheduled_at', '<=', now());
+    }
+
+    public function scopeAssignedTo(Builder $query, User|int $reviewer): Builder
+    {
+        return $query->where('reviewed_by', $reviewer instanceof User ? $reviewer->getKey() : $reviewer);
+    }
+
     /**
      * Scope the query to breaking posts.
      *
@@ -310,6 +325,12 @@ class Post extends Model
             'scheduled_at' => 'datetime',
             'submitted_at' => 'datetime',
             'reviewed_at' => 'datetime',
+            'review_assigned_at' => 'datetime',
+            'review_started_at' => 'datetime',
+            'corrections_requested_at' => 'datetime',
+            'approved_at' => 'datetime',
+            'rejected_at' => 'datetime',
+            'archived_at' => 'datetime',
             'source_data' => 'array',
             'seo_data' => 'array',
         ];

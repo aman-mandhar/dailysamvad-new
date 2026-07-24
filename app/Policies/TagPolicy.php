@@ -9,12 +9,12 @@ class TagPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->hasPermissionTo('manage tags');
+        return $user->hasAnyPermission(['view tags', 'manage tags']);
     }
 
     public function view(User $user, Tag $tag): bool
     {
-        return $user->hasPermissionTo('manage tags');
+        return $user->hasAnyPermission(['view tags', 'manage tags']);
     }
 
     public function create(User $user): bool

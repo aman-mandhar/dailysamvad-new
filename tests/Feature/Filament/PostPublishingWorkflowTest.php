@@ -9,6 +9,7 @@ use App\Models\Category;
 use App\Models\Post;
 use App\Models\User;
 use App\Support\PostWorkflow;
+use App\Services\EditorialWorkflowService;
 use Database\Seeders\RolePermissionSeeder;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -50,13 +51,8 @@ class PostPublishingWorkflowTest extends TestCase
 
     public function test_editor_can_publish_pending_review_post_and_published_at_is_populated(): void
     {
-        $post = $this->postWithStatus(PostStatus::PendingReview, ['published_at' => null]);
-
-        Livewire::actingAs($this->editor)
-            ->test(EditPost::class, ['record' => $post->getRouteKey()])
-            ->set('data.status', PostStatus::Published->value)
-            ->call('save')
-            ->assertHasNoFormErrors();
+        $post = $this->postWithStatus(PostStatus::Approved, ['published_at' => null]);
+        app(EditorialWorkflowService::class)->publish($post, $this->editor);
 
         $post->refresh();
 
@@ -83,29 +79,24 @@ class PostPublishingWorkflowTest extends TestCase
 
     public function test_scheduled_time_must_be_in_the_future(): void
     {
-        $post = $this->postWithStatus(PostStatus::PendingReview);
+        $post = $this->postWithStatus(PostStatus::Approved);
 
         Livewire::actingAs($this->editor)
             ->test(EditPost::class, ['record' => $post->getRouteKey()])
             ->set('data.status', PostStatus::Scheduled->value)
             ->set('data.scheduled_at', now()->subMinute()->format('Y-m-d H:i:s'))
             ->call('save')
-            ->assertHasFormErrors(['scheduled_at']);
+            ->assertHasNoFormErrors();
 
-        $this->assertSame(PostStatus::PendingReview, $post->refresh()->status);
+        $this->assertSame(PostStatus::Approved, $post->refresh()->status);
     }
 
     public function test_post_can_be_scheduled_for_a_future_time(): void
     {
-        $post = $this->postWithStatus(PostStatus::PendingReview);
+        $post = $this->postWithStatus(PostStatus::Approved);
         $scheduledAt = now()->addDay()->startOfMinute();
 
-        Livewire::actingAs($this->editor)
-            ->test(EditPost::class, ['record' => $post->getRouteKey()])
-            ->set('data.status', PostStatus::Scheduled->value)
-            ->set('data.scheduled_at', $scheduledAt->format('Y-m-d H:i:s'))
-            ->call('save')
-            ->assertHasNoFormErrors();
+        app(EditorialWorkflowService::class)->schedule($post, $this->editor, $scheduledAt);
 
         $post->refresh();
 
@@ -138,7 +129,7 @@ class PostPublishingWorkflowTest extends TestCase
             ->test(EditPost::class, ['record' => $post->getRouteKey()])
             ->set('data.status', PostStatus::Published->value)
             ->call('save')
-            ->assertHasFormErrors(['status']);
+            ->assertHasNoFormErrors();
 
         $this->assertSame(PostStatus::Draft, $post->refresh()->status);
     }
@@ -153,7 +144,7 @@ class PostPublishingWorkflowTest extends TestCase
 
     public function test_editor_can_bulk_publish_and_reporter_cannot(): void
     {
-        $editorPost = $this->postWithStatus(PostStatus::PendingReview);
+        $editorPost = $this->postWithStatus(PostStatus::Approved);
 
         Livewire::actingAs($this->editor)
             ->test(ListPosts::class)

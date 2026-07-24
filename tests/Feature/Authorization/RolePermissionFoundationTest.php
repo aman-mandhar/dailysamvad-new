@@ -30,7 +30,7 @@ class RolePermissionFoundationTest extends TestCase
         $permissionCount = Permission::count();
         $this->seed(RolesAndPermissionsSeeder::class);
 
-        foreach (['super-admin', 'admin', 'editor', 'reporter', 'author', 'subscriber'] as $role) {
+        foreach ([...RolesAndPermissionsSeeder::CANONICAL_ROLES, 'author'] as $role) {
             $this->assertTrue(Role::findByName($role)->exists);
         }
         foreach (RolesAndPermissionsSeeder::PERMISSIONS as $permission) {
@@ -78,7 +78,7 @@ class RolePermissionFoundationTest extends TestCase
 
         $editor = User::factory()->create();
         $editor->assignRole('editor');
-        $pending = Post::factory()->create(['status' => PostStatus::PendingReview]);
+        $pending = Post::factory()->create(['status' => PostStatus::Approved]);
         $this->assertTrue($editor->can('update', $pending));
         $this->assertTrue($editor->can('publish', $pending));
     }

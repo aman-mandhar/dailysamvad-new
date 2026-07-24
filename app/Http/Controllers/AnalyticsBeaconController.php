@@ -1,0 +1,4 @@
+<?php
+namespace App\Http\Controllers;
+use App\Models\Post; use App\Services\AnalyticsService; use Illuminate\Http\JsonResponse; use Illuminate\Http\Request; use Illuminate\Support\Str;
+class AnalyticsBeaconController extends Controller { public function __invoke(Request $request, Post $post, AnalyticsService $analytics): JsonResponse { abort_unless(config('analytics.beacon_enabled'),404); $data=$request->validate(['event_id'=>['required','uuid']]); $visitor=$request->cookie('ds_visitor'); if(!Str::isUuid((string)$visitor))$visitor=(string)Str::uuid(); $accepted=$analytics->record($post,$data,$visitor); $response=response()->json(['accepted'=>$accepted],$accepted?202:204); if(!$request->cookie('ds_visitor'))$response->cookie('ds_visitor',$visitor,60*24*365,null,null,app()->environment('production'),true,'Lax'); return $response; } }

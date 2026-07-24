@@ -10,9 +10,16 @@
     'fetchpriority' => null,
     'fallback' => true,
     'class' => '',
+    'sources' => [],
 ])
 
 @if ($src)
+    @if ($sources)
+        <picture>
+            @foreach ($sources as $source)
+                @if (!empty($source['srcset']))<source srcset="{{ $source['srcset'] }}" @if (!empty($source['type'])) type="{{ $source['type'] }}" @endif @if (!empty($source['sizes'])) sizes="{{ $source['sizes'] }}" @endif>@endif
+            @endforeach
+    @endif
     <img
         src="{{ $src }}"
         alt="{{ $alt }}"
@@ -24,6 +31,7 @@
         @if ($fetchpriority) fetchpriority="{{ $fetchpriority }}" @endif
         {{ $attributes->class($class) }}
     >
+    @if ($sources)</picture>@endif
 @elseif ($fallback)
     <div {{ $attributes->class(['flex items-center justify-center bg-slate-200 text-sm font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-400', $class]) }} role="img" aria-label="No image available">
         Daily Samvad

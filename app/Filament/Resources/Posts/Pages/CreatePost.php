@@ -7,7 +7,6 @@ use App\Filament\Resources\Posts\PostResource;
 use App\Support\Authorization\ContentAccess;
 use App\Support\PostSeoData;
 use App\Support\PostTaxonomy;
-use App\Support\PostWorkflow;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Validation\ValidationException;
 
@@ -18,7 +17,6 @@ class CreatePost extends CreateRecord
     protected function beforeCreate(): void
     {
         $this->validateTaxonomy();
-        $this->validateWorkflow(PostStatus::Draft);
     }
 
     /**
@@ -29,7 +27,8 @@ class CreatePost extends CreateRecord
     {
         $data['seo_data'] = PostSeoData::mergeRobots(null, $this->data['robots'] ?? null);
 
-        $data = PostWorkflow::prepareForPersistence($data);
+        $data['status'] = PostStatus::Draft->value;
+        unset($data['published_at'], $data['scheduled_at']);
 
         if (! ContentAccess::canAssignPostAuthor(auth()->user())) {
             $data['author_id'] = auth()->id();
@@ -54,14 +53,4 @@ class CreatePost extends CreateRecord
         }
     }
 
-    private function validateWorkflow(PostStatus $from): void
-    {
-        $errors = PostWorkflow::validate(auth()->user(), $from, $this->data);
-
-        if ($errors !== []) {
-            throw ValidationException::withMessages(
-                collect($errors)->mapWithKeys(fn (string $message, string $field): array => ["data.{$field}" => $message])->all(),
-            );
-        }
-    }
 }

@@ -199,7 +199,7 @@ class SprintTwoHardeningTest extends TestCase
 
         $this->seed(DatabaseSeeder::class);
 
-        $this->assertSame(9, Role::query()->count());
+        $this->assertSame(count(RolesAndPermissionsSeeder::CANONICAL_ROLES) + 1, Role::query()->count());
         $this->assertSame(count(RolesAndPermissionsSeeder::PERMISSIONS), Permission::query()->count());
         $this->assertTrue(Role::findByName('super-admin')->hasAllPermissions(Permission::all()));
     }

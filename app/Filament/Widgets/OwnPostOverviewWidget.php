@@ -4,6 +4,7 @@ namespace App\Filament\Widgets;
 
 use App\Enums\PostStatus;
 use App\Models\Post;
+use App\Services\DashboardMetrics;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
@@ -21,15 +22,8 @@ class OwnPostOverviewWidget extends StatsOverviewWidget
     /** @return array<string, int> */
     public function metrics(): array
     {
-        $query = Post::query()->where('author_id', auth()->id());
-
-        return [
-            'My drafts' => (clone $query)->where('status', PostStatus::Draft)->count(),
-            'My submitted posts' => (clone $query)->where('status', PostStatus::PendingReview)->count(),
-            'Corrections required' => (clone $query)->where('status', PostStatus::Rejected)->count(),
-            'My published posts' => (clone $query)->where('status', PostStatus::Published)->count(),
-            'My total views' => (int) (clone $query)->sum('views_count'),
-        ];
+        $summary = app(DashboardMetrics::class)->ownSummary(auth()->user());
+        return ['My drafts' => $summary['drafts'], 'My submitted posts' => $summary['pending_review'], 'Corrections required' => $summary['changes_requested'], 'My published posts' => $summary['published'], 'My total views' => $summary['views']];
     }
 
     protected function getStats(): array

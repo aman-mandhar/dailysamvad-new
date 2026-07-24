@@ -7,6 +7,8 @@ use App\Models\Category;
 use App\Models\Post;
 use App\Models\Tag;
 use App\Models\User;
+use App\Search\SearchCriteria;
+use App\Search\SearchService;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -16,6 +18,7 @@ class ArchivePageQuery
 {
     public function __construct(
         private readonly SidebarQuery $sidebar,
+        private readonly SearchService $search,
     ) {}
 
     public function forCategory(string $slug): ArchivePageData
@@ -74,19 +77,8 @@ class ArchivePageQuery
     public function forSearch(string $term): ArchivePageData
     {
         $term = $this->normalizeSearch($term);
-        $query = $this->postQuery();
-
-        if ($term === '' || mb_strlen($term) < (int) config('archive.search_min_length', 1)) {
-            $query->whereRaw('1 = 0');
-        } else {
-            $like = '%'.$this->escapeLike($term).'%';
-            $query->where(fn (Builder $query): Builder => $query
-                ->whereRaw("title LIKE ? ESCAPE '\\'", [$like])
-                ->orWhereRaw("excerpt LIKE ? ESCAPE '\\'", [$like])
-                ->orWhereRaw("content LIKE ? ESCAPE '\\'", [$like])
-                ->orWhereRaw("meta_title LIKE ? ESCAPE '\\'", [$like])
-                ->orWhereRaw("meta_description LIKE ? ESCAPE '\\'", [$like]));
-        }
+        $query = $this->search->query(SearchCriteria::from(['q' => $term]));
+        if ($term === '' || mb_strlen($term) < (int) config('archive.search_min_length', 1)) $query->whereRaw('1 = 0');
 
         $baseUrl = route('search', $term === '' ? [] : ['q' => $term]);
 

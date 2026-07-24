@@ -10,7 +10,7 @@ class MediaPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->hasPermissionTo('manage media');
+        return $user->hasAnyPermission(['view media', 'manage media']);
     }
 
     public function view(User $user, Media $media): bool
@@ -20,22 +20,29 @@ class MediaPolicy
 
     public function create(User $user): bool
     {
-        return $user->hasPermissionTo('manage media');
+        return $user->hasAnyPermission(['upload media', 'manage media']);
     }
 
     public function update(User $user, Media $media): bool
     {
-        return ContentAccess::canAccessMedia($user, $media);
+        return ($user->hasPermissionTo('update all media')
+            || ($user->hasPermissionTo('update own media') && $media->uploaded_by === $user->getKey())
+            || $user->hasPermissionTo('manage media'))
+            && ContentAccess::canAccessMedia($user, $media);
     }
 
     public function restore(User $user, Media $media): bool
     {
-        return ContentAccess::canAccessMedia($user, $media);
+        return $this->update($user, $media);
     }
 
     public function delete(User $user, Media $media): bool
     {
-        return ContentAccess::canAccessMedia($user, $media) && ! $media->featuredPosts()->exists();
+        return ($user->hasPermissionTo('delete all media')
+            || ($user->hasPermissionTo('delete own media') && $media->uploaded_by === $user->getKey())
+            || $user->hasPermissionTo('manage media'))
+            && ContentAccess::canAccessMedia($user, $media)
+            && ! $media->featuredPosts()->exists();
     }
 
     public function deleteAny(User $user): bool
@@ -55,6 +62,6 @@ class MediaPolicy
 
     public function restoreAny(User $user): bool
     {
-        return $user->hasPermissionTo('manage media') && $user->hasPermissionTo('view all posts');
+        return $user->hasAnyPermission(['update all media', 'manage media']);
     }
 }

@@ -23,12 +23,15 @@ class StaffWelcomeWidget extends Widget
     {
         $user = auth()->user();
         $role = $user?->getRoleNames()->first() ?? 'staff';
-        [$heading, $description] = match ($role) {
-            'super-admin' => ['System overview', 'Monitor publishing, users, taxonomy, media, and platform activity.'],
-            'admin' => ['Administration and publishing overview', 'Manage the editorial and administrative areas assigned to you.'],
-            'editor' => ['Editorial review overview', 'Review the current publishing pipeline and editorial workload.'],
-            'reporter' => ['Your reporting workspace', 'Create stories and manage only your reporting work.'],
-            'author' => ['Your article workspace', 'Create and manage only your own articles.'],
+        [$heading, $description] = match (true) {
+            (bool) $user?->can('manage permissions') => ['System overview', 'Monitor authorization, publishing, taxonomy, media, and platform activity.'],
+            (bool) $user?->can('manage users') => ['Administration overview', 'Manage the administrative and publishing areas assigned to you.'],
+            (bool) $user?->can('review posts') && (bool) $user?->can('view all posts') => ['Editorial review overview', 'Review the publishing pipeline and editorial workload.'],
+            (bool) $user?->can('review posts') => ['Review queue', 'Work only on posts assigned to your review scope.'],
+            (bool) $user?->can('manage seo') || (bool) $user?->can('view seo') => ['SEO workspace', 'Audit and improve authorized editorial metadata.'],
+            (bool) $user?->can('manage media') || (bool) $user?->can('view media') => ['Media workspace', 'Manage authorized media and usage data.'],
+            (bool) $user?->can('view all analytics') || (bool) $user?->can('view own analytics') => ['Analytics workspace', 'Review verified publication and visit metrics.'],
+            (bool) $user?->can('view own posts') => ['Your reporting workspace', 'Create stories and manage only your reporting work.'],
             default => ['Staff dashboard', 'Use the areas assigned to your account.'],
         };
 

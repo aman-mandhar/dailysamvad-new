@@ -97,7 +97,9 @@ class PostTest extends TestCase
             [
                 'draft',
                 'pending_review',
-                'scheduled',
+            'changes_requested',
+            'approved',
+            'scheduled',
                 'published',
                 'rejected',
                 'archived',

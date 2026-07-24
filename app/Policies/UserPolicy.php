@@ -10,28 +10,28 @@ class UserPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->hasPermissionTo('manage users');
+        return $user->hasAnyPermission(['view users', 'manage users']);
     }
 
     public function view(User $user, User $model): bool
     {
-        return $user->hasPermissionTo('manage users');
+        return $user->hasAnyPermission(['view users', 'manage users']);
     }
 
     public function create(User $user): bool
     {
-        return $user->hasPermissionTo('manage users');
+        return $user->hasAnyPermission(['create users', 'manage users']);
     }
 
     public function update(User $user, User $model): bool
     {
-        return $user->hasPermissionTo('manage users')
+        return $user->hasAnyPermission(['update users', 'manage users'])
             && (! $model->hasRole('super-admin') || $user->hasRole('super-admin'));
     }
 
     public function delete(User $user, User $model): Response
     {
-        if (! $user->hasPermissionTo('manage users')) {
+        if (! $user->hasAnyPermission(['delete users', 'manage users'])) {
             return Response::deny('You are not authorized to delete users.');
         }
 
@@ -56,7 +56,7 @@ class UserPolicy
 
     public function deleteAny(User $user): bool
     {
-        return $user->hasPermissionTo('manage users');
+        return $user->hasAnyPermission(['delete users', 'manage users']);
     }
 
     public function manageRoles(User $user, ?User $model = null): bool

@@ -9,6 +9,7 @@ use App\Support\PostSeoData;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Str;
+use App\Services\CacheQueryService;
 
 class ArticlePageQuery
 {
@@ -18,6 +19,14 @@ class ArticlePageQuery
     ) {}
 
     public function find(string $slug): ArticlePageData
+    {
+        if (config('cache_architecture.enabled') && config('cache_architecture.query')) {
+            return app(CacheQueryService::class)->remember('query', 'article', 'public', $slug, (int) config('cache_architecture.ttls.medium', 1800), fn (): ArticlePageData => $this->uncachedFind($slug));
+        }
+        return $this->uncachedFind($slug);
+    }
+
+    private function uncachedFind(string $slug): ArticlePageData
     {
         $post = Post::query()
             ->published()

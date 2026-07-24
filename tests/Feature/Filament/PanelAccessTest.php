@@ -47,9 +47,11 @@ class PanelAccessTest extends TestCase
             'reporter' => ['reporter', true],
             'author' => ['author', true],
             'subscriber' => ['subscriber', false],
-            'reviewer' => ['reviewer', false],
-            'seo-manager' => ['seo-manager', false],
-            'media-manager' => ['media-manager', false],
+            'reviewer' => ['reviewer', true],
+            'seo-manager' => ['seo-manager', true],
+            'media-manager' => ['media-manager', true],
+            'analytics-manager' => ['analytics-manager', true],
+            'contributor' => ['contributor', true],
         ];
     }
 }

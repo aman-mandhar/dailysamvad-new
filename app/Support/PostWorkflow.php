@@ -14,15 +14,15 @@ class PostWorkflow
     public static function canTransition(User $actor, PostStatus $from, PostStatus $to): bool
     {
         if ($from === $to) {
-            return $actor->hasAnyPermission(['edit own posts', 'edit all posts', 'update posts']);
+            return $actor->hasAnyPermission(['update own posts', 'update all posts', 'edit own posts', 'edit all posts', 'update posts']);
         }
 
-        if ($actor->hasPermissionTo('manage roles')) {
+        if ($actor->hasAnyPermission(['manage roles and permissions', 'manage roles'])) {
             return true;
         }
 
         return match ([$from, $to]) {
-            [PostStatus::Draft, PostStatus::PendingReview] => $actor->hasPermissionTo('submit own posts'),
+            [PostStatus::Draft, PostStatus::PendingReview] => $actor->hasAnyPermission(['submit posts for review', 'submit own posts']),
             [PostStatus::PendingReview, PostStatus::Published],
             [PostStatus::PendingReview, PostStatus::Scheduled],
             [PostStatus::Scheduled, PostStatus::Published],

@@ -52,7 +52,7 @@ class PostResourceTest extends TestCase
         $this->assertTrue(Gate::forUser($this->editor)->allows('create', Post::class));
         $this->assertTrue(Gate::forUser($this->editor)->allows('update', $post));
         $this->assertFalse(Gate::forUser($this->editor)->allows('delete', $post));
-        $this->assertTrue(Gate::forUser($reviewer)->allows('view', $post));
+        $this->assertFalse(Gate::forUser($reviewer)->allows('view', $post));
         $this->assertFalse(Gate::forUser($reviewer)->allows('create', Post::class));
         $this->assertFalse(Gate::forUser($reviewer)->allows('update', $post));
     }
@@ -98,7 +98,7 @@ class PostResourceTest extends TestCase
         $post = Post::query()->where('slug', 'punjab-assembly-education-plan')->firstOrFail();
 
         $this->assertTrue($post->author->is($this->editor));
-        $this->assertSame(PostStatus::PendingReview, $post->status);
+        $this->assertSame(PostStatus::Draft, $post->status);
         $this->assertSame('pa', $post->language);
     }
 
@@ -122,7 +122,7 @@ class PostResourceTest extends TestCase
         $post->refresh();
 
         $this->assertSame('Updated News Headline', $post->title);
-        $this->assertSame(PostStatus::PendingReview, $post->status);
+        $this->assertSame(PostStatus::Draft, $post->status);
         $this->assertSame('en', $post->language);
     }
 

@@ -13,7 +13,7 @@ use App\Models\Post;
 use App\Observers\PostObserver;
 use App\Support\Authorization\ContentAccess;
 use App\Support\PostSeoData;
-use App\Support\PostWorkflow;
+use App\Services\EditorialWorkflowService;
 use BackedEnum;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
@@ -117,12 +117,18 @@ class PostResource extends Resource
                     Select::make('status')
                         ->options(fn (): array => static::statusOptions())
                         ->default(PostStatus::Draft->value)
-                        ->required(),
+                        ->required()
+                        ->disabled()
+                        ->dehydrated(false),
                     DateTimePicker::make('published_at')
                         ->label('Published At')
+                        ->disabled()
+                        ->dehydrated(false)
                         ->seconds(false),
                     DateTimePicker::make('scheduled_at')
                         ->label('Scheduled At')
+                        ->disabled()
+                        ->dehydrated(false)
                         ->seconds(false),
                     Toggle::make('is_featured')
                         ->label('Is Featured')
@@ -377,14 +383,14 @@ class PostResource extends Resource
                         ->authorizeIndividualRecords('publish')
                         ->requiresConfirmation()
                         ->action(fn (Collection $records): mixed => $records->each(
-                            fn (Post $post) => PostWorkflow::transition(auth()->user(), $post, PostStatus::Published),
+                            fn (Post $post) => app(EditorialWorkflowService::class)->publish($post, auth()->user()),
                         )),
                     BulkAction::make('archive')
                         ->label('Archive')
                         ->authorizeIndividualRecords('archive')
                         ->requiresConfirmation()
                         ->action(fn (Collection $records): mixed => $records->each(
-                            fn (Post $post) => PostWorkflow::transition(auth()->user(), $post, PostStatus::Archived),
+                            fn (Post $post) => app(EditorialWorkflowService::class)->archive($post, auth()->user()),
                         )),
                 ]),
             ]);

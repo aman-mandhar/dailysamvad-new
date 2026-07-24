@@ -8,22 +8,9 @@ use Spatie\Permission\Models\Role;
 
 class UserAdministration
 {
-    /** @var array<string, int> */
-    private const ROLE_AUTHORITY = [
-        'super-admin' => 700,
-        'admin' => 600,
-        'editor' => 500,
-        'reviewer' => 400,
-        'seo-manager' => 300,
-        'media-manager' => 300,
-        'reporter' => 200,
-        'author' => 100,
-        'subscriber' => 0,
-    ];
-
     public static function canManageRoles(User $actor, ?User $target = null): bool
     {
-        if (! $actor->hasPermissionTo('manage roles')) {
+        if (! $actor->hasAnyPermission(['manage roles and permissions', 'manage roles'])) {
             return false;
         }
 
@@ -35,13 +22,14 @@ class UserAdministration
             return false;
         }
 
-        return self::authority($actor) > self::authority($target);
+        return ! $target->hasRole('super-admin');
     }
 
     /** @return Collection<int, Role> */
     public static function assignableRoles(User $actor): Collection
     {
         return Role::query()
+            ->with('permissions')
             ->orderBy('name')
             ->get()
             ->filter(function (Role $role) use ($actor): bool {
@@ -49,8 +37,7 @@ class UserAdministration
                     return $actor->hasRole('super-admin');
                 }
 
-                return $actor->hasRole('super-admin')
-                    || (self::ROLE_AUTHORITY[$role->name] ?? 0) < self::authority($actor);
+                return $role->permissions->every(fn ($permission): bool => $actor->can($permission->name));
             })
             ->values();
     }
@@ -88,12 +75,9 @@ class UserAdministration
             $errors['roles'] = 'Only a super-admin may assign the super-admin role.';
         }
 
-        if (! isset($errors['roles']) && ! $actor->hasRole('super-admin') && self::requestedAuthority($requestedRoles) > self::authority($actor)) {
-            $errors['roles'] = 'You cannot assign a role with greater authority than your own.';
-        }
-
-        if (! isset($errors['roles']) && $actor->is($target) && ! $actor->hasRole('super-admin') && self::requestedAuthority($requestedRoles) > self::authority($target)) {
-            $errors['roles'] = 'You cannot promote your own account.';
+        if (! isset($errors['roles']) && collect($roleIds)->map(fn ($id): int => (int) $id)
+            ->diff(self::assignableRoles($actor)->modelKeys())->isNotEmpty()) {
+            $errors['roles'] = 'You cannot assign permissions that exceed your own authority.';
         }
 
         if (! $requestedRoles->contains('super-admin') && self::isFinalActiveSuperAdmin($target)) {
@@ -146,14 +130,4 @@ class UserAdministration
                 ->count() <= 1;
     }
 
-    private static function authority(User $user): int
-    {
-        return self::requestedAuthority($user->getRoleNames());
-    }
-
-    /** @param Collection<int, string> $roles */
-    private static function requestedAuthority(Collection $roles): int
-    {
-        return (int) $roles->map(fn (string $role): int => self::ROLE_AUTHORITY[$role] ?? 0)->max();
-    }
 }
