@@ -5,6 +5,7 @@ namespace App\Import\Importers;
 use App\Import\DTOs\ImportContext;
 use App\Import\DTOs\ImportResult;
 use App\Import\DTOs\SeoImportVerification;
+use App\Import\Support\ImportMode;
 use App\Import\Support\StatisticsCounter;
 use App\Models\Post;
 use Illuminate\Support\Collection;
@@ -27,8 +28,34 @@ class SeoImporter extends AbstractWordPressImporter
     public function import(ImportContext $context): ImportResult
     {
         $this->verification = new SeoImportVerification;
+        $counter = new StatisticsCounter;
+        $query = $this->source->connection()->table($this->source->table('posts'))
+            ->selectRaw('ID as source_id, post_name, post_title, post_excerpt, post_content, guid')
+            ->where('post_type', 'post');
 
-        return parent::import($context);
+        if ($context->ids !== []) {
+            $query->whereIn('ID', $context->ids);
+        }
+        if ($context->status !== 'all') {
+            $query->where('post_status', $context->status);
+        }
+
+        $direction = $context->order === 'oldest' ? 'asc' : 'desc';
+        $query->orderBy('post_date', $direction)->orderBy('ID', $direction)->offset($context->offset);
+        if ($context->limit !== null) {
+            $query->limit($context->limit);
+        }
+        $posts = $query->get();
+        $metadata = $this->source->connection()->table($this->source->table('postmeta'))
+            ->whereIn('post_id', $posts->pluck('source_id'))->whereIn('meta_key', $this->metaKeys())
+            ->get(['post_id', 'meta_key', 'meta_value'])->groupBy('post_id');
+
+        $posts->each(function (object $post) use ($metadata, $counter, $context): void {
+            $post->seo_metadata = $metadata->get($post->source_id, collect())->pluck('meta_value', 'meta_key')->all();
+            $this->processRecord($post, $counter, $context->mode === ImportMode::DryRun);
+        });
+
+        return new ImportResult($counter->statistics(), true);
     }
 
     protected function sourceRecords(int $cursor, int $limit): Collection

@@ -14,6 +14,7 @@ use App\Import\Services\WordPressConnection;
 use App\Import\Support\ImportMode;
 use App\Import\Support\StatisticsCounter;
 use App\Models\Category;
+use App\Models\Media;
 use App\Models\Post;
 use App\Models\Tag;
 use App\Models\User;
@@ -156,6 +157,7 @@ class PostImporter implements Importer
                 '_yoast_wpseo_canonical', '_yoast_wpseo_primary_category', '_language', 'language',
                 'rank_math_title', 'rank_math_description', 'rank_math_focus_keyword',
                 'rank_math_canonical_url', 'rank_math_primary_category',
+                '_thumbnail_id',
             ])->get(['post_id', 'meta_key', 'meta_value'])->groupBy('post_id');
     }
 
@@ -232,12 +234,37 @@ class PostImporter implements Importer
             $post->timestamps = false;
             $post->save();
             $post->timestamps = true;
+            $this->resolveFeaturedImage($post, $meta);
             $this->syncTaxonomy($post, $terms, $meta, $status);
         } else {
             $this->verifyTaxonomy($terms, $status);
         }
 
         $alreadyImported ? $counter->updated++ : $counter->imported++;
+    }
+
+    private function resolveFeaturedImage(Post $post, Collection $meta): void
+    {
+        $attachmentId = (int) $meta->get('_thumbnail_id');
+        if ($attachmentId < 1) {
+            return;
+        }
+
+        $media = Media::withTrashed()->where('old_wp_id', $attachmentId)->first();
+        if (! $media) {
+            return;
+        }
+
+        if ($media->trashed()) {
+            $media->restore();
+        }
+
+        $post->update([
+            'featured_media_id' => $media->getKey(),
+            'featured_image' => $media->path,
+            'featured_image_alt' => $media->alt_text ?: $post->featured_image_alt,
+            'featured_image_caption' => $media->caption ?: $post->featured_image_caption,
+        ]);
     }
 
     private function syncTaxonomy(Post $post, Collection $terms, Collection $meta, PostStatus $status): void

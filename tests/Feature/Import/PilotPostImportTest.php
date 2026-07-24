@@ -4,6 +4,7 @@ namespace Tests\Feature\Import;
 
 use App\Import\Services\WordPressConnection;
 use App\Models\Category;
+use App\Models\Media;
 use App\Models\Post;
 use App\Models\Tag;
 use App\Models\User;
@@ -164,6 +165,26 @@ class PilotPostImportTest extends TestCase
         $this->assertDatabaseHas('posts', ['old_wp_id' => 2]);
         $this->assertDatabaseHas('posts', ['old_wp_id' => 3]);
         $this->assertDatabaseMissing('posts', ['old_wp_id' => 1]);
+    }
+
+    public function test_post_import_resolves_an_already_imported_featured_media_idempotently(): void
+    {
+        $this->insertPost(10);
+        $this->meta(10, '_thumbnail_id', '100');
+        $media = Media::factory()->create([
+            'old_wp_id' => 100, 'path' => 'wordpress/uploads/photo.jpg',
+            'alt_text' => 'Photo alt', 'caption' => 'Photo caption',
+        ]);
+
+        $this->runImport();
+        $this->runImport();
+
+        $post = Post::query()->where('old_wp_id', 10)->firstOrFail();
+        $this->assertSame($media->id, $post->featured_media_id);
+        $this->assertSame($media->path, $post->featured_image);
+        $this->assertSame('Photo alt', $post->featured_image_alt);
+        $this->assertSame('Photo caption', $post->featured_image_caption);
+        $this->assertSame(1, Post::query()->where('old_wp_id', 10)->count());
     }
 
     public function test_publish_is_the_default_status_filter(): void

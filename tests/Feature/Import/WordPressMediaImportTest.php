@@ -43,6 +43,8 @@ class WordPressMediaImportTest extends TestCase
             $table->string('post_type');
             $table->string('post_mime_type')->nullable();
             $table->text('post_excerpt')->nullable();
+            $table->dateTime('post_date')->nullable();
+            $table->string('post_status')->nullable();
         });
         $schema->create('wp_postmeta', function ($table): void {
             $table->increments('meta_id');
@@ -77,6 +79,40 @@ class WordPressMediaImportTest extends TestCase
             'alt_text' => 'Press conference',
             'caption' => 'Imported caption',
         ]);
+    }
+
+    public function test_latest_post_batch_imports_only_its_featured_attachment(): void
+    {
+        Post::factory()->create(['old_wp_id' => 10]);
+        Post::factory()->create(['old_wp_id' => 20]);
+        $this->insertSourcePost(10, '2024-01-01 10:00:00');
+        $this->insertSourcePost(20, '2024-02-01 10:00:00');
+        $this->insertAttachment(100, '2024/01/old.png');
+        $this->insertAttachment(200, '2024/02/latest.png');
+        $this->meta(10, '_thumbnail_id', '100');
+        $this->meta(20, '_thumbnail_id', '200');
+        Storage::disk('wordpress-source')->put('2024/01/old.png', $this->png());
+        Storage::disk('wordpress-source')->put('2024/02/latest.png', $this->png());
+
+        $this->runImport(['--limit' => 1, '--order' => 'latest']);
+
+        $this->assertDatabaseHas('media', ['old_wp_id' => 200]);
+        $this->assertDatabaseMissing('media', ['old_wp_id' => 100]);
+        $this->assertSame(200, Post::query()->where('old_wp_id', 20)->firstOrFail()->featuredMedia->old_wp_id);
+    }
+
+    public function test_existing_destination_file_is_mapped_when_source_file_is_unavailable(): void
+    {
+        $post = Post::factory()->create(['old_wp_id' => 10]);
+        $this->insertSourcePost(10, '2024-02-01 10:00:00');
+        $this->insertAttachment(100, '2024/02/existing.png');
+        $this->meta(10, '_thumbnail_id', '100');
+        Storage::disk('public')->put('wordpress/uploads/2024/02/existing.png', $this->png());
+
+        $this->runImport(['--limit' => 1]);
+
+        $this->assertSame('wordpress/uploads/2024/02/existing.png', $post->refresh()->featured_image);
+        $this->assertNotNull($post->featured_media_id);
     }
 
     public function test_duplicate_run_skips_unchanged_file_without_creating_another_copy(): void
@@ -155,6 +191,13 @@ class WordPressMediaImportTest extends TestCase
             'post_excerpt' => 'Imported caption',
         ]);
         $this->meta($id, '_wp_attached_file', $path);
+    }
+
+    private function insertSourcePost(int $id, string $date): void
+    {
+        $this->wordpress->table('wp_posts')->insert([
+            'ID' => $id, 'post_type' => 'post', 'post_status' => 'publish', 'post_date' => $date,
+        ]);
     }
 
     private function meta(int $postId, string $key, string $value): void

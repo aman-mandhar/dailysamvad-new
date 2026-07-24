@@ -43,6 +43,7 @@ class SeoRedirectVerificationTest extends TestCase
             $table->unsignedBigInteger('ID')->primary();
             $table->unsignedBigInteger('post_author')->default(0);
             $table->string('post_type');
+            $table->string('post_status')->default('publish');
             $table->string('post_title')->nullable();
             $table->text('post_excerpt')->nullable();
             $table->string('post_name')->nullable();
@@ -90,6 +91,25 @@ class SeoRedirectVerificationTest extends TestCase
         $this->assertSame('OpenGraph title', $post->seo_data['open_graph']['title']);
         $this->assertSame('Twitter description', $post->seo_data['twitter']['description']);
         $this->assertSame('WordPress', $post->source_name);
+    }
+
+    public function test_latest_seo_selection_matches_the_latest_imported_post_batch(): void
+    {
+        foreach ([10, 20, 30] as $id) {
+            Post::factory()->create(['old_wp_id' => $id, 'meta_title' => null]);
+            $this->sourcePost($id);
+            $this->wordpress->table('wp_posts')->where('ID', $id)->update(['post_date' => "2024-01-{$id} 10:00:00"]);
+            $this->meta($id, '_yoast_wpseo_title', "SEO {$id}");
+        }
+
+        $this->assertSame(0, Artisan::call('import:wordpress', [
+            '--only' => ['seo'], '--limit' => 2, '--order' => 'latest',
+        ]));
+
+        $this->assertNull(Post::query()->where('old_wp_id', 10)->firstOrFail()->meta_title);
+        $this->assertSame('SEO 20', Post::query()->where('old_wp_id', 20)->firstOrFail()->meta_title);
+        $this->assertSame('SEO 30', Post::query()->where('old_wp_id', 30)->firstOrFail()->meta_title);
+        $this->assertStringContainsString('0', Artisan::output());
     }
 
     public function test_redirects_are_normalized_deduplicated_and_exported_in_every_format(): void

@@ -63,13 +63,19 @@ class WordPressMediaImporter implements MediaImporter
 
         $this->logger->info('Starting WordPress media import.', [
             'mode' => $context->mode->value, 'offset' => $position, 'limit' => $context->limit,
+            'order' => $context->order, 'status' => $context->status, 'ids' => $context->ids,
             'memory_mb' => $this->memoryMb(),
         ]);
 
         while ($context->limit === null || $processed < $context->limit) {
             $take = min($context->chunk, $context->limit === null ? $context->chunk : $context->limit - $processed);
-            $attachments = $this->attachments($context, $position, $take);
-            if ($attachments->isEmpty()) {
+            $selectedPostIds = $context->ids === [] ? $this->selectedPostIds($context, $position, $take) : null;
+            if ($selectedPostIds === [] && $position === $context->offset && ! $this->hasSourcePosts()) {
+                $selectedPostIds = null;
+            }
+            $attachments = $this->attachments($context, $position, $take, $selectedPostIds);
+            $advance = $selectedPostIds === null ? $attachments->count() : count($selectedPostIds);
+            if ($advance === 0) {
                 break;
             }
 
@@ -90,8 +96,8 @@ class WordPressMediaImporter implements MediaImporter
             }
 
             $bytesCopied += $chunkBytes;
-            $position += $attachments->count();
-            $processed += $attachments->count();
+            $position += $advance;
+            $processed += $advance;
 
             if ($context->mode === ImportMode::Live) {
                 $this->checkpoints->store(new ImportCheckpoint(
@@ -120,7 +126,8 @@ class WordPressMediaImporter implements MediaImporter
         return new ImportResult($statistics, true);
     }
 
-    private function attachments(ImportContext $context, int $offset, int $limit): Collection
+    /** @param array<int, int>|null $selectedPostIds */
+    private function attachments(ImportContext $context, int $offset, int $limit, ?array $selectedPostIds): Collection
     {
         $query = $this->sourceDatabase->connection()->table($this->sourceDatabase->table('posts').' as attachments')
             ->leftJoin($this->sourceDatabase->table('postmeta').' as files', function ($join): void {
@@ -131,9 +138,49 @@ class WordPressMediaImporter implements MediaImporter
 
         if ($context->ids !== []) {
             $query->whereIn('attachments.ID', $context->ids);
+
+            $direction = $context->order === 'oldest' ? 'asc' : 'desc';
+
+            return $query->orderBy('attachments.post_date', $direction)
+                ->orderBy('attachments.ID', $direction)->offset($offset)->limit($limit)->get();
         }
 
-        return $query->orderBy('attachments.ID')->offset($offset)->limit($limit)->get();
+        if ($selectedPostIds === null) {
+            $direction = $context->order === 'oldest' ? 'asc' : 'desc';
+
+            return $query->orderBy('attachments.post_date', $direction)
+                ->orderBy('attachments.ID', $direction)->offset($offset)->limit($limit)->get();
+        }
+
+        if ($selectedPostIds === []) {
+            return collect();
+        }
+
+        $attachmentIds = $this->sourceDatabase->connection()->table($this->sourceDatabase->table('postmeta'))
+            ->whereIn('post_id', $selectedPostIds)->where('meta_key', '_thumbnail_id')
+            ->pluck('meta_value')->map(fn ($id) => (int) $id)->filter()->unique()->values()->all();
+
+        return $query->whereIn('attachments.ID', $attachmentIds)->orderBy('attachments.ID')->get();
+    }
+
+    /** @return array<int, int> */
+    private function selectedPostIds(ImportContext $context, int $offset, int $limit): array
+    {
+        $query = $this->sourceDatabase->connection()->table($this->sourceDatabase->table('posts'))
+            ->where('post_type', 'post');
+        if ($context->status !== 'all') {
+            $query->where('post_status', $context->status);
+        }
+        $direction = $context->order === 'oldest' ? 'asc' : 'desc';
+
+        return $query->orderBy('post_date', $direction)->orderBy('ID', $direction)
+            ->offset($offset)->limit($limit)->pluck('ID')->map(fn ($id) => (int) $id)->all();
+    }
+
+    private function hasSourcePosts(): bool
+    {
+        return $this->sourceDatabase->connection()->table($this->sourceDatabase->table('posts'))
+            ->where('post_type', 'post')->exists();
     }
 
     private function featuredReferences(array $attachmentIds): Collection
@@ -164,6 +211,16 @@ class WordPressMediaImporter implements MediaImporter
         }
 
         if (! $exists) {
+            $destinationPath = $this->destinationPath($relativePath);
+            $destination = $this->filesystems->disk(config('import.media.destination_disk', 'public'));
+            if ($destination->exists($destinationPath)) {
+                $mimeType = (string) $attachment->post_mime_type;
+                $media = $this->mapMedia($attachment, $destinationPath, $mimeType, $destination->size($destinationPath), $altText, $dryRun);
+                $this->mapFeaturedImages($references, $media, $destinationPath, $mimeType, $attachment, $altText, $dryRun);
+                $counter->skipped++;
+
+                return 0;
+            }
             $this->verification->missing++;
             $this->logger->warning('WordPress media file is missing.', ['attachment_id' => $attachment->source_id, 'path' => $relativePath]);
 
@@ -253,18 +310,20 @@ class WordPressMediaImporter implements MediaImporter
             return null;
         }
 
-        return Media::query()->updateOrCreate(
-            ['old_wp_id' => (int) $attachment->source_id],
-            [
-                'disk' => (string) config('import.media.destination_disk', 'public'),
-                'path' => $destinationPath,
-                'original_url' => $this->originalUrl((string) $attachment->relative_path),
-                'mime_type' => $mimeType,
-                'size' => $size,
-                'alt_text' => filled($altText) ? (string) $altText : null,
-                'caption' => filled($attachment->post_excerpt) ? (string) $attachment->post_excerpt : null,
-            ],
-        );
+        $media = Media::withTrashed()->firstOrNew(['old_wp_id' => (int) $attachment->source_id]);
+        $media->fill([
+            'disk' => (string) config('import.media.destination_disk', 'public'),
+            'path' => $destinationPath,
+            'original_url' => $this->originalUrl((string) $attachment->relative_path),
+            'mime_type' => $mimeType,
+            'size' => $size,
+            'alt_text' => filled($altText) ? (string) $altText : null,
+            'caption' => filled($attachment->post_excerpt) ? (string) $attachment->post_excerpt : null,
+        ]);
+        $media->deleted_at = null;
+        $media->save();
+
+        return $media;
     }
 
     private function mapFeaturedImages(Collection $references, ?Media $media, string $destinationPath, string $mimeType, object $attachment, mixed $altText, bool $dryRun): void
