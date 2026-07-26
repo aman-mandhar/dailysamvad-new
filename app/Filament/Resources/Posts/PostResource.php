@@ -82,7 +82,10 @@ class PostResource extends Resource
                         ->columnSpanFull(),
                     RichEditor::make('content')
                         ->required()
-                        ->columnSpanFull(),
+                        ->columnSpanFull()
+                        ->extraInputAttributes([
+                            'style' => 'min-height: 400px;',
+                        ]),
                     Select::make('language')
                         ->options([
                             'hi' => 'Hindi',
