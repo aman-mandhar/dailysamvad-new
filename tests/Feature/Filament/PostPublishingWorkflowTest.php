@@ -8,8 +8,8 @@ use App\Filament\Resources\Posts\Pages\ListPosts;
 use App\Models\Category;
 use App\Models\Post;
 use App\Models\User;
-use App\Support\PostWorkflow;
 use App\Services\EditorialWorkflowService;
+use App\Support\PostWorkflow;
 use Database\Seeders\RolePermissionSeeder;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -140,6 +140,44 @@ class PostPublishingWorkflowTest extends TestCase
 
         $this->assertTrue(PostWorkflow::canTransition($superAdmin, PostStatus::Archived, PostStatus::Draft));
         $this->assertTrue(PostWorkflow::canTransition($superAdmin, PostStatus::Rejected, PostStatus::PendingReview));
+    }
+
+    public function test_draft_only_shows_valid_workflow_actions_to_super_admin(): void
+    {
+        $post = $this->postWithStatus(PostStatus::Draft);
+
+        Livewire::actingAs($this->userWithRole('super-admin'))
+            ->test(EditPost::class, ['record' => $post->getRouteKey()])
+            ->assertActionVisible('submit_for_review')
+            ->assertActionHidden('assign_reviewer')
+            ->assertActionHidden('start_review')
+            ->assertActionHidden('request_corrections')
+            ->assertActionHidden('approve')
+            ->assertActionHidden('reject')
+            ->assertActionHidden('schedule')
+            ->assertActionHidden('cancel_schedule')
+            ->assertActionHidden('publish')
+            ->assertActionHidden('archive')
+            ->assertActionHidden('reopen');
+    }
+
+    public function test_pending_review_only_shows_review_actions_to_editor(): void
+    {
+        $post = $this->postWithStatus(PostStatus::PendingReview);
+
+        Livewire::actingAs($this->editor)
+            ->test(EditPost::class, ['record' => $post->getRouteKey()])
+            ->assertActionHidden('submit_for_review')
+            ->assertActionVisible('assign_reviewer')
+            ->assertActionVisible('start_review')
+            ->assertActionVisible('request_corrections')
+            ->assertActionVisible('approve')
+            ->assertActionVisible('reject')
+            ->assertActionHidden('schedule')
+            ->assertActionHidden('cancel_schedule')
+            ->assertActionHidden('publish')
+            ->assertActionHidden('archive')
+            ->assertActionHidden('reopen');
     }
 
     public function test_editor_can_bulk_publish_and_reporter_cannot(): void
