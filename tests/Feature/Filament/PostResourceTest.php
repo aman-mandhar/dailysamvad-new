@@ -88,7 +88,7 @@ class PostResourceTest extends TestCase
                 'content' => '<p>Members discussed the proposed education plan during the session.</p>',
                 'language' => 'pa',
                 'author_id' => $this->editor->id,
-                'status' => PostStatus::PendingReview->value,
+                'status' => PostStatus::Draft->value,
                 'categories' => [$this->category->id],
                 'primary_category_id' => $this->category->id,
             ])
@@ -100,6 +100,36 @@ class PostResourceTest extends TestCase
         $this->assertTrue($post->author->is($this->editor));
         $this->assertSame(PostStatus::Draft, $post->status);
         $this->assertSame('pa', $post->language);
+    }
+
+    public function test_editor_can_publish_a_post_directly_during_creation(): void
+    {
+        Livewire::actingAs($this->editor)
+            ->test(CreatePost::class)
+            ->fillForm([
+                'title' => 'Directly Published Story',
+                'slug' => 'directly-published-story',
+                'content' => '<p>This story is ready for immediate publication.</p>',
+                'language' => 'en',
+                'author_id' => $this->editor->id,
+                'status' => PostStatus::Published->value,
+                'categories' => [$this->category->id],
+                'primary_category_id' => $this->category->id,
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $post = Post::query()->where('slug', 'directly-published-story')->firstOrFail();
+
+        $this->assertSame(PostStatus::Published, $post->status);
+        $this->assertNotNull($post->published_at);
+        $this->assertSame($this->editor->id, $post->published_by);
+        $this->assertDatabaseHas('post_workflow_events', [
+            'post_id' => $post->id,
+            'actor_id' => $this->editor->id,
+            'event' => 'published',
+            'to_status' => PostStatus::Published->value,
+        ]);
     }
 
     public function test_post_can_be_edited(): void

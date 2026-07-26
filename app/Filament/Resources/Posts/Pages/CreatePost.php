@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Posts\Pages;
 
 use App\Enums\PostStatus;
 use App\Filament\Resources\Posts\PostResource;
+use App\Models\PostWorkflowEvent;
 use App\Support\Authorization\ContentAccess;
 use App\Support\PostSeoData;
 use App\Support\PostTaxonomy;
@@ -27,8 +28,14 @@ class CreatePost extends CreateRecord
     {
         $data['seo_data'] = PostSeoData::mergeRobots(null, $this->data['robots'] ?? null);
 
-        $data['status'] = PostStatus::Draft->value;
-        unset($data['published_at'], $data['scheduled_at']);
+        $canPublish = auth()->user()?->can('publish posts') ?? false;
+        $status = $canPublish && ($data['status'] ?? null) === PostStatus::Published->value
+            ? PostStatus::Published
+            : PostStatus::Draft;
+
+        $data['status'] = $status->value;
+        $data['published_at'] = $status === PostStatus::Published ? now() : null;
+        unset($data['scheduled_at']);
 
         if (! ContentAccess::canAssignPostAuthor(auth()->user())) {
             $data['author_id'] = auth()->id();
@@ -40,6 +47,19 @@ class CreatePost extends CreateRecord
     protected function afterCreate(): void
     {
         PostTaxonomy::syncPrimaryCategory($this->record, (int) $this->data['primary_category_id']);
+
+        if ($this->record->status === PostStatus::Published) {
+            $this->record->forceFill(['published_by' => auth()->id()])->save();
+
+            PostWorkflowEvent::query()->create([
+                'post_id' => $this->record->getKey(),
+                'actor_id' => auth()->id(),
+                'event' => 'published',
+                'from_status' => null,
+                'to_status' => PostStatus::Published->value,
+                'metadata' => ['source' => 'direct_creation'],
+            ]);
+        }
     }
 
     private function validateTaxonomy(): void
@@ -52,5 +72,4 @@ class CreatePost extends CreateRecord
             );
         }
     }
-
 }

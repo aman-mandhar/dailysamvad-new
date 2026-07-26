@@ -11,9 +11,9 @@ use App\Models\Category;
 use App\Models\Media;
 use App\Models\Post;
 use App\Observers\PostObserver;
+use App\Services\EditorialWorkflowService;
 use App\Support\Authorization\ContentAccess;
 use App\Support\PostSeoData;
-use App\Services\EditorialWorkflowService;
 use BackedEnum;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
@@ -118,11 +118,18 @@ class PostResource extends Resource
                 ->columns(2)
                 ->schema([
                     Select::make('status')
-                        ->options(fn (): array => static::statusOptions())
+                        ->options(fn (string $operation): array => $operation === 'create'
+                            ? (auth()->user()?->can('publish posts')
+                                ? [
+                                    PostStatus::Draft->value => 'Draft',
+                                    PostStatus::Published->value => 'Published',
+                                ]
+                                : [PostStatus::Draft->value => 'Draft'])
+                            : static::statusOptions())
                         ->default(PostStatus::Draft->value)
                         ->required()
-                        ->disabled()
-                        ->dehydrated(false),
+                        ->disabled(fn (string $operation): bool => $operation !== 'create' || ! (auth()->user()?->can('publish posts') ?? false))
+                        ->dehydrated(fn (string $operation): bool => $operation === 'create' && (auth()->user()?->can('publish posts') ?? false)),
                     DateTimePicker::make('published_at')
                         ->label('Published At')
                         ->disabled()
