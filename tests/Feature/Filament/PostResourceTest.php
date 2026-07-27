@@ -94,7 +94,7 @@ class PostResourceTest extends TestCase
             ])
             ->call('create')
             ->assertHasNoFormErrors()
-            ->assertRedirect(PostResource::getUrl('index'));
+            ->assertRedirect(PostResource::getUrl('create'));
 
         $post = Post::query()->where('slug', 'punjab-assembly-education-plan')->firstOrFail();
 
@@ -105,6 +105,80 @@ class PostResourceTest extends TestCase
         Livewire::actingAs($this->editor)
             ->test(ListPosts::class)
             ->assertCanSeeTableRecords([$post]);
+    }
+
+    public function test_post_creation_success_dialog_is_shown_to_editor_with_record_actions(): void
+    {
+        $post = Post::factory()->create([
+            'author_id' => $this->editor->id,
+            'slug' => 'dialog-post',
+            'published_at' => now(),
+        ]);
+
+        session()->flash('filament.posts.created_post_id', $post->id);
+
+        Livewire::actingAs($this->editor)
+            ->test(CreatePost::class)
+            ->assertActionMounted('postCreated')
+            ->assertMountedActionModalSee([
+                'Post Created Successfully',
+                'The post has been saved. Choose what you would like to do next.',
+                'View Post',
+                'All Posts',
+                'Create Another',
+            ])
+            ->assertSee($post->publicUrl())
+            ->assertSee(PostResource::getUrl('index'))
+            ->assertSee(PostResource::getUrl('create'));
+    }
+
+    public function test_post_creation_success_dialog_is_limited_to_super_admin_admin_and_editor(): void
+    {
+        foreach (['super-admin', 'admin', 'editor'] as $role) {
+            $user = User::factory()->create();
+            $user->assignRole($role);
+            $post = Post::factory()->create(['author_id' => $user->id]);
+
+            session()->flash('filament.posts.created_post_id', $post->id);
+
+            Livewire::actingAs($user)
+                ->test(CreatePost::class)
+                ->assertActionMounted('postCreated');
+        }
+
+        $reporter = User::factory()->create();
+        $reporter->assignRole('reporter');
+        $post = Post::factory()->create(['author_id' => $reporter->id]);
+
+        session()->flash('filament.posts.created_post_id', $post->id);
+
+        Livewire::actingAs($reporter)
+            ->test(CreatePost::class)
+            ->assertActionNotMounted('postCreated');
+    }
+
+    public function test_reporter_is_redirected_to_post_list_after_successful_creation(): void
+    {
+        $reporter = User::factory()->create();
+        $reporter->assignRole('reporter');
+
+        Livewire::actingAs($reporter)
+            ->test(CreatePost::class)
+            ->fillForm([
+                'title' => 'Reporter post',
+                'slug' => 'reporter-post',
+                'content' => '<p>Reporter post content.</p>',
+                'language' => 'en',
+                'status' => PostStatus::Draft->value,
+                'categories' => [$this->category->id],
+                'primary_category_id' => $this->category->id,
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors()
+            ->assertActionNotMounted('postCreated')
+            ->assertRedirect(PostResource::getUrl('index'));
+
+        $this->assertDatabaseCount('posts', 1);
     }
 
     public function test_editor_can_publish_a_post_directly_during_creation(): void
@@ -179,7 +253,8 @@ class PostResourceTest extends TestCase
                 'primary_category_id' => $this->category->id,
             ])
             ->call('create')
-            ->assertHasFormErrors(['slug' => 'unique']);
+            ->assertHasFormErrors(['slug' => 'unique'])
+            ->assertActionNotMounted('postCreated');
 
         Livewire::actingAs($this->editor)
             ->test(EditPost::class, ['record' => $existing->getRouteKey()])
