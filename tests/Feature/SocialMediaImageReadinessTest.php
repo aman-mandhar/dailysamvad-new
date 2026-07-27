@@ -69,6 +69,26 @@ class SocialMediaImageReadinessTest extends TestCase
         $this->assertStringContainsString('name="twitter:card" content="summary_large_image"', $html);
     }
 
+    public function test_direct_filament_upload_exposes_cached_real_mime_and_dimensions(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put(
+            'posts/featured/whatsapp-card.png',
+            file_get_contents(public_path('images/seo/default-social.png')),
+        );
+        $post = Post::factory()->published()->create([
+            'featured_media_id' => null,
+            'featured_image' => 'posts/featured/whatsapp-card.png',
+        ]);
+
+        $html = $this->get($post->publicUrl())->assertOk()->getContent();
+
+        $this->assertStringContainsString('property="og:image:type" content="image/png"', $html);
+        $this->assertStringContainsString('property="og:image:width" content="1200"', $html);
+        $this->assertStringContainsString('property="og:image:height" content="630"', $html);
+        $this->assertStringContainsString('name="twitter:card" content="summary_large_image"', $html);
+    }
+
     public function test_missing_linked_media_uses_existing_featured_image_then_default(): void
     {
         Storage::fake('public');

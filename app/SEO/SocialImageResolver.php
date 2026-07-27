@@ -6,7 +6,9 @@ use App\Models\Media;
 use App\Support\MediaPathNormalizer;
 use App\Support\MediaUrlResolver;
 use Illuminate\Filesystem\FilesystemManager;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
+use Throwable;
 
 class SocialImageResolver
 {
@@ -27,9 +29,10 @@ class SocialImageResolver
             return null;
         }
 
-        $mime = $this->mimeType($media?->mime_type, $url);
-        $width = $media?->width;
-        $height = $media?->height;
+        $localMetadata = $media === null ? $this->localMetadata($source) : [];
+        $mime = $this->mimeType($media?->mime_type ?? ($localMetadata['mime'] ?? null), $url);
+        $width = $media?->width ?? ($localMetadata['width'] ?? null);
+        $height = $media?->height ?? ($localMetadata['height'] ?? null);
 
         return new SocialImage(
             url: $url,
@@ -148,6 +151,42 @@ class SocialImageResolver
             'jpg', 'jpeg' => 'image/jpeg', 'png' => 'image/png', 'webp' => 'image/webp', 'gif' => 'image/gif',
             default => null,
         };
+    }
+
+    /** @return array{mime?: string, width?: int, height?: int} */
+    private function localMetadata(?string $source, ?string $disk = null): array
+    {
+        $normalized = $this->paths->normalize($source);
+        if ($normalized === null || Str::startsWith($normalized, ['http://', 'https://'])) {
+            return [];
+        }
+
+        $diskName = $disk ?: (string) config('media.disk', 'public');
+
+        try {
+            $filesystem = $this->filesystems->disk($diskName);
+            if (! $filesystem->exists($normalized)) {
+                return [];
+            }
+
+            $version = $filesystem->lastModified($normalized);
+            $cacheKey = 'social-image-metadata:'.hash('sha256', $diskName.'|'.$normalized.'|'.$version);
+
+            return Cache::rememberForever($cacheKey, function () use ($filesystem, $normalized): array {
+                $image = @getimagesize($filesystem->path($normalized));
+                if (! is_array($image)) {
+                    return [];
+                }
+
+                return array_filter([
+                    'mime' => is_string($image['mime'] ?? null) ? $image['mime'] : null,
+                    'width' => is_int($image[0] ?? null) ? $image[0] : null,
+                    'height' => is_int($image[1] ?? null) ? $image[1] : null,
+                ], fn (mixed $value): bool => $value !== null);
+            });
+        } catch (Throwable) {
+            return [];
+        }
     }
 
     private function text(mixed ...$values): string

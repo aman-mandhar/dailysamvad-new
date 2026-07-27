@@ -5,7 +5,7 @@
         <x-frontend.logo />
 
         <div class="ds-header__right">
-            <img src="{{ asset('images/frontend/ads/jd.jpeg') }}" alt="Daily Samvad" width="260" height="75">
+            <img src="{{ asset('images/frontend/ads/jd.jpeg') }}" alt="Daily Samvad">
         </div>
     </div>
 
