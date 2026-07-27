@@ -18,11 +18,11 @@ class SocialMediaImageReadinessTest extends TestCase
     public function test_whitespace_corrupted_slug_redirects_to_clean_canonical_article_url(): void
     {
         $post = Post::factory()->published()->create(['slug' => 'whatsapp-preview-story']);
-        Post::withoutEvents(fn () => Post::query()->whereKey($post)->update(['slug' => 'whatsapp-preview-story ']));
+        Post::withoutEvents(fn () => Post::query()->whereKey($post)->update(['slug' => 'whatsapp preview story ']));
 
         $dirtyUrl = route('news.show', [
             ...$post->publicRouteParameters(),
-            'slug' => 'whatsapp-preview-story ',
+            'slug' => 'whatsapp preview story ',
         ]);
         $cleanUrl = route('news.show', [
             ...$post->publicRouteParameters(),
@@ -34,12 +34,12 @@ class SocialMediaImageReadinessTest extends TestCase
 
         $this->assertStringContainsString('<link rel="canonical" href="'.$cleanUrl.'">', $html);
         $this->assertStringContainsString('property="og:url" content="'.$cleanUrl.'"', $html);
-        $this->assertStringNotContainsString('whatsapp-preview-story%20', $html);
+        $this->assertStringNotContainsString('whatsapp%20preview%20story', $html);
     }
 
     public function test_new_slug_values_are_trimmed_without_rewriting_valid_imported_characters(): void
     {
-        $post = Post::factory()->make(['slug' => '  imported-पंजाब-story  ']);
+        $post = Post::factory()->make(['slug' => '  imported पंजाब story  ']);
 
         $this->assertSame('imported-पंजाब-story', $post->slug);
     }

@@ -60,7 +60,12 @@ class Post extends Model
 
     public function setSlugAttribute(mixed $value): void
     {
-        $this->attributes['slug'] = trim((string) $value);
+        $this->attributes['slug'] = self::normalizeSlug((string) $value);
+    }
+
+    public static function normalizeSlug(string $slug): string
+    {
+        return preg_replace('/\s+/u', '-', trim($slug)) ?? trim($slug);
     }
 
     /**
@@ -217,7 +222,7 @@ class Post extends Model
         return [
             'year' => $date->format('Y'),
             'month' => $date->format('m'),
-            'slug' => trim($this->slug),
+            'slug' => self::normalizeSlug($this->slug),
         ];
     }
 

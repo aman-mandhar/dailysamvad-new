@@ -39,7 +39,7 @@ class ArticlePageQuery
             ])
             ->where(function (Builder $query) use ($slug): void {
                 $query->where('slug', $slug)
-                    ->orWhereRaw('TRIM(slug) = ?', [trim($slug)]);
+                    ->orWhereRaw("REPLACE(TRIM(slug), ' ', '-') = ?", [Post::normalizeSlug($slug)]);
             })
             ->orderByRaw('CASE WHEN slug = ? THEN 0 ELSE 1 END', [$slug])
             ->firstOrFail();

@@ -18,7 +18,7 @@ class PostController extends Controller
             404,
         );
 
-        if ($slug !== trim($article->post->slug)) {
+        if ($slug !== Post::normalizeSlug($article->post->slug)) {
             return redirect()->route('news.show', $article->post->publicRouteParameters(), 301);
         }
 
