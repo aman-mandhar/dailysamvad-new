@@ -5,6 +5,7 @@ namespace App\SEO;
 use App\Models\Media;
 use App\Support\MediaPathNormalizer;
 use App\Support\MediaUrlResolver;
+use Illuminate\Filesystem\FilesystemManager;
 use Illuminate\Support\Str;
 
 class SocialImageResolver
@@ -12,6 +13,7 @@ class SocialImageResolver
     public function __construct(
         private readonly MediaPathNormalizer $paths,
         private readonly MediaUrlResolver $urls,
+        private readonly FilesystemManager $filesystems,
     ) {}
 
     public function resolve(?string $source, ?string $alt, ?Media $media = null): ?SocialImage
@@ -20,7 +22,7 @@ class SocialImageResolver
             return null;
         }
 
-        $url = $this->absoluteUrl($source, $media?->disk);
+        $url = $this->absoluteUrl($source, $media?->disk, true);
         if ($url === null) {
             return null;
         }
@@ -42,7 +44,7 @@ class SocialImageResolver
     public function configuredDefault(?string $alt = null): ?SocialImage
     {
         $source = config('seo.default_social_image') ?: config('seo.site_logo');
-        $url = $this->absoluteUrl($source);
+        $url = $this->absoluteUrl($source, null, true);
         if ($url === null) {
             return null;
         }
@@ -60,7 +62,7 @@ class SocialImageResolver
         );
     }
 
-    private function absoluteUrl(mixed $source, ?string $disk = null): ?string
+    private function absoluteUrl(mixed $source, ?string $disk = null, bool $mustExist = false): ?string
     {
         if (! is_string($source) || blank($source) || preg_match('/[\x00-\x1F\x7F]/', $source)) {
             return null;
@@ -74,9 +76,18 @@ class SocialImageResolver
             $normalized = $this->paths->normalize($source);
             $url = Str::startsWith((string) $normalized, ['http://', 'https://']) ? $normalized : $this->urls->resolve($normalized, $disk);
         } elseif (Str::startsWith($source, ['/images/', '/build/', '/favicon', 'images/', 'build/', 'favicon'])) {
+            $publicPath = public_path(ltrim($source, '/'));
+            if ($mustExist && (! is_file($publicPath) || ! is_readable($publicPath))) {
+                return null;
+            }
             $url = url($source);
         } else {
-            $url = $this->urls->resolve($source, $disk);
+            $normalized = $this->paths->normalize($source);
+            $diskName = $disk ?: (string) config('media.disk', 'public');
+            if ($mustExist && ($normalized === null || ! $this->filesystems->disk($diskName)->exists($normalized))) {
+                return null;
+            }
+            $url = $this->urls->resolve($normalized, $diskName);
             $url = $url ? url($url) : null;
         }
 
@@ -85,11 +96,29 @@ class SocialImageResolver
             return null;
         }
 
+        if ($this->isLocalOrPrivateHost((string) parse_url($url, PHP_URL_HOST))) {
+            return null;
+        }
+
         if (app()->environment('production') && Str::startsWith($url, 'http://')) {
             $url = 'https://'.Str::after($url, 'http://');
         }
 
         return $url;
+    }
+
+    private function isLocalOrPrivateHost(string $host): bool
+    {
+        $host = Str::lower(trim($host, '[]'));
+        if ($host === '' || $host === 'localhost' || Str::endsWith($host, ['.localhost', '.local'])) {
+            return ! app()->environment(['local', 'testing']);
+        }
+
+        if (filter_var($host, FILTER_VALIDATE_IP) === false) {
+            return false;
+        }
+
+        return filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false;
     }
 
     private function encodeUrl(string $url): string

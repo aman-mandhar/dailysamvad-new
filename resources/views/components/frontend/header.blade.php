@@ -5,17 +5,7 @@
         <x-frontend.logo />
 
         <div class="ds-header__right">
-            @if (filled(config('organization.chief_editor')))
-                <div class="ds-header__editor">
-                    <strong>{{ config('organization.chief_editor') }}</strong>
-                    <span>Chief Editor</span>
-                </div>
-            @else
-                <div class="ds-header__strapline" aria-label="Daily Samvad editorial identity">
-                    <strong>{{ config('organization.website_name') }}</strong>
-                    <span>पत्रकारिता में जज्बा, सिर्फ सच</span>
-                </div>
-            @endif
+            <img src="{{ asset('images/frontend/ads/jd.jpeg') }}" alt="Daily Samvad" width="260" height="75">
         </div>
     </div>
 

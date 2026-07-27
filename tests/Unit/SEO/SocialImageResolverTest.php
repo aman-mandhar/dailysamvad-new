@@ -4,16 +4,19 @@ namespace Tests\Unit\SEO;
 
 use App\Models\Media;
 use App\SEO\SocialImageResolver;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class SocialImageResolverTest extends TestCase
 {
     public function test_it_resolves_public_relative_external_and_default_images_to_absolute_urls(): void
     {
+        Storage::fake('public');
+        Storage::disk('public')->put('wordpress/uploads/social.jpg', 'image');
         $resolver = app(SocialImageResolver::class);
 
-        $this->assertSame('http://localhost/images/social.jpg', $resolver->resolve('/images/social.jpg', 'Alt')?->url);
-        $this->assertSame('http://localhost/images/social.jpg', $resolver->resolve('images/social.jpg', 'Alt')?->url);
+        $this->assertSame('http://localhost/images/seo/default-social.png', $resolver->resolve('/images/seo/default-social.png', 'Alt')?->url);
+        $this->assertSame('http://localhost/images/seo/default-social.png', $resolver->resolve('images/seo/default-social.png', 'Alt')?->url);
         $this->assertSame('http://localhost/storage/wordpress/uploads/social.jpg', $resolver->resolve('wordpress/uploads/social.jpg', 'Alt')?->url);
         $this->assertSame('https://cdn.example.com/social.jpg', $resolver->resolve('https://cdn.example.com/social.jpg', 'Alt')?->url);
         $this->assertSame('http://localhost/images/seo/default-social.png', $resolver->configuredDefault()?->url);

@@ -51,9 +51,10 @@ class SEOManager
         $socialDescription = $this->description(data_get($post->seo_data, 'open_graph.description'), $description);
         $media = $post->relationLoaded('featuredMedia') ? $post->featuredMedia : null;
         $imageAlt = $media?->alt_text ?: $post->featured_image_alt ?: $post->title;
-        $image = $this->images->resolve($post->featured_image, $imageAlt, $media)
-            ?? $this->images->resolve($media?->path, $imageAlt, $media)
+        $image = $this->images->resolve($media?->path, $imageAlt, $media)
+            ?? $this->images->resolve($post->featured_image, $imageAlt)
             ?? $this->images->configuredDefault($post->title);
+        $canonical = $this->publicUrl($post->effectiveCanonicalUrl() ?? $article->canonicalUrl);
         $authorUrl = $post->author?->is_public && filled($post->author?->username)
             ? route('authors.show', $post->author->username)
             : null;
@@ -62,7 +63,7 @@ class SEOManager
         $openGraph = new OpenGraphData(
             title: $socialTitle,
             description: $socialDescription,
-            url: $post->effectiveCanonicalUrl() ?? $article->canonicalUrl,
+            url: $canonical,
             type: 'article',
             siteName: $this->siteName(),
             locale: $this->locale($post->language),
@@ -81,7 +82,7 @@ class SEOManager
             keywords: $this->keywords([...$customKeywords, ...$taxonomy]),
             author: filled($post->author?->name) ? $post->author->name : $this->siteName(),
             robots: $this->robots($article->robots, $post->seo_data),
-            canonical: $post->effectiveCanonicalUrl() ?? $article->canonicalUrl,
+            canonical: $canonical,
             openGraph: $openGraph,
             twitter: $this->twitter($openGraph, $this->twitterHandle(config('seo.twitter_site')), $this->twitterHandle($post->author?->x_url)),
             schema: $this->structuredData->article($article, $openGraph, $description),
@@ -236,6 +237,15 @@ class SEOManager
     private function validUrl(mixed $value): ?string
     {
         return is_string($value) && filter_var($value, FILTER_VALIDATE_URL) && in_array(parse_url($value, PHP_URL_SCHEME), ['http', 'https'], true) ? $value : null;
+    }
+
+    private function publicUrl(string $url): string
+    {
+        if (app()->environment('production') && Str::startsWith($url, 'http://')) {
+            return 'https://'.Str::after($url, 'http://');
+        }
+
+        return $url;
     }
 
     private function clean(mixed $value): ?string

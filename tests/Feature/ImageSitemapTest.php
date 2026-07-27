@@ -6,6 +6,7 @@ use App\Models\Media;
 use App\Models\Post;
 use DOMDocument;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class ImageSitemapTest extends TestCase
@@ -14,6 +15,8 @@ class ImageSitemapTest extends TestCase
 
     public function test_image_sitemap_reuses_safe_social_image_resolution_and_metadata(): void
     {
+        Storage::fake('public');
+        Storage::disk('public')->put('wordpress/uploads/ਪੰਜਾਬ image.webp', 'image');
         config(['seo.sitemaps.cache_ttl' => 0]);
         $media = Media::query()->create([
             'disk' => 'public', 'path' => 'wordpress/uploads/ਪੰਜਾਬ image.webp', 'mime_type' => 'image/webp',

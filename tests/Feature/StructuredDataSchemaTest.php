@@ -8,6 +8,7 @@ use App\Models\Post;
 use App\Models\Tag;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class StructuredDataSchemaTest extends TestCase
@@ -64,6 +65,8 @@ class StructuredDataSchemaTest extends TestCase
 
     public function test_published_news_article_schema_is_complete_clean_and_consistent(): void
     {
+        Storage::fake('public');
+        Storage::disk('public')->put('wordpress/uploads/schema story.webp', 'image');
         config(['seo.publisher_logo' => '/images/seo/default-social.png']);
         $author = User::factory()->create([
             'name' => 'ਪੱਤਰਕਾਰ लेखक',

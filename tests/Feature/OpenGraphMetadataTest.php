@@ -8,6 +8,7 @@ use App\Models\Post;
 use App\Models\Tag;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class OpenGraphMetadataTest extends TestCase
@@ -16,6 +17,8 @@ class OpenGraphMetadataTest extends TestCase
 
     public function test_article_renders_complete_article_open_graph_metadata_once(): void
     {
+        Storage::fake('public');
+        Storage::disk('public')->put('wordpress/uploads/story.webp', 'webp-image');
         config([
             'seo.publisher_url' => 'https://www.facebook.com/dailysamvad',
             'seo.twitter_site' => 'https://x.com/DailySamvad',
@@ -72,6 +75,8 @@ class OpenGraphMetadataTest extends TestCase
 
     public function test_non_article_pages_use_website_metadata_and_contextual_or_default_images(): void
     {
+        Storage::fake('public');
+        Storage::disk('public')->put('images/category-social.jpg', 'category-image');
         $category = Category::factory()->create([
             'name' => 'National',
             'slug' => 'national',

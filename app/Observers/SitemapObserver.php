@@ -7,8 +7,8 @@ use App\Models\Media;
 use App\Models\Tag;
 use App\Models\User;
 use App\SEO\Sitemap\SitemapCache;
-use Illuminate\Database\Eloquent\Model;
 use App\Services\CacheInvalidationService;
+use Illuminate\Database\Eloquent\Model;
 
 class SitemapObserver
 {
@@ -19,19 +19,35 @@ class SitemapObserver
             if ($model instanceof Category || $model instanceof Tag) $service->invalidateTaxonomy($model->getKey());
             elseif ($model instanceof User) $service->invalidateAuthor($model->getKey());
             elseif ($model instanceof Media) $service->invalidateMedia($model->getKey());
+            if ($model instanceof Media) {
+                $model->featuredPosts()->select('posts.id', 'posts.slug')->each(
+                    fn ($post) => $service->invalidatePost($post),
+                );
+            }
             app(SitemapCache::class)->invalidate();
         }
     }
 
     public function deleted(Model $model): void
     {
-        app(CacheInvalidationService::class)->invalidateTaxonomy($model->getKey());
+        if ($model instanceof Media) {
+            $model->featuredPosts()->select('posts.id', 'posts.slug')->each(
+                fn ($post) => app(CacheInvalidationService::class)->invalidatePost($post),
+            );
+        }
+        $service = app(CacheInvalidationService::class);
+        $model instanceof Media
+            ? $service->invalidateMedia($model->getKey())
+            : $service->invalidateTaxonomy($model->getKey());
         app(SitemapCache::class)->invalidate();
     }
 
     public function restored(Model $model): void
     {
-        app(CacheInvalidationService::class)->invalidateTaxonomy($model->getKey());
+        $service = app(CacheInvalidationService::class);
+        $model instanceof Media
+            ? $service->invalidateMedia($model->getKey())
+            : $service->invalidateTaxonomy($model->getKey());
         app(SitemapCache::class)->invalidate();
     }
 
@@ -41,7 +57,7 @@ class SitemapObserver
             $model instanceof Category => $model->wasChanged(['slug', 'is_active', 'name']),
             $model instanceof Tag => $model->wasChanged(['slug', 'name']),
             $model instanceof User => $model->wasChanged(['username', 'name', 'is_public', 'is_active']),
-            $model instanceof Media => $model->wasChanged(['path', 'disk', 'alt_text', 'caption', 'missing_at']),
+            $model instanceof Media => $model->wasChanged(['path', 'disk', 'mime_type', 'width', 'height', 'alt_text', 'caption', 'missing_at']),
             default => true,
         };
     }

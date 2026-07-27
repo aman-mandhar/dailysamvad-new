@@ -14,6 +14,14 @@ class CacheInvalidationService
     public function invalidatePost(Post|int $post): void
     {
         $id = $post instanceof Post ? $post->getKey() : $post;
+        if ($post instanceof Post && filled($post->slug)) {
+            try {
+                Cache::store(config('cache_architecture.store', 'redis'))->forget(
+                    $this->keys->make('query', 'article', 'public', $post->slug),
+                );
+            } catch (Throwable) {
+            }
+        }
         $this->bump('post', $id);
         $this->bump('public', 'homepage');
         $this->bump('public', 'archives');
