@@ -274,6 +274,7 @@ class PostResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultSort('created_at', 'desc')
             ->columns([
                 MediaImageColumn::make('featured_image')
                     ->label('Image')

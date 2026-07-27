@@ -286,6 +286,16 @@ class PostResourceTest extends TestCase
             ->assertCanNotSeeTableRecords([$other]);
     }
 
+    public function test_posts_are_sorted_by_newest_creation_date_by_default(): void
+    {
+        $newest = Post::factory()->create(['created_at' => now()]);
+        $oldest = Post::factory()->create(['created_at' => now()->subDay()]);
+
+        Livewire::actingAs($this->editor)
+            ->test(ListPosts::class)
+            ->assertCanSeeTableRecords([$newest, $oldest], inOrder: true);
+    }
+
     public function test_status_author_and_language_filters_work(): void
     {
         $author = User::factory()->create();
