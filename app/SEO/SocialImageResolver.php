@@ -29,7 +29,11 @@ class SocialImageResolver
             return null;
         }
 
-        $localMetadata = $media === null ? $this->localMetadata($source) : [];
+        $needsLocalMetadata = $media === null
+            || $media->width === null
+            || $media->height === null
+            || blank($media->mime_type);
+        $localMetadata = $needsLocalMetadata ? $this->localMetadata($source, $media?->disk) : [];
         $mime = $this->mimeType($media?->mime_type ?? ($localMetadata['mime'] ?? null), $url);
         $width = $media?->width ?? ($localMetadata['width'] ?? null);
         $height = $media?->height ?? ($localMetadata['height'] ?? null);

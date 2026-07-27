@@ -89,6 +89,32 @@ class SocialMediaImageReadinessTest extends TestCase
         $this->assertStringContainsString('name="twitter:card" content="summary_large_image"', $html);
     }
 
+    public function test_imported_media_with_incomplete_database_metadata_uses_real_file_dimensions(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put(
+            'wordpress/uploads/incomplete-card.png',
+            file_get_contents(public_path('images/seo/default-social.png')),
+        );
+        $media = Media::query()->create([
+            'disk' => 'public',
+            'path' => 'wordpress/uploads/incomplete-card.png',
+            'mime_type' => 'image/png',
+            'width' => null,
+            'height' => null,
+        ]);
+        $post = Post::factory()->published()->create([
+            'featured_media_id' => $media->id,
+            'featured_image' => $media->path,
+        ]);
+
+        $html = $this->get($post->publicUrl())->assertOk()->getContent();
+
+        $this->assertStringContainsString('property="og:image:type" content="image/png"', $html);
+        $this->assertStringContainsString('property="og:image:width" content="1200"', $html);
+        $this->assertStringContainsString('property="og:image:height" content="630"', $html);
+    }
+
     public function test_missing_linked_media_uses_existing_featured_image_then_default(): void
     {
         Storage::fake('public');
