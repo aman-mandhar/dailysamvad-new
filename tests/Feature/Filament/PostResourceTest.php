@@ -93,13 +93,18 @@ class PostResourceTest extends TestCase
                 'primary_category_id' => $this->category->id,
             ])
             ->call('create')
-            ->assertHasNoFormErrors();
+            ->assertHasNoFormErrors()
+            ->assertRedirect(PostResource::getUrl('index'));
 
         $post = Post::query()->where('slug', 'punjab-assembly-education-plan')->firstOrFail();
 
         $this->assertTrue($post->author->is($this->editor));
         $this->assertSame(PostStatus::Draft, $post->status);
         $this->assertSame('pa', $post->language);
+
+        Livewire::actingAs($this->editor)
+            ->test(ListPosts::class)
+            ->assertCanSeeTableRecords([$post]);
     }
 
     public function test_editor_can_publish_a_post_directly_during_creation(): void

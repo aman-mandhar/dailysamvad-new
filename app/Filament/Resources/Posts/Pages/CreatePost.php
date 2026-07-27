@@ -15,6 +15,11 @@ class CreatePost extends CreateRecord
 {
     protected static string $resource = PostResource::class;
 
+    protected function getRedirectUrl(): string
+    {
+        return PostResource::getUrl('index');
+    }
+
     protected function beforeCreate(): void
     {
         $this->validateTaxonomy();
