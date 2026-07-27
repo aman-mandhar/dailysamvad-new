@@ -168,7 +168,10 @@ class PostSeoResourceTest extends TestCase
     /** @param array<string, mixed> $attributes */
     private function postWithTaxonomy(array $attributes = []): Post
     {
-        $post = Post::factory()->create($attributes);
+        $post = Post::factory()->create([
+            ...$attributes,
+            'author_id' => $this->editor,
+        ]);
         $post->categories()->attach($this->category, ['is_primary' => true]);
 
         return $post;

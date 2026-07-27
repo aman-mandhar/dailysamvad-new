@@ -53,7 +53,7 @@ class RolesAndPermissionsSeeder extends Seeder
         ],
         'editor' => [
             'access admin panel', 'view admin dashboard', 'view posts', 'view own posts', 'view all posts',
-            'create posts', 'update own posts', 'update all posts', 'delete own posts',
+            'create posts', 'update own posts', 'delete own posts',
             'submit posts for review', 'review posts', 'request post corrections', 'approve posts', 'reject posts',
             'assign reviewers', 'view workflow history', 'schedule posts', 'publish posts', 'archive posts', 'restore posts',
             'view categories', 'manage categories', 'view tags', 'manage tags',
@@ -138,6 +138,10 @@ class RolesAndPermissionsSeeder extends Seeder
             }
 
             $role->givePermissionTo($permissions);
+
+            if ($roleName === 'editor') {
+                $role->revokePermissionTo(['update all posts', 'edit all posts', 'update posts']);
+            }
         }
 
         // Super Admin receives every permission.

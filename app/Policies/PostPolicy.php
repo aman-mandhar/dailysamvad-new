@@ -32,7 +32,9 @@ class PostPolicy
 
     public function update(User $user, Post $post): bool
     {
-        return $user->hasAnyPermission(['update all posts', 'edit all posts'])
+        return ($user->hasAnyRole(['super-admin', 'admin'])
+                && $user->hasAnyPermission(['update all posts', 'edit all posts']))
+            || ($user->hasRole('editor') && $post->author_id === $user->getKey())
             || ($user->hasAnyPermission(['update own posts', 'edit own posts'])
                 && $post->author_id === $user->getKey()
                 && in_array($post->status, [PostStatus::Draft, PostStatus::ChangesRequested], true))

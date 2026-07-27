@@ -78,7 +78,11 @@ class RolePermissionFoundationTest extends TestCase
 
         $editor = User::factory()->create();
         $editor->assignRole('editor');
-        $pending = Post::factory()->create(['status' => PostStatus::Approved]);
+        $ownDraft = Post::factory()->create(['author_id' => $editor, 'status' => PostStatus::Draft]);
+        $otherDraft = Post::factory()->create(['status' => PostStatus::Draft]);
+        $pending = Post::factory()->create(['author_id' => $editor, 'status' => PostStatus::Approved]);
+        $this->assertTrue($editor->can('update', $ownDraft));
+        $this->assertFalse($editor->can('update', $otherDraft));
         $this->assertTrue($editor->can('update', $pending));
         $this->assertTrue($editor->can('publish', $pending));
     }

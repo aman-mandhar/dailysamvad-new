@@ -241,6 +241,7 @@ class PostPublishingWorkflowTest extends TestCase
     private function postWithStatus(PostStatus $status, array $attributes = []): Post
     {
         $post = Post::factory()->create([
+            'author_id' => $this->editor,
             'status' => $status,
             ...$attributes,
         ]);

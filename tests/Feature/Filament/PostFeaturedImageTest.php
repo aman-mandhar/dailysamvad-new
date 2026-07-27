@@ -187,7 +187,10 @@ class PostFeaturedImageTest extends TestCase
     {
         Storage::disk('public')->put($path, 'image-content');
 
-        $post = Post::factory()->create(['featured_image' => $path]);
+        $post = Post::factory()->create([
+            'author_id' => $this->editor,
+            'featured_image' => $path,
+        ]);
         $post->categories()->attach($this->category, ['is_primary' => true]);
 
         return $post;

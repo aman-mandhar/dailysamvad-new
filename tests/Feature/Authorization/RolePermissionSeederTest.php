@@ -82,6 +82,24 @@ class RolePermissionSeederTest extends TestCase
         $this->assertTrue($editor->can('publish posts'));
     }
 
+    public function test_only_super_admin_and_admin_roles_can_update_all_posts(): void
+    {
+        $this->assertTrue(Role::findByName('super-admin')->hasPermissionTo('update all posts'));
+        $this->assertTrue(Role::findByName('admin')->hasPermissionTo('update all posts'));
+        $this->assertFalse(Role::findByName('editor')->hasPermissionTo('update all posts'));
+        $this->assertTrue(Role::findByName('editor')->hasPermissionTo('update own posts'));
+    }
+
+    public function test_reseeding_removes_stale_all_post_editing_permission_from_editor(): void
+    {
+        $editor = Role::findByName('editor');
+        $editor->givePermissionTo('update all posts');
+
+        $this->seed(RolePermissionSeeder::class);
+
+        $this->assertFalse($editor->fresh()->hasPermissionTo('update all posts'));
+    }
+
     public function test_seeder_is_idempotent(): void
     {
         $this->seed(RolePermissionSeeder::class);

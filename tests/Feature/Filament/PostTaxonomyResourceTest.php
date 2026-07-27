@@ -137,7 +137,7 @@ class PostTaxonomyResourceTest extends TestCase
     {
         $primary = Category::factory()->create();
         $remaining = Category::factory()->create();
-        $post = Post::factory()->create();
+        $post = Post::factory()->create(['author_id' => $this->editor]);
         $post->categories()->attach($primary, ['is_primary' => true]);
         $post->categories()->attach($remaining);
 
@@ -157,7 +157,7 @@ class PostTaxonomyResourceTest extends TestCase
         $newSecondary = Category::factory()->create();
         $oldTag = Tag::factory()->create();
         $newTag = Tag::factory()->create();
-        $post = Post::factory()->create();
+        $post = Post::factory()->create(['author_id' => $this->editor]);
         $post->categories()->attach($oldCategory, ['is_primary' => true]);
         $post->tags()->attach($oldTag);
 

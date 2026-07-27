@@ -43,23 +43,27 @@ class PostResourceTest extends TestCase
 
     public function test_post_policy_uses_post_permissions(): void
     {
-        $post = Post::factory()->create(['reviewed_by' => User::factory()->create()]);
+        $ownPost = Post::factory()->create(['author_id' => $this->editor]);
+        $otherPost = Post::factory()->create(['reviewed_by' => User::factory()->create()]);
         $reviewer = User::factory()->create();
         $reviewer->assignRole('reviewer');
 
         $this->assertTrue(Gate::forUser($this->editor)->allows('viewAny', Post::class));
-        $this->assertTrue(Gate::forUser($this->editor)->allows('view', $post));
+        $this->assertTrue(Gate::forUser($this->editor)->allows('view', $otherPost));
         $this->assertTrue(Gate::forUser($this->editor)->allows('create', Post::class));
-        $this->assertTrue(Gate::forUser($this->editor)->allows('update', $post));
-        $this->assertFalse(Gate::forUser($this->editor)->allows('delete', $post));
-        $this->assertFalse(Gate::forUser($reviewer)->allows('view', $post));
+        $this->assertTrue(Gate::forUser($this->editor)->allows('update', $ownPost));
+        $this->assertFalse(Gate::forUser($this->editor)->allows('update', $otherPost));
+        $this->editor->givePermissionTo('update all posts');
+        $this->assertFalse(Gate::forUser($this->editor)->allows('update', $otherPost));
+        $this->assertFalse(Gate::forUser($this->editor)->allows('delete', $otherPost));
+        $this->assertFalse(Gate::forUser($reviewer)->allows('view', $otherPost));
         $this->assertFalse(Gate::forUser($reviewer)->allows('create', Post::class));
-        $this->assertFalse(Gate::forUser($reviewer)->allows('update', $post));
+        $this->assertFalse(Gate::forUser($reviewer)->allows('update', $otherPost));
     }
 
     public function test_authorized_user_can_open_post_resource_pages(): void
     {
-        $post = Post::factory()->create();
+        $post = Post::factory()->create(['author_id' => $this->editor]);
 
         $this->actingAs($this->editor)->get(PostResource::getUrl('index'))->assertOk();
         $this->actingAs($this->editor)->get(PostResource::getUrl('create'))->assertOk();
@@ -213,7 +217,11 @@ class PostResourceTest extends TestCase
 
     public function test_post_can_be_edited(): void
     {
-        $post = Post::factory()->create(['status' => PostStatus::Draft, 'language' => 'hi']);
+        $post = Post::factory()->create([
+            'author_id' => $this->editor,
+            'status' => PostStatus::Draft,
+            'language' => 'hi',
+        ]);
         $post->categories()->attach($this->category, ['is_primary' => true]);
 
         Livewire::actingAs($this->editor)
@@ -237,7 +245,10 @@ class PostResourceTest extends TestCase
 
     public function test_slug_must_be_unique_and_ignores_the_current_post(): void
     {
-        $existing = Post::factory()->create(['slug' => 'unique-news-slug']);
+        $existing = Post::factory()->create([
+            'author_id' => $this->editor,
+            'slug' => 'unique-news-slug',
+        ]);
         $existing->categories()->attach($this->category, ['is_primary' => true]);
 
         Livewire::actingAs($this->editor)
