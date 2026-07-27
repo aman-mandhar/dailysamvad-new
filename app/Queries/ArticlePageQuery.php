@@ -37,7 +37,11 @@ class ArticlePageQuery
                 'tags:id,name,slug',
                 'featuredMedia:id,disk,path,alt_text,mime_type,width,height,missing_at,metadata',
             ])
-            ->where('slug', $slug)
+            ->where(function (Builder $query) use ($slug): void {
+                $query->where('slug', $slug)
+                    ->orWhereRaw('TRIM(slug) = ?', [trim($slug)]);
+            })
+            ->orderByRaw('CASE WHEN slug = ? THEN 0 ELSE 1 END', [$slug])
             ->firstOrFail();
 
         $canonicalUrl = $post->effectiveCanonicalUrl() ?? $post->publicUrl();

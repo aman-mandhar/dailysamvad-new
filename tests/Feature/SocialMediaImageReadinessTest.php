@@ -15,6 +15,35 @@ class SocialMediaImageReadinessTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_whitespace_corrupted_slug_redirects_to_clean_canonical_article_url(): void
+    {
+        $post = Post::factory()->published()->create(['slug' => 'whatsapp-preview-story']);
+        Post::withoutEvents(fn () => Post::query()->whereKey($post)->update(['slug' => 'whatsapp-preview-story ']));
+
+        $dirtyUrl = route('news.show', [
+            ...$post->publicRouteParameters(),
+            'slug' => 'whatsapp-preview-story ',
+        ]);
+        $cleanUrl = route('news.show', [
+            ...$post->publicRouteParameters(),
+            'slug' => 'whatsapp-preview-story',
+        ]);
+
+        $this->get($dirtyUrl)->assertRedirect($cleanUrl)->assertStatus(301);
+        $html = $this->get($cleanUrl)->assertOk()->getContent();
+
+        $this->assertStringContainsString('<link rel="canonical" href="'.$cleanUrl.'">', $html);
+        $this->assertStringContainsString('property="og:url" content="'.$cleanUrl.'"', $html);
+        $this->assertStringNotContainsString('whatsapp-preview-story%20', $html);
+    }
+
+    public function test_new_slug_values_are_trimmed_without_rewriting_valid_imported_characters(): void
+    {
+        $post = Post::factory()->make(['slug' => '  imported-पंजाब-story  ']);
+
+        $this->assertSame('imported-पंजाब-story', $post->slug);
+    }
+
     public function test_linked_wordpress_media_wins_and_filament_paths_are_supported(): void
     {
         Storage::fake('public');

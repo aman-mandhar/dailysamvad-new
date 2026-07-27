@@ -9,7 +9,7 @@ use Illuminate\Http\RedirectResponse;
 
 class PostController extends Controller
 {
-    public function show(string $year, string $month, string $slug, ArticlePageQuery $articles): View
+    public function show(string $year, string $month, string $slug, ArticlePageQuery $articles): View|RedirectResponse
     {
         $article = $articles->find($slug);
         abort_unless(
@@ -17,6 +17,10 @@ class PostController extends Controller
             && $article->post->published_at?->format('m') === $month,
             404,
         );
+
+        if ($slug !== trim($article->post->slug)) {
+            return redirect()->route('news.show', $article->post->publicRouteParameters(), 301);
+        }
 
         return view('posts.show', ['article' => $article]);
     }

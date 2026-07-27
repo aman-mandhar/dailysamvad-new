@@ -58,6 +58,11 @@ class Post extends Model
 
     private ?string $resolvedFeaturedImageUrl = null;
 
+    public function setSlugAttribute(mixed $value): void
+    {
+        $this->attributes['slug'] = trim((string) $value);
+    }
+
     /**
      * Get the public URL for an existing featured image.
      */
@@ -212,7 +217,7 @@ class Post extends Model
         return [
             'year' => $date->format('Y'),
             'month' => $date->format('m'),
-            'slug' => $this->slug,
+            'slug' => trim($this->slug),
         ];
     }
 
