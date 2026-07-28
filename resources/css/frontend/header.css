@@ -310,8 +310,7 @@
 
 @media (max-width: 1099px) {
     .ds-header__branding {
-        min-height: auto;
-        gap: 18px;
+        display: none;
     }
 
     .ds-logo {
