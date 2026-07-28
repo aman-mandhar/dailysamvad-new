@@ -11,6 +11,7 @@ use App\Models\Post;
 use App\Models\User;
 use App\Observers\PostObserver;
 use Database\Seeders\RolePermissionSeeder;
+use Filament\Actions\Action;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\Select;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -129,6 +130,25 @@ class PostFeaturedImageTest extends TestCase
                 && ! $field->isSearchable()
                 && $field->isHtmlAllowed()
                 && str_contains($field->getOptionLabelFromRecord($media), '<img'));
+    }
+
+    public function test_media_library_can_load_additional_thumbnail_batches(): void
+    {
+        Media::query()->insert(collect(range(1, 51))->map(fn (int $index): array => [
+            'disk' => 'public',
+            'path' => "media/library/load-more-{$index}.jpg",
+            'original_filename' => "load-more-{$index}.jpg",
+            'mime_type' => 'image/jpeg',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ])->all());
+
+        Livewire::actingAs($this->editor)
+            ->test(CreatePost::class)
+            ->assertSet('data.featured_media_limit', 50)
+            ->assertFormFieldExists('featured_media_id', fn (Select $field): bool => collect($field->getHintActions())
+                ->contains(fn (Action $action): bool => $action->getName() === 'loadMoreFeaturedMedia'
+                    && $action->getLabel() === 'Load 50 more media'));
     }
 
     public function test_non_image_upload_is_rejected(): void

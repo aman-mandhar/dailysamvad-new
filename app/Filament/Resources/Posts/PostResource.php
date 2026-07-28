@@ -18,12 +18,14 @@ use App\Support\Authorization\ContentAccess;
 use App\Support\MediaUrlResolver;
 use App\Support\PostSeoData;
 use BackedEnum;
+use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TagsInput;
@@ -208,16 +210,19 @@ class PostResource extends Resource
                 ]),
             Section::make('Featured Image')
                 ->schema([
+                    Hidden::make('featured_media_limit')
+                        ->default(50)
+                        ->dehydrated(false),
                     Select::make('featured_media_id')
                         ->label('Select from Media Library')
                         ->relationship(
                             name: 'featuredMedia',
                             titleAttribute: 'original_filename',
-                            modifyQueryUsing: fn (Builder $query): Builder => $query
+                            modifyQueryUsing: fn (Builder $query, Get $get): Builder => $query
                                 ->tap(fn (Builder $query): Builder => ContentAccess::scopeMedia($query, auth()->user()))
                                 ->whereNull('missing_at')
                                 ->where('mime_type', 'like', 'image/%')
-                                ->limit(100)
+                                ->limit(max(50, (int) $get('featured_media_limit')))
                                 ->orderByDesc('created_at'),
                         )
                         ->getOptionLabelFromRecordUsing(function (Media $record): string {
@@ -231,7 +236,7 @@ class PostResource extends Resource
                         ->allowHtml()
                         ->searchable(false)
                         ->preload()
-                        ->optionsLimit(100)
+                        ->optionsLimit(fn (Get $get): int => max(50, (int) $get('featured_media_limit')))
                         ->live()
                         ->afterStateUpdated(function (Set $set, mixed $state): void {
                             $path = filled($state)
@@ -239,7 +244,20 @@ class PostResource extends Resource
                                 : null;
                             $set('featured_image', $path);
                         })
-                        ->helperText('Choose from the latest 100 available images. Detaching does not delete the binary.'),
+                        ->hintAction(
+                            Action::make('loadMoreFeaturedMedia')
+                                ->label('Load 50 more media')
+                                ->icon(Heroicon::ArrowDown)
+                                ->action(fn (Get $get, Set $set): mixed => $set(
+                                    'featured_media_limit',
+                                    max(50, (int) $get('featured_media_limit')) + 50,
+                                ))
+                                ->visible(fn (Get $get): bool => ContentAccess::scopeMedia(Media::query(), auth()->user())
+                                    ->whereNull('missing_at')
+                                    ->where('mime_type', 'like', 'image/%')
+                                    ->count() > max(50, (int) $get('featured_media_limit'))),
+                        )
+                        ->helperText('Images load in batches of 50. Detaching does not delete the binary.'),
                     FileUpload::make('featured_image')
                         ->label('Featured Image')
                         ->image()
