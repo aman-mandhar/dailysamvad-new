@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Support\Authorization\ContentAccess;
 use Database\Seeders\RolePermissionSeeder;
 use Filament\Facades\Filament;
+use Filament\Forms\Components\RichEditor;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Livewire;
@@ -70,6 +71,25 @@ class PostResourceTest extends TestCase
         $this->actingAs($this->editor)
             ->get(PostResource::getUrl('edit', ['record' => $post]))
             ->assertOk();
+    }
+
+    public function test_post_editor_has_newsroom_media_embed_alignment_and_color_tools(): void
+    {
+        Livewire::actingAs($this->editor)
+            ->test(CreatePost::class)
+            ->assertFormFieldExists('content', function (RichEditor $field): bool {
+                $buttons = collect($field->getToolbarButtons())
+                    ->flatten()
+                    ->filter(fn (mixed $button): bool => is_string($button))
+                    ->all();
+                $blockIds = collect($field->getCustomBlocks())
+                    ->flatten()
+                    ->map(fn (string $block): string => $block::getId())
+                    ->all();
+
+                return collect(['alignJustify', 'textColor', 'highlight', 'customBlocks'])->every(fn (string $button): bool => in_array($button, $buttons, true))
+                    && collect(['media-image', 'youtube-video', 'google-drive-pdf', 'x-post'])->every(fn (string $block): bool => in_array($block, $blockIds, true));
+            });
     }
 
     public function test_user_without_view_permission_cannot_access_post_resource(): void

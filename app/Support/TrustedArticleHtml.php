@@ -15,7 +15,7 @@ class TrustedArticleHtml
     private const ALLOWED_ELEMENTS = [
         'a', 'b', 'blockquote', 'br', 'code', 'div', 'em', 'figcaption', 'figure', 'h2', 'h3', 'h4', 'h5', 'h6',
         'hr', 'i', 'iframe', 'img', 'li', 'ol', 'p', 'pre', 'source', 'span', 'strong', 'table', 'tbody', 'td', 'th',
-        'thead', 'tr', 'u', 'ul', 'video',
+        'thead', 'tr', 'u', 'ul', 'video', 'mark',
     ];
 
     /** @var array<int, string> */
@@ -106,6 +106,9 @@ class TrustedArticleHtml
     private function sanitizeAttributes(DOMElement $node, string $element): void
     {
         $allowed = [...(self::ELEMENT_ATTRIBUTES[$element] ?? []), 'class'];
+        if (in_array($element, ['div', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'span'], true)) {
+            $allowed[] = 'style';
+        }
         $attributes = iterator_to_array($node->attributes);
 
         foreach ($attributes as $attribute) {
@@ -115,6 +118,11 @@ class TrustedArticleHtml
                 || (in_array($name, ['href', 'src'], true) && ! $this->isSafeUrl($attribute->value, $name === 'src'))) {
                 $node->removeAttribute($attribute->name);
             }
+        }
+
+        if ($node->hasAttribute('style')) {
+            $style = $this->sanitizeStyle($node->getAttribute('style'));
+            $style === '' ? $node->removeAttribute('style') : $node->setAttribute('style', $style);
         }
 
         if ($element === 'a' && $node->getAttribute('target') === '_blank') {
@@ -166,7 +174,28 @@ class TrustedArticleHtml
 
         $host = strtolower((string) parse_url($url, PHP_URL_HOST));
 
-        return collect(['youtube.com', 'youtube-nocookie.com', 'youtu.be', 'facebook.com', 'twitter.com', 'x.com'])
+        return collect(['youtube.com', 'youtube-nocookie.com', 'youtu.be', 'drive.google.com', 'platform.twitter.com', 'facebook.com', 'twitter.com', 'x.com'])
             ->contains(fn (string $allowed): bool => $host === $allowed || str_ends_with($host, '.'.$allowed));
+    }
+
+    private function sanitizeStyle(string $style): string
+    {
+        $safe = [];
+
+        foreach (explode(';', $style) as $declaration) {
+            [$property, $value] = array_pad(array_map('trim', explode(':', $declaration, 2)), 2, '');
+            $property = strtolower($property);
+
+            if ($property === 'text-align' && in_array(strtolower($value), ['left', 'right', 'center', 'justify', 'start', 'end'], true)) {
+                $safe[] = 'text-align: '.strtolower($value);
+            }
+
+            if (in_array($property, ['--color', '--dark-color'], true)
+                && preg_match('/^[\sA-Za-z0-9.,%\/+\-#_()]+$/', $value) === 1) {
+                $safe[] = $property.': '.$value;
+            }
+        }
+
+        return implode('; ', $safe);
     }
 }

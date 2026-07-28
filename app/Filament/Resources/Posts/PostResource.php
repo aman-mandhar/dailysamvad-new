@@ -6,6 +6,7 @@ use App\Enums\PostStatus;
 use App\Filament\Resources\Posts\Pages\CreatePost;
 use App\Filament\Resources\Posts\Pages\EditPost;
 use App\Filament\Resources\Posts\Pages\ListPosts;
+use App\Filament\RichContent\ArticleRichContent;
 use App\Filament\Tables\Columns\MediaImageColumn;
 use App\Models\Category;
 use App\Models\Media;
@@ -82,6 +83,16 @@ class PostResource extends Resource
                         ->columnSpanFull(),
                     RichEditor::make('content')
                         ->required()
+                        ->customBlocks(ArticleRichContent::blocks())
+                        ->fileAttachments(false)
+                        ->toolbarButtons([
+                            ['bold', 'italic', 'underline', 'strike', 'subscript', 'superscript', 'link', 'textColor', 'highlight'],
+                            ['h2', 'h3'],
+                            ['alignStart', 'alignCenter', 'alignEnd', 'alignJustify'],
+                            ['blockquote', 'codeBlock', 'bulletList', 'orderedList'],
+                            ['table', 'customBlocks'],
+                            ['undo', 'redo'],
+                        ])
                         ->columnSpanFull()
                         ->extraInputAttributes([
                             'style' => 'min-height: 400px;',

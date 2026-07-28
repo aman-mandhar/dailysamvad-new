@@ -61,6 +61,33 @@ class ArticleContentComposerTest extends TestCase
         $this->assertNotEmpty($this->composer()->compose('<p>Open <strong>markup'));
     }
 
+    public function test_newsroom_embed_blocks_are_rendered_and_untrusted_hosts_are_rejected(): void
+    {
+        $youtube = '<div data-type="customBlock" data-id="youtube-video" data-config='.
+            "'{\"url\":\"https://www.youtube.com/watch?v=dQw4w9WgXcQ\",\"title\":\"News video\"}'></div>";
+        $xPost = '<div data-type="customBlock" data-id="x-post" data-config='.
+            "'{\"url\":\"https://x.com/dailysamvad/status/1234567890\"}'></div>";
+
+        $rendered = $this->composer()->compose($youtube.$xPost)->map(fn ($block) => (string) $block->html)->implode('');
+
+        $this->assertStringContainsString('youtube-nocookie.com/embed/dQw4w9WgXcQ', $rendered);
+        $this->assertStringContainsString('platform.twitter.com/embed/Tweet.html?id=1234567890', $rendered);
+        $this->assertStringNotContainsString('<script', $rendered);
+    }
+
+    public function test_editor_alignment_and_color_styles_are_safely_preserved(): void
+    {
+        $rendered = $this->composer()->compose(
+            '<p style="text-align: justify; position: fixed"><span class="color" style="--color: #dc2626; background-image: url(javascript:alert(1))">Text</span><mark>Marked</mark></p>',
+        )->map(fn ($block) => (string) $block->html)->implode('');
+
+        $this->assertStringContainsString('text-align: justify', $rendered);
+        $this->assertStringContainsString('--color: #dc2626', $rendered);
+        $this->assertStringContainsString('<mark>Marked</mark>', $rendered);
+        $this->assertStringNotContainsString('position:', $rendered);
+        $this->assertStringNotContainsString('javascript:', $rendered);
+    }
+
     private function composer(): ArticleContentComposer
     {
         return new ArticleContentComposer(new TrustedArticleHtml);

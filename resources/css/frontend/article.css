@@ -26,10 +26,17 @@
     .ds-site .ds-article-content h2, .ds-site .ds-article-content h3, .ds-site .ds-article-content h4 { color: var(--ds-color-text); font-weight: 800; line-height: 1.25; }
     .ds-site .ds-article-content h2 { font-size: 1.8rem; } .ds-site .ds-article-content h3 { font-size: 1.5rem; } .ds-site .ds-article-content h4 { font-size: 1.25rem; }
     .ds-site .ds-article-content a { color: var(--ds-color-red); text-decoration: underline; text-underline-offset: 3px; }
+    .ds-site .ds-article-content .color { color: var(--color); }
+    .ds-site .ds-article-content mark { border-radius: .15rem; padding-inline: .1em; background: #fef08a; }
     .ds-site .ds-article-content ul { list-style: disc; padding-left: 1.5rem; } .ds-site .ds-article-content ol { list-style: decimal; padding-left: 1.5rem; }
     .ds-site .ds-article-content blockquote { border-left: 4px solid var(--ds-color-red); padding-left: 1rem; color: var(--ds-color-muted); font-style: italic; }
     .ds-site .ds-article-content img, .ds-site .ds-article-content video, .ds-site .ds-article-content iframe { max-width: 100%; height: auto; }
     .ds-site .ds-article-content iframe { width: 100%; aspect-ratio: 16/9; border: 0; }
+    .ds-site .ds-article-embed { width: 100%; margin-block: 1.5rem; }
+    .ds-site .ds-article-embed > img { width: 100%; height: auto; }
+    .ds-site .ds-article-embed--pdf iframe { min-height: 38rem; aspect-ratio: auto; border: 1px solid var(--ds-color-border); }
+    .ds-site .ds-article-embed--x iframe { min-height: 30rem; }
+    .ds-site .ds-article-embed figcaption { margin-top: .45rem; color: var(--ds-color-muted); font-size: .82rem; text-align: center; }
     .ds-site .ds-article-content .alignleft { float: left; margin: .35rem 1rem 1rem 0; } .ds-site .ds-article-content .alignright { float: right; margin: .35rem 0 1rem 1rem; }
     .ds-site .ds-article-content .aligncenter, .ds-site .ds-article-content .wp-block-image { margin-inline: auto; text-align: center; }
     .ds-site .ds-article-content .wp-caption { max-width: 100%; } .ds-site .ds-article-content .wp-caption-text, .ds-site .ds-article-content figcaption { color: var(--ds-color-muted); font-size: .82rem; line-height: 1.5; }

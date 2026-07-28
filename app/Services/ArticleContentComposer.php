@@ -4,11 +4,13 @@ namespace App\Services;
 
 use App\Data\AdvertisementData;
 use App\Data\ArticleContentBlockData;
+use App\Filament\RichContent\ArticleRichContent;
 use App\Support\TrustedArticleHtml;
 use DOMDocument;
 use DOMElement;
 use DOMNode;
 use DOMXPath;
+use Filament\Forms\Components\RichEditor\RichContentRenderer;
 use Illuminate\Support\Collection;
 
 class ArticleContentComposer
@@ -22,6 +24,12 @@ class ArticleContentComposer
      */
     public function compose(string $html, array $advertisements = [], array $positions = []): Collection
     {
+        if (str_contains($html, 'data-type="customBlock"')) {
+            $html = RichContentRenderer::make($html)
+                ->customBlocks(ArticleRichContent::blocks())
+                ->toUnsafeHtml();
+        }
+
         $clean = (string) $this->sanitizer->sanitize($html);
 
         if ($clean === '') {
