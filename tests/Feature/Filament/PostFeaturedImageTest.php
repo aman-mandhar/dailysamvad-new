@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Observers\PostObserver;
 use Database\Seeders\RolePermissionSeeder;
 use Filament\Facades\Filament;
+use Filament\Forms\Components\Select;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -111,6 +112,23 @@ class PostFeaturedImageTest extends TestCase
 
         $this->assertNull($post->refresh()->featured_media_id);
         Storage::disk('public')->assertExists($media->path);
+    }
+
+    public function test_media_library_field_is_a_preloaded_thumbnail_picker_without_search(): void
+    {
+        $media = Media::query()->create([
+            'disk' => 'public',
+            'path' => 'media/library/thumbnail.jpg',
+            'original_filename' => 'thumbnail.jpg',
+            'mime_type' => 'image/jpeg',
+        ]);
+
+        Livewire::actingAs($this->editor)
+            ->test(CreatePost::class)
+            ->assertFormFieldExists('featured_media_id', fn (Select $field): bool => $field->isPreloaded()
+                && ! $field->isSearchable()
+                && $field->isHtmlAllowed()
+                && str_contains($field->getOptionLabelFromRecord($media), '<img'));
     }
 
     public function test_non_image_upload_is_rejected(): void

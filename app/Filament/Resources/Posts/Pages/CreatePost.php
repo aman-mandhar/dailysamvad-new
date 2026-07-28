@@ -109,6 +109,7 @@ class CreatePost extends CreateRecord
     protected function afterCreate(): void
     {
         PostTaxonomy::syncPrimaryCategory($this->record, (int) $this->data['primary_category_id']);
+        PostTaxonomy::syncTagsByName($this->record, $this->data['tag_names'] ?? []);
 
         if ($this->record->status === PostStatus::Published) {
             $this->record->forceFill(['published_by' => auth()->id()])->save();

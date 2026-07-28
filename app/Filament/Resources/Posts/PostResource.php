@@ -11,9 +11,11 @@ use App\Filament\Tables\Columns\MediaImageColumn;
 use App\Models\Category;
 use App\Models\Media;
 use App\Models\Post;
+use App\Models\Tag;
 use App\Observers\PostObserver;
 use App\Services\EditorialWorkflowService;
 use App\Support\Authorization\ContentAccess;
+use App\Support\MediaUrlResolver;
 use App\Support\PostSeoData;
 use BackedEnum;
 use Filament\Actions\BulkAction;
@@ -24,6 +26,7 @@ use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -193,14 +196,14 @@ class PostResource extends Resource
                         ->searchable()
                         ->required()
                         ->dehydrated(false),
-                    Select::make('tags')
-                        ->relationship(
-                            name: 'tags',
-                            titleAttribute: 'name',
-                            modifyQueryUsing: fn (Builder $query): Builder => $query->orderBy('name'),
-                        )
-                        ->multiple()
-                        ->searchable()
+                    TagsInput::make('tag_names')
+                        ->label('Tags')
+                        ->placeholder('Type a tag and press Enter')
+                        ->suggestions(fn (): array => Tag::query()->ordered()->limit(250)->pluck('name')->all())
+                        ->splitKeys([',', 'Tab'])
+                        ->nestedRecursiveRules(['string', 'max:100'])
+                        ->helperText('Add one or multiple tags. Press Enter, comma, or Tab after each tag.')
+                        ->dehydrated(false)
                         ->columnSpanFull(),
                 ]),
             Section::make('Featured Image')
@@ -214,11 +217,21 @@ class PostResource extends Resource
                                 ->tap(fn (Builder $query): Builder => ContentAccess::scopeMedia($query, auth()->user()))
                                 ->whereNull('missing_at')
                                 ->where('mime_type', 'like', 'image/%')
+                                ->limit(100)
                                 ->orderByDesc('created_at'),
                         )
-                        ->getOptionLabelFromRecordUsing(fn (Media $record): string => $record->original_filename ?: basename($record->path))
-                        ->searchable(['original_filename', 'path', 'alt_text'])
-                        ->preload(false)
+                        ->getOptionLabelFromRecordUsing(function (Media $record): string {
+                            $url = app(MediaUrlResolver::class)->resolve($record->path, $record->disk);
+                            $name = e($record->original_filename ?: basename($record->path));
+
+                            return '<div style="display:flex;align-items:center;gap:.75rem;min-height:4rem">'
+                                .'<img src="'.e($url).'" alt="" style="width:5rem;height:3.5rem;object-fit:cover;border-radius:.375rem">'
+                                .'<span style="overflow-wrap:anywhere">'.$name.'</span></div>';
+                        })
+                        ->allowHtml()
+                        ->searchable(false)
+                        ->preload()
+                        ->optionsLimit(100)
                         ->live()
                         ->afterStateUpdated(function (Set $set, mixed $state): void {
                             $path = filled($state)
@@ -226,7 +239,7 @@ class PostResource extends Resource
                                 : null;
                             $set('featured_image', $path);
                         })
-                        ->helperText('Search existing media. Detaching does not delete the binary.'),
+                        ->helperText('Choose from the latest 100 available images. Detaching does not delete the binary.'),
                     FileUpload::make('featured_image')
                         ->label('Featured Image')
                         ->image()

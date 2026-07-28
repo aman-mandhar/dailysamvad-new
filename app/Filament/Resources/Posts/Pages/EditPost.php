@@ -71,6 +71,7 @@ class EditPost extends EditRecord
         $data['primary_category_id'] = $this->record
             ->primaryCategory()
             ->value('categories.id');
+        $data['tag_names'] = $this->record->tags()->ordered()->pluck('name')->all();
         $data['robots'] = PostSeoData::robotsDirective($this->record->seo_data);
 
         return $data;
@@ -115,6 +116,7 @@ class EditPost extends EditRecord
     protected function afterSave(): void
     {
         PostTaxonomy::syncPrimaryCategory($this->record, (int) $this->data['primary_category_id']);
+        PostTaxonomy::syncTagsByName($this->record, $this->data['tag_names'] ?? []);
 
         if ($this->requestedStatus !== null) {
             app(EditorialWorkflowService::class)->changeStatus(

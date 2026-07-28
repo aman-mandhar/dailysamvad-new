@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Support\PostTaxonomy;
 use Database\Seeders\RolePermissionSeeder;
 use Filament\Facades\Filament;
+use Filament\Forms\Components\TagsInput;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -56,25 +57,40 @@ class PostTaxonomyResourceTest extends TestCase
         $this->assertFalse($post->primaryCategory->contains($secondary));
     }
 
+    public function test_tags_field_is_a_free_text_multi_tag_input_with_existing_suggestions(): void
+    {
+        Tag::factory()->create(['name' => 'Suggested Tag']);
+
+        Livewire::actingAs($this->editor)
+            ->test(CreatePost::class)
+            ->assertFormFieldExists('tag_names', fn (TagsInput $field): bool => in_array('Suggested Tag', $field->getSuggestions(), true)
+                && in_array(',', $field->getSplitKeys(), true));
+    }
+
     public function test_post_can_be_created_with_multiple_tags(): void
     {
         $category = Category::factory()->create();
-        $tags = Tag::factory()->count(2)->create();
+        $existing = Tag::factory()->create(['name' => 'Existing Tag', 'slug' => 'existing-tag']);
 
         Livewire::actingAs($this->editor)
             ->test(CreatePost::class)
             ->fillForm($this->postData([
                 'categories' => [$category->id],
                 'primary_category_id' => $category->id,
-                'tags' => $tags->pluck('id')->all(),
+                'tag_names' => ['Existing Tag', 'New Punjab Tag', 'Single Tag'],
             ]))
             ->call('create')
             ->assertHasNoFormErrors();
 
         $post = Post::query()->where('slug', 'taxonomy-news-story')->firstOrFail();
 
-        $this->assertCount(2, $post->tags);
-        $this->assertEqualsCanonicalizing($tags->pluck('id')->all(), $post->tags->pluck('id')->all());
+        $this->assertCount(3, $post->tags);
+        $this->assertTrue($post->tags->contains($existing));
+        $this->assertEqualsCanonicalizing(
+            ['Existing Tag', 'New Punjab Tag', 'Single Tag'],
+            $post->tags->pluck('name')->all(),
+        );
+        $this->assertDatabaseHas('tags', ['name' => 'New Punjab Tag', 'slug' => 'new-punjab-tag']);
     }
 
     public function test_at_least_one_category_and_primary_category_are_required(): void
@@ -165,7 +181,7 @@ class PostTaxonomyResourceTest extends TestCase
             ->test(EditPost::class, ['record' => $post->getRouteKey()])
             ->set('data.categories', [$newPrimary->id, $newSecondary->id])
             ->set('data.primary_category_id', $newPrimary->id)
-            ->set('data.tags', [$newTag->id])
+            ->set('data.tag_names', [$newTag->name, 'New typed tag'])
             ->call('save')
             ->assertHasNoFormErrors();
 
@@ -178,6 +194,7 @@ class PostTaxonomyResourceTest extends TestCase
         $this->assertTrue($post->primaryCategory->contains($newPrimary));
         $this->assertTrue($post->tags->contains($newTag));
         $this->assertFalse($post->tags->contains($oldTag));
+        $this->assertTrue($post->tags->contains('name', 'New typed tag'));
     }
 
     public function test_category_and_tag_filters_work(): void
@@ -229,7 +246,7 @@ class PostTaxonomyResourceTest extends TestCase
             'language' => 'en',
             'author_id' => $this->editor->id,
             'status' => PostStatus::Draft->value,
-            'tags' => [],
+            'tag_names' => [],
             ...$overrides,
         ];
     }
