@@ -21,6 +21,10 @@ class EditPost extends EditRecord
 {
     protected static string $resource = PostResource::class;
 
+    private ?PostStatus $requestedStatus = null;
+
+    private mixed $requestedScheduledAt = null;
+
     protected function getHeaderActions(): array
     {
         $run = function (string $method, array $arguments = []): void {
@@ -83,6 +87,11 @@ class EditPost extends EditRecord
             $this->data['robots'] ?? null,
         );
 
+        if (auth()->user()?->hasAnyRole(['super-admin', 'admin', 'editor'])) {
+            $this->requestedStatus = PostStatus::tryFrom((string) ($data['status'] ?? ''));
+            $this->requestedScheduledAt = $data['scheduled_at'] ?? null;
+        }
+
         unset($data['status'], $data['published_at'], $data['scheduled_at']);
 
         if (! ContentAccess::canAssignPostAuthor(auth()->user())) {
@@ -106,5 +115,15 @@ class EditPost extends EditRecord
     protected function afterSave(): void
     {
         PostTaxonomy::syncPrimaryCategory($this->record, (int) $this->data['primary_category_id']);
+
+        if ($this->requestedStatus !== null) {
+            app(EditorialWorkflowService::class)->changeStatus(
+                $this->record,
+                auth()->user(),
+                $this->requestedStatus,
+                $this->requestedScheduledAt,
+            );
+            $this->record->refresh();
+        }
     }
 }

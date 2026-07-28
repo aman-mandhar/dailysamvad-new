@@ -239,8 +239,58 @@ class PostResourceTest extends TestCase
         $post->refresh();
 
         $this->assertSame('Updated News Headline', $post->title);
-        $this->assertSame(PostStatus::Draft, $post->status);
+        $this->assertSame(PostStatus::PendingReview, $post->status);
         $this->assertSame('en', $post->language);
+    }
+
+    public function test_super_admin_admin_and_editor_can_change_status_on_edit(): void
+    {
+        foreach (['super-admin', 'admin', 'editor'] as $role) {
+            $actor = User::factory()->create();
+            $actor->assignRole($role);
+            $post = Post::factory()->create([
+                'author_id' => $role === 'editor' ? $actor->id : $this->editor->id,
+                'status' => PostStatus::Draft,
+            ]);
+            $post->categories()->attach($this->category, ['is_primary' => true]);
+
+            Livewire::actingAs($actor)
+                ->test(EditPost::class, ['record' => $post->getRouteKey()])
+                ->fillForm(['status' => PostStatus::Published->value])
+                ->call('save')
+                ->assertHasNoFormErrors();
+
+            $post->refresh();
+            $this->assertSame(PostStatus::Published, $post->status, $role);
+            $this->assertNotNull($post->published_at, $role);
+            $this->assertDatabaseHas('post_workflow_events', [
+                'post_id' => $post->id,
+                'actor_id' => $actor->id,
+                'event' => 'status_changed',
+                'from_status' => PostStatus::Draft->value,
+                'to_status' => PostStatus::Published->value,
+            ]);
+        }
+    }
+
+    public function test_reporter_cannot_change_status_by_tampering_with_edit_form(): void
+    {
+        $reporter = User::factory()->create();
+        $reporter->assignRole('reporter');
+        $post = Post::factory()->create(['author_id' => $reporter->id, 'status' => PostStatus::Draft]);
+        $post->categories()->attach($this->category, ['is_primary' => true]);
+
+        Livewire::actingAs($reporter)
+            ->test(EditPost::class, ['record' => $post->getRouteKey()])
+            ->set('data.status', PostStatus::Published->value)
+            ->call('save')
+            ->assertHasFormErrors(['status']);
+
+        $this->assertSame(PostStatus::Draft, $post->refresh()->status);
+        $this->assertDatabaseMissing('post_workflow_events', [
+            'post_id' => $post->id,
+            'to_status' => PostStatus::Published->value,
+        ]);
     }
 
     public function test_slug_must_be_unique_and_ignores_the_current_post(): void

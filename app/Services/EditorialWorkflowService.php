@@ -8,17 +8,79 @@ use App\Models\Post;
 use App\Models\PostWorkflowEvent;
 use App\Models\User;
 use App\Notifications\EditorialWorkflowNotification;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 use Throwable;
 
 class EditorialWorkflowService
 {
+    public function changeStatus(Post $post, User $actor, PostStatus $to, Carbon|string|null $scheduledAt = null): Post
+    {
+        Gate::forUser($actor)->authorize('update', $post);
+
+        if (! $actor->hasAnyRole(['super-admin', 'admin', 'editor'])) {
+            throw new AuthorizationException('You are not allowed to change post status.');
+        }
+
+        $schedule = $scheduledAt !== null ? Carbon::parse($scheduledAt) : null;
+        if ($to === PostStatus::Scheduled && ($schedule === null || ! $schedule->isFuture())) {
+            throw ValidationException::withMessages([
+                'data.scheduled_at' => 'A future scheduled time is required for scheduled posts.',
+            ]);
+        }
+
+        return DB::transaction(function () use ($post, $actor, $to, $schedule): Post {
+            $current = $this->locked($post);
+
+            if ($current->status !== $post->status) {
+                throw ValidationException::withMessages([
+                    'data.status' => 'The post status changed after this page was loaded. Refresh and try again.',
+                ]);
+            }
+
+            $from = $current->status;
+            $attributes = ['status' => $to];
+
+            if ($to === PostStatus::Published) {
+                $attributes['published_at'] = $current->published_at ?? now();
+                $attributes['published_by'] = $actor->getKey();
+            }
+
+            if ($to === PostStatus::Scheduled) {
+                $attributes['scheduled_at'] = $schedule;
+                $attributes['scheduled_by'] = $actor->getKey();
+            } else {
+                $attributes['scheduled_at'] = null;
+                $attributes['scheduled_by'] = null;
+            }
+
+            if ($to === PostStatus::Archived) {
+                $attributes['archived_at'] = now();
+                $attributes['archived_by'] = $actor->getKey();
+            } elseif ($from === PostStatus::Archived) {
+                $attributes['archived_at'] = null;
+                $attributes['archived_by'] = null;
+            }
+
+            if ($from === $to && ($to !== PostStatus::Scheduled || $current->scheduled_at?->equalTo($schedule))) {
+                return $current;
+            }
+
+            $current->forceFill($attributes)->save();
+            $this->event($current, $actor, 'status_changed', $from, $to, metadata: ['source' => 'edit_form']);
+
+            return $current;
+        });
+    }
+
     public function submitForReview(Post $post, User $actor): Post
     {
         $this->validateSubmission($post);
+
         return $this->transition($post, $actor, [PostStatus::Draft, PostStatus::ChangesRequested], PostStatus::PendingReview, 'submitted', [
             'submitted_at' => now(), 'submitted_by' => $actor->getKey(),
             'correction_notes' => null,
@@ -46,6 +108,7 @@ class EditorialWorkflowService
                 'previous_reviewer_id' => $previous, 'reviewer_id' => $reviewer->getKey(),
             ]);
             DB::afterCommit(fn () => $this->notify([$reviewer], $current, 'reviewer_assigned'));
+
             return $current;
         });
     }
@@ -53,6 +116,7 @@ class EditorialWorkflowService
     public function requestCorrections(Post $post, User $actor, string $notes): Post
     {
         $notes = $this->requiredNotes($notes, 'Correction notes are required.');
+
         return $this->transition($post, $actor, [PostStatus::PendingReview, PostStatus::Approved], PostStatus::ChangesRequested, 'corrections_requested', [
             'corrections_requested_at' => now(), 'corrections_requested_by' => $actor->getKey(), 'correction_notes' => $notes,
             'reviewed_at' => now(),
@@ -62,12 +126,18 @@ class EditorialWorkflowService
     public function startReview(Post $post, User $actor): Post
     {
         Gate::forUser($actor)->authorize('startReview', $post);
+
         return DB::transaction(function () use ($post, $actor): Post {
             $current = $this->locked($post);
-            if ($current->status !== PostStatus::PendingReview) throw new InvalidPostTransition('Only pending-review posts can enter review.');
-            if ($current->review_started_at) return $current;
+            if ($current->status !== PostStatus::PendingReview) {
+                throw new InvalidPostTransition('Only pending-review posts can enter review.');
+            }
+            if ($current->review_started_at) {
+                return $current;
+            }
             $current->forceFill(['review_started_at' => now()])->save();
             $this->event($current, $actor, 'review_started', $current->status, $current->status);
+
             return $current;
         });
     }
@@ -82,6 +152,7 @@ class EditorialWorkflowService
     public function reject(Post $post, User $actor, string $reason): Post
     {
         $reason = $this->requiredNotes($reason, 'A rejection reason is required.');
+
         return $this->transition($post, $actor, [PostStatus::PendingReview], PostStatus::Rejected, 'rejected', [
             'rejected_at' => now(), 'rejected_by' => $actor->getKey(), 'rejection_reason' => $reason, 'reviewed_at' => now(),
         ], $reason, 'reject', $this->author($post));
@@ -100,6 +171,7 @@ class EditorialWorkflowService
         if (! $at->isFuture()) {
             throw new InvalidPostTransition('The scheduled time must be in the future.');
         }
+
         return $this->transition($post, $actor, [PostStatus::Approved, PostStatus::Scheduled], PostStatus::Scheduled,
             $post->status === PostStatus::Scheduled ? 'rescheduled' : 'scheduled',
             ['scheduled_at' => $at, 'scheduled_by' => $actor->getKey()], ability: 'schedule', notify: $this->author($post));
@@ -133,6 +205,7 @@ class EditorialWorkflowService
             $current->forceFill(['status' => PostStatus::Published, 'published_at' => now(), 'published_by' => null, 'scheduled_at' => null])->save();
             $this->event($current, null, 'published', $from, PostStatus::Published, metadata: ['source' => 'scheduler']);
             DB::afterCommit(fn () => $this->notify($this->author($current), $current, 'published'));
+
             return $current;
         });
     }
@@ -146,15 +219,25 @@ class EditorialWorkflowService
 
     private function transition(Post $post, User $actor, array $from, PostStatus $to, string $event, array $attributes = [], ?string $notes = null, ?string $ability = null, array $notify = []): Post
     {
-        if ($ability) Gate::forUser($actor)->authorize($ability, $post);
+        if ($ability) {
+            Gate::forUser($actor)->authorize($ability, $post);
+        }
+
         return DB::transaction(function () use ($post, $actor, $from, $to, $event, $attributes, $notes, $notify): Post {
             $current = $this->locked($post);
-            if (! in_array($current->status, $from, true)) throw new InvalidPostTransition("Invalid transition from {$current->status->value} to {$to->value}.");
-            if ($current->status === $to && $event !== 'rescheduled') return $current;
+            if (! in_array($current->status, $from, true)) {
+                throw new InvalidPostTransition("Invalid transition from {$current->status->value} to {$to->value}.");
+            }
+            if ($current->status === $to && $event !== 'rescheduled') {
+                return $current;
+            }
             $old = $current->status;
             $current->forceFill([...$attributes, 'status' => $to])->save();
             $this->event($current, $actor, $event, $old, $to, $notes);
-            if ($notify !== []) DB::afterCommit(fn () => $this->notify($notify, $current, $event, $notes));
+            if ($notify !== []) {
+                DB::afterCommit(fn () => $this->notify($notify, $current, $event, $notes));
+            }
+
             return $current;
         });
     }
@@ -171,9 +254,41 @@ class EditorialWorkflowService
         PostWorkflowEvent::query()->create(['post_id' => $post->getKey(), 'actor_id' => $actor?->getKey(), 'event' => $event, 'from_status' => $from?->value, 'to_status' => $to?->value, 'notes' => $notes, 'metadata' => $metadata]);
     }
 
-    private function locked(Post $post): Post { return Post::query()->lockForUpdate()->findOrFail($post->getKey()); }
-    private function requiredNotes(string $notes, string $message): string { $notes = trim($notes); if ($notes === '') throw new InvalidPostTransition($message); return $notes; }
-    private function author(Post $post): array { $author = $post->author()->where('is_active', true)->first(); return $author ? [$author] : []; }
-    private function editors(): array { return User::query()->where('is_active', true)->permission('review posts')->get()->all(); }
-    private function notify(array $users, Post $post, string $event, ?string $message = null): void { foreach ($users as $user) { try { $user->notify(new EditorialWorkflowNotification($post, $event, $message)); } catch (Throwable $e) { Log::warning('Editorial notification failed.', ['event' => $event, 'exception' => $e::class]); } } }
+    private function locked(Post $post): Post
+    {
+        return Post::query()->lockForUpdate()->findOrFail($post->getKey());
+    }
+
+    private function requiredNotes(string $notes, string $message): string
+    {
+        $notes = trim($notes);
+        if ($notes === '') {
+            throw new InvalidPostTransition($message);
+        }
+
+        return $notes;
+    }
+
+    private function author(Post $post): array
+    {
+        $author = $post->author()->where('is_active', true)->first();
+
+        return $author ? [$author] : [];
+    }
+
+    private function editors(): array
+    {
+        return User::query()->where('is_active', true)->permission('review posts')->get()->all();
+    }
+
+    private function notify(array $users, Post $post, string $event, ?string $message = null): void
+    {
+        foreach ($users as $user) {
+            try {
+                $user->notify(new EditorialWorkflowNotification($post, $event, $message));
+            } catch (Throwable $e) {
+                Log::warning('Editorial notification failed.', ['event' => $event, 'exception' => $e::class]);
+            }
+        }
+    }
 }

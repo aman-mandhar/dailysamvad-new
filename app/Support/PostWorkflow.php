@@ -17,6 +17,10 @@ class PostWorkflow
             return $actor->hasAnyPermission(['update own posts', 'update all posts', 'edit own posts', 'edit all posts', 'update posts']);
         }
 
+        if ($actor->hasAnyRole(['super-admin', 'admin', 'editor'])) {
+            return true;
+        }
+
         if ($actor->hasAnyPermission(['manage roles and permissions', 'manage roles'])) {
             return true;
         }
@@ -84,6 +88,13 @@ class PostWorkflow
     {
         DB::transaction(function () use ($actor, $post, $to): void {
             $current = Post::query()->lockForUpdate()->findOrFail($post->getKey());
+
+            if ($current->status !== $post->status) {
+                throw ValidationException::withMessages([
+                    'status' => 'The post status changed after this page was loaded. Refresh and try again.',
+                ]);
+            }
+
             $errors = self::validate($actor, $current->status, [
                 'status' => $to->value,
                 'scheduled_at' => $current->scheduled_at,

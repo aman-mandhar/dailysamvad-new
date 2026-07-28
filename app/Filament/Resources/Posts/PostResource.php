@@ -128,8 +128,13 @@ class PostResource extends Resource
                             : static::statusOptions())
                         ->default(PostStatus::Draft->value)
                         ->required()
-                        ->disabled(fn (string $operation): bool => $operation !== 'create' || ! (auth()->user()?->can('publish posts') ?? false))
-                        ->dehydrated(fn (string $operation): bool => $operation === 'create' && (auth()->user()?->can('publish posts') ?? false)),
+                        ->live()
+                        ->disabled(fn (string $operation): bool => $operation === 'create'
+                            ? ! (auth()->user()?->can('publish posts') ?? false)
+                            : ! (auth()->user()?->hasAnyRole(['super-admin', 'admin', 'editor']) ?? false))
+                        ->dehydrated(fn (string $operation): bool => $operation === 'create'
+                            ? (auth()->user()?->can('publish posts') ?? false)
+                            : (auth()->user()?->hasAnyRole(['super-admin', 'admin', 'editor']) ?? false)),
                     DateTimePicker::make('published_at')
                         ->label('Published At')
                         ->disabled()
@@ -137,8 +142,12 @@ class PostResource extends Resource
                         ->seconds(false),
                     DateTimePicker::make('scheduled_at')
                         ->label('Scheduled At')
-                        ->disabled()
-                        ->dehydrated(false)
+                        ->disabled(fn (string $operation, Get $get): bool => $operation === 'create'
+                            || $get('status') !== PostStatus::Scheduled->value
+                            || ! (auth()->user()?->hasAnyRole(['super-admin', 'admin', 'editor']) ?? false))
+                        ->dehydrated(fn (string $operation): bool => $operation === 'edit'
+                            && (auth()->user()?->hasAnyRole(['super-admin', 'admin', 'editor']) ?? false))
+                        ->requiredIf('status', PostStatus::Scheduled->value)
                         ->seconds(false),
                     Toggle::make('is_featured')
                         ->label('Is Featured')

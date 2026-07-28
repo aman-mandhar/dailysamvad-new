@@ -86,7 +86,7 @@ class PostPublishingWorkflowTest extends TestCase
             ->set('data.status', PostStatus::Scheduled->value)
             ->set('data.scheduled_at', now()->subMinute()->format('Y-m-d H:i:s'))
             ->call('save')
-            ->assertHasNoFormErrors();
+            ->assertHasFormErrors(['scheduled_at']);
 
         $this->assertSame(PostStatus::Approved, $post->refresh()->status);
     }
@@ -121,7 +121,7 @@ class PostPublishingWorkflowTest extends TestCase
         $this->assertTrue($post->is_featured);
     }
 
-    public function test_invalid_editor_transition_is_rejected(): void
+    public function test_editor_can_change_directly_from_draft_to_published(): void
     {
         $post = $this->postWithStatus(PostStatus::Draft);
 
@@ -131,7 +131,8 @@ class PostPublishingWorkflowTest extends TestCase
             ->call('save')
             ->assertHasNoFormErrors();
 
-        $this->assertSame(PostStatus::Draft, $post->refresh()->status);
+        $this->assertSame(PostStatus::Published, $post->refresh()->status);
+        $this->assertNotNull($post->published_at);
     }
 
     public function test_super_admin_may_transition_between_any_enum_states(): void
