@@ -64,6 +64,10 @@
         padding-left: 24px;
     }
 
+    .ds-header__mobile-ad {
+        display: none;
+    }
+
     .ds-header__editor,
     .ds-header__strapline {
         display: flex;
@@ -456,6 +460,12 @@
 }
 
 @media (max-width: 639px) {
+    .ds-header__mobile-ad {
+        display: block;
+        width: 100%;
+        height: auto;
+    }
+
     .ds-header__branding {
         min-height: 68px;
         flex-direction: row;

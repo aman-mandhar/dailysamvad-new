@@ -32,5 +32,5 @@
     <x-frontend.policy-navigation />
     <x-frontend.breaking-news :items="$breakingNews" />
     <x-frontend.header-search />
-    <img src="{{ asset('images/frontend/ads/jd.jpeg') }}" alt="Daily Samvad">
+    <img class="ds-header__mobile-ad" src="{{ asset('images/frontend/ads/jd.jpeg') }}" alt="Daily Samvad">
 </header>
