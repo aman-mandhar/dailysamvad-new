@@ -26,7 +26,8 @@ class HomepageTest extends TestCase
 
         $this->get('/')
             ->assertOk()
-            ->assertSee($post->title);
+            ->assertSee($post->title)
+            ->assertSee('href="'.$post->publicUrl().'"', false);
     }
 
     public function test_unpublished_posts_never_appear(): void
