@@ -127,7 +127,9 @@ class PostResource extends Resource
                                 ]
                                 : [PostStatus::Draft->value => 'Draft'])
                             : static::statusOptions())
-                        ->default(PostStatus::Draft->value)
+                        ->default(fn (): string => auth()->user()?->hasAnyRole(['super-admin', 'admin', 'editor'])
+                            ? PostStatus::Published->value
+                            : PostStatus::Draft->value)
                         ->required()
                         ->live()
                         ->disabled(fn (string $operation): bool => $operation === 'create'

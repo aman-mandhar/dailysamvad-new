@@ -268,6 +268,25 @@ class PostResourceTest extends TestCase
         ]);
     }
 
+    public function test_create_status_defaults_to_published_for_editorial_roles_and_draft_for_reporter(): void
+    {
+        foreach (['super-admin', 'admin', 'editor'] as $role) {
+            $user = User::factory()->create();
+            $user->assignRole($role);
+
+            Livewire::actingAs($user)
+                ->test(CreatePost::class)
+                ->assertSet('data.status', PostStatus::Published->value);
+        }
+
+        $reporter = User::factory()->create();
+        $reporter->assignRole('reporter');
+
+        Livewire::actingAs($reporter)
+            ->test(CreatePost::class)
+            ->assertSet('data.status', PostStatus::Draft->value);
+    }
+
     public function test_post_can_be_edited(): void
     {
         $post = Post::factory()->create([
