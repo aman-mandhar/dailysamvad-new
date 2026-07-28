@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Frontend;
 
+use App\Enums\PostStatus;
 use App\Models\Category;
 use App\Models\Post;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -28,15 +29,21 @@ class HomepageTest extends TestCase
             ->assertSee($post->title);
     }
 
-    public function test_draft_posts_never_appear(): void
+    public function test_unpublished_posts_never_appear(): void
     {
         Post::factory()->published()->create(['title' => 'Visible public report']);
         $draft = Post::factory()->create(['title' => 'Private draft report']);
+        $future = Post::factory()->create([
+            'title' => 'Future published report',
+            'status' => PostStatus::Published,
+            'published_at' => now()->addDay(),
+        ]);
 
         $this->get('/')
             ->assertOk()
             ->assertSee('Visible public report')
-            ->assertDontSee($draft->title);
+            ->assertDontSee($draft->title)
+            ->assertDontSee($future->title);
     }
 
     public function test_breaking_section_hides_when_empty(): void

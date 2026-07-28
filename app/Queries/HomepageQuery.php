@@ -4,12 +4,12 @@ namespace App\Queries;
 
 use App\Models\Category;
 use App\Models\Post;
+use App\Services\CacheQueryService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
-use App\Services\CacheQueryService;
 
 class HomepageQuery
 {
@@ -26,6 +26,7 @@ class HomepageQuery
         if (config('cache_architecture.enabled') && config('cache_architecture.query')) {
             return app(CacheQueryService::class)->remember('query', 'homepage', 'public', 'default', (int) config('cache_architecture.ttls.short', 300), fn (): array => $this->uncachedGet());
         }
+
         return $this->uncachedGet();
     }
 
@@ -117,6 +118,7 @@ class HomepageQuery
                 'is_breaking',
                 'is_featured',
             ])
+            ->published()
             ->with([
                 'author:id,name',
                 'primaryCategory:id,name,slug',

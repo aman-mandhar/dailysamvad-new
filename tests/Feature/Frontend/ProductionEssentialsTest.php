@@ -58,10 +58,13 @@ class ProductionEssentialsTest extends TestCase
         $this->get('/robots.txt')->assertOk()->assertSee('Disallow: /admin')->assertSee('Sitemap: '.route('sitemap'));
     }
 
-    public function test_custom_not_found_page_renders(): void
+    public function test_browser_not_found_response_redirects_home(): void
     {
-        Post::factory()->published()->create(['title' => 'Suggested latest report']);
+        $this->get('/definitely-missing')->assertRedirect(route('home'));
+    }
 
-        $this->get('/definitely-missing')->assertNotFound()->assertSee('Page not found')->assertSee('Suggested latest report')->assertSee('noindex, follow');
+    public function test_json_not_found_response_remains_a_404(): void
+    {
+        $this->getJson('/definitely-missing')->assertNotFound();
     }
 }

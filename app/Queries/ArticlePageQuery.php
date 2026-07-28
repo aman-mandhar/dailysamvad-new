@@ -5,11 +5,11 @@ namespace App\Queries;
 use App\Data\ArticlePageData;
 use App\Models\Post;
 use App\Services\ArticleContentComposer;
+use App\Services\CacheQueryService;
 use App\Support\PostSeoData;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Str;
-use App\Services\CacheQueryService;
 
 class ArticlePageQuery
 {
@@ -23,6 +23,7 @@ class ArticlePageQuery
         if (config('cache_architecture.enabled') && config('cache_architecture.query')) {
             return app(CacheQueryService::class)->remember('query', 'article', 'public', $slug, (int) config('cache_architecture.ttls.medium', 1800), fn (): ArticlePageData => $this->uncachedFind($slug));
         }
+
         return $this->uncachedFind($slug);
     }
 
@@ -122,6 +123,7 @@ class ArticlePageQuery
     private function cardQuery(): Builder
     {
         return Post::query()->select(['id', 'title', 'slug', 'excerpt', 'meta_title', 'featured_image', 'featured_media_id', 'featured_image_alt', 'published_at'])
+            ->published()
             ->with(['primaryCategory:id,name,slug', 'featuredMedia:id,disk,path,width,height,missing_at,metadata']);
     }
 

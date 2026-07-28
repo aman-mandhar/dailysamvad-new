@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Frontend;
 
+use App\Enums\PostStatus;
 use App\Models\Category;
 use App\Models\Post;
 use App\Queries\ArticlePageQuery;
@@ -55,5 +56,22 @@ class ArticlePageQueryTest extends TestCase
         $this->assertNotContains($post->id, $related->modelKeys());
         $this->assertCount(3, array_unique($related->modelKeys()));
         $this->assertTrue($fallbacks->pluck('id')->intersect($related->modelKeys())->isNotEmpty());
+    }
+
+    public function test_related_news_excludes_unpublished_posts(): void
+    {
+        $post = Post::factory()->published()->create();
+        $published = Post::factory()->published()->create();
+        $draft = Post::factory()->create();
+        $future = Post::factory()->create([
+            'status' => PostStatus::Published,
+            'published_at' => now()->addDay(),
+        ]);
+
+        $related = app(ArticlePageQuery::class)->find($post->slug)->relatedPosts;
+
+        $this->assertContains($published->id, $related->modelKeys());
+        $this->assertNotContains($draft->id, $related->modelKeys());
+        $this->assertNotContains($future->id, $related->modelKeys());
     }
 }
