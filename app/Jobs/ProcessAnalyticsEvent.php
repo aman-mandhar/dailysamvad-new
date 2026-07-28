@@ -1,4 +1,48 @@
 <?php
+
 namespace App\Jobs;
-use App\Models\AnalyticsEvent; use App\Models\Post; use App\Models\PostDailyMetric; use Illuminate\Bus\Queueable; use Illuminate\Contracts\Queue\ShouldQueue; use Illuminate\Foundation\Bus\Dispatchable; use Illuminate\Queue\InteractsWithQueue; use Illuminate\Queue\SerializesModels; use Illuminate\Support\Facades\DB;
-class ProcessAnalyticsEvent implements ShouldQueue { use Dispatchable,InteractsWithQueue,Queueable,SerializesModels; public int $tries=3; public int $timeout=20; public function __construct(public readonly string $eventId,public readonly int $postId,public readonly ?string $visitorUuid,public readonly bool $isBot,public readonly bool $isInternal,public readonly bool $isUnique,public readonly string $occurredAt){$this->onQueue(config('analytics.queue','analytics'));} public function backoff():array{return [30,120];} public function handle():void { DB::transaction(function(){ if(AnalyticsEvent::where('event_id',$this->eventId)->exists())return; $event=AnalyticsEvent::create(['event_id'=>$this->eventId,'post_id'=>$this->postId,'visitor_uuid'=>$this->visitorUuid,'event_type'=>'page_view','is_bot'=>$this->isBot,'is_internal'=>$this->isInternal,'occurred_at'=>$this->occurredAt]); if($this->isBot||$this->isInternal)return; $metric=PostDailyMetric::firstOrCreate(['post_id'=>$this->postId,'metric_date'=>now()->toDateString()]); $metric->increment('raw_views'); if($this->isUnique){$metric->increment('unique_views');$metric->increment('estimated_unique_visitors');} Post::whereKey($this->postId)->increment('views_count'); }); } }
+
+use App\Models\AnalyticsEvent;
+use App\Models\PostDailyMetric;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\DB;
+
+class ProcessAnalyticsEvent implements ShouldQueue
+{
+    use Dispatchable,InteractsWithQueue,Queueable,SerializesModels;
+
+    public int $tries = 3;
+
+    public int $timeout = 20;
+
+    public function __construct(public readonly string $eventId, public readonly int $postId, public readonly ?string $visitorUuid, public readonly bool $isBot, public readonly bool $isInternal, public readonly bool $isUnique, public readonly string $occurredAt)
+    {
+        $this->onQueue(config('analytics.queue', 'analytics'));
+    }
+
+    public function backoff(): array
+    {
+        return [30, 120];
+    }
+
+    public function handle(): void
+    {
+        DB::transaction(function () {
+            if (AnalyticsEvent::where('event_id', $this->eventId)->exists()) {
+                return;
+            } $event = AnalyticsEvent::create(['event_id' => $this->eventId, 'post_id' => $this->postId, 'visitor_uuid' => $this->visitorUuid, 'event_type' => 'page_view', 'is_bot' => $this->isBot, 'is_internal' => $this->isInternal, 'occurred_at' => $this->occurredAt]);
+            if ($this->isBot || $this->isInternal) {
+                return;
+            } $metric = PostDailyMetric::firstOrCreate(['post_id' => $this->postId, 'metric_date' => now()->toDateString()]);
+            $metric->increment('raw_views');
+            if ($this->isUnique) {
+                $metric->increment('unique_views');
+                $metric->increment('estimated_unique_visitors');
+            }
+        });
+    }
+}
