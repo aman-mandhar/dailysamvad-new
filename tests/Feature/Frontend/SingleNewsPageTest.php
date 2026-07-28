@@ -6,6 +6,7 @@ use App\Enums\PostStatus;
 use App\Models\Category;
 use App\Models\Post;
 use App\Models\Tag;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
@@ -161,6 +162,32 @@ class SingleNewsPageTest extends TestCase
             ->assertSee('datetime="'.$post->published_at->toIso8601String().'"', false)
             ->assertSee('aria-label="Share on Facebook"', false)
             ->assertSee(route('tags.show', $tag->slug), false);
+    }
+
+    public function test_author_box_renders_contact_details_before_tags(): void
+    {
+        $author = User::factory()->create([
+            'name' => 'News Reporter',
+            'designation' => 'Senior Correspondent',
+            'email' => 'reporter@example.com',
+            'mobile_number' => '+91 98765 43210',
+            'avatar_path' => 'https://images.example.com/reporter.jpg',
+        ]);
+        $post = Post::factory()->published()->create(['author_id' => $author->id]);
+        $tag = Tag::factory()->create(['name' => 'Author box tag']);
+        $post->tags()->attach($tag);
+
+        $response = $this->get($post->publicUrl())->assertOk()
+            ->assertSee('Portrait of News Reporter')
+            ->assertSee('Senior Correspondent')
+            ->assertSee('mailto:reporter@example.com', false)
+            ->assertSee('tel:+919876543210', false);
+
+        $html = $response->getContent();
+        $this->assertLessThan(
+            strpos($html, route('tags.show', $tag->slug)),
+            strpos($html, 'class="ds-article-author-box"'),
+        );
     }
 
     public function test_trusted_youtube_embed_and_table_wrapper_render_without_scripts(): void

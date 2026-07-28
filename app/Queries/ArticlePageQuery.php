@@ -32,7 +32,7 @@ class ArticlePageQuery
         $post = Post::query()
             ->published()
             ->with([
-                'author:id,name,username,slug,bio,avatar_path,is_public,x_url',
+                'author:id,name,username,slug,bio,avatar_path,designation,email,mobile_number,is_public,x_url',
                 'primaryCategory:id,name,slug',
                 'categories:id,name,slug',
                 'tags:id,name,slug',

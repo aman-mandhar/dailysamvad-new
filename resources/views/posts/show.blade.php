@@ -23,6 +23,7 @@
                     @endauth
                 </div>
                 <x-news.article.content :blocks="$article->contentBlocks" />
+                <x-news.article.author-box :author="$article->post->author" />
                 <x-news.article.tags :tags="$article->post->tags" />
                 <x-news.advertisement-slot :advertisement="$article->bottomAdvertisement" />
                 <x-news.article.previous-next :previous="$article->previousPost" :next="$article->nextPost" />
