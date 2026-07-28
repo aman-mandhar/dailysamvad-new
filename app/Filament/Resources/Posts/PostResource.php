@@ -210,20 +210,36 @@ class PostResource extends Resource
                 ]),
             Section::make('Featured Image')
                 ->schema([
-                    Hidden::make('featured_media_limit')
-                        ->default(50)
+                    Hidden::make('featured_media_offset')
+                        ->default(0)
                         ->dehydrated(false),
                     Select::make('featured_media_id')
                         ->label('Select from Media Library')
                         ->relationship(
                             name: 'featuredMedia',
                             titleAttribute: 'original_filename',
-                            modifyQueryUsing: fn (Builder $query, Get $get): Builder => $query
-                                ->tap(fn (Builder $query): Builder => ContentAccess::scopeMedia($query, auth()->user()))
-                                ->whereNull('missing_at')
-                                ->where('mime_type', 'like', 'image/%')
-                                ->limit(max(50, (int) $get('featured_media_limit')))
-                                ->orderByDesc('created_at'),
+                            modifyQueryUsing: function (Builder $query, Get $get): Builder {
+                                $pageIds = ContentAccess::scopeMedia(Media::query(), auth()->user())
+                                    ->whereNull('missing_at')
+                                    ->where('mime_type', 'like', 'image/%')
+                                    ->orderByDesc('created_at')
+                                    ->orderByDesc('id')
+                                    ->offset(max(0, (int) $get('featured_media_offset')))
+                                    ->limit(50)
+                                    ->pluck('id');
+
+                                if (filled($get('featured_media_id'))) {
+                                    $pageIds->push((int) $get('featured_media_id'));
+                                }
+
+                                return $query
+                                    ->tap(fn (Builder $query): Builder => ContentAccess::scopeMedia($query, auth()->user()))
+                                    ->whereNull('missing_at')
+                                    ->where('mime_type', 'like', 'image/%')
+                                    ->whereKey($pageIds->unique()->all())
+                                    ->orderByDesc('created_at')
+                                    ->orderByDesc('id');
+                            },
                         )
                         ->getOptionLabelFromRecordUsing(function (Media $record): string {
                             $url = app(MediaUrlResolver::class)->resolve($record->path, $record->disk);
@@ -236,7 +252,7 @@ class PostResource extends Resource
                         ->allowHtml()
                         ->searchable(false)
                         ->preload()
-                        ->optionsLimit(fn (Get $get): int => max(50, (int) $get('featured_media_limit')))
+                        ->optionsLimit(51)
                         ->live()
                         ->afterStateUpdated(function (Set $set, mixed $state): void {
                             $path = filled($state)
@@ -244,20 +260,28 @@ class PostResource extends Resource
                                 : null;
                             $set('featured_image', $path);
                         })
-                        ->hintAction(
+                        ->hintActions([
+                            Action::make('previousFeaturedMedia')
+                                ->label('Previous 50')
+                                ->icon(Heroicon::ArrowUp)
+                                ->action(fn (Get $get, Set $set): mixed => $set(
+                                    'featured_media_offset',
+                                    max(0, (int) $get('featured_media_offset') - 50),
+                                ))
+                                ->visible(fn (Get $get): bool => (int) $get('featured_media_offset') > 0),
                             Action::make('loadMoreFeaturedMedia')
-                                ->label('Load 50 more media')
+                                ->label('Next 50 media')
                                 ->icon(Heroicon::ArrowDown)
                                 ->action(fn (Get $get, Set $set): mixed => $set(
-                                    'featured_media_limit',
-                                    max(50, (int) $get('featured_media_limit')) + 50,
+                                    'featured_media_offset',
+                                    max(0, (int) $get('featured_media_offset')) + 50,
                                 ))
                                 ->visible(fn (Get $get): bool => ContentAccess::scopeMedia(Media::query(), auth()->user())
                                     ->whereNull('missing_at')
                                     ->where('mime_type', 'like', 'image/%')
-                                    ->count() > max(50, (int) $get('featured_media_limit'))),
-                        )
-                        ->helperText('Images load in batches of 50. Detaching does not delete the binary.'),
+                                    ->count() > max(0, (int) $get('featured_media_offset')) + 50),
+                        ])
+                        ->helperText('Browse images in batches of 50. Detaching does not delete the binary.'),
                     FileUpload::make('featured_image')
                         ->label('Featured Image')
                         ->image()

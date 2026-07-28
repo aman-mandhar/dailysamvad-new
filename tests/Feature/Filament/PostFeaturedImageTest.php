@@ -143,12 +143,21 @@ class PostFeaturedImageTest extends TestCase
             'updated_at' => now(),
         ])->all());
 
+        $oldestId = Media::query()->oldest('id')->value('id');
+        $newestId = Media::query()->latest('id')->value('id');
+
         Livewire::actingAs($this->editor)
             ->test(CreatePost::class)
-            ->assertSet('data.featured_media_limit', 50)
+            ->assertSet('data.featured_media_offset', 0)
             ->assertFormFieldExists('featured_media_id', fn (Select $field): bool => collect($field->getHintActions())
                 ->contains(fn (Action $action): bool => $action->getName() === 'loadMoreFeaturedMedia'
-                    && $action->getLabel() === 'Load 50 more media'));
+                    && $action->getLabel() === 'Next 50 media'))
+            ->set('data.featured_media_offset', 50)
+            ->assertFormFieldExists('featured_media_id', function (Select $field) use ($oldestId, $newestId): bool {
+                $ids = array_map('intval', array_keys($field->getOptions()));
+
+                return in_array($oldestId, $ids, true) && ! in_array($newestId, $ids, true);
+            });
     }
 
     public function test_non_image_upload_is_rejected(): void
