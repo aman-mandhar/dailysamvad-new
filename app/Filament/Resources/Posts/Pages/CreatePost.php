@@ -6,7 +6,6 @@ use App\Enums\PostStatus;
 use App\Filament\Resources\Posts\PostResource;
 use App\Models\Post;
 use App\Models\PostWorkflowEvent;
-use App\Support\Authorization\ContentAccess;
 use App\Support\PostSeoData;
 use App\Support\PostTaxonomy;
 use Filament\Actions\Action;
@@ -99,9 +98,7 @@ class CreatePost extends CreateRecord
         $data['published_at'] = $status === PostStatus::Published ? now() : null;
         unset($data['scheduled_at']);
 
-        if (! ContentAccess::canAssignPostAuthor(auth()->user())) {
-            $data['author_id'] = auth()->id();
-        }
+        $data['author_id'] = auth()->id();
 
         return $data;
     }

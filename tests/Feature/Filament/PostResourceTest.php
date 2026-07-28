@@ -131,6 +131,39 @@ class PostResourceTest extends TestCase
             ->assertCanSeeTableRecords([$post]);
     }
 
+    public function test_author_is_display_only_and_cannot_be_changed_by_tampering(): void
+    {
+        $other = User::factory()->create();
+
+        Livewire::actingAs($this->editor)
+            ->test(CreatePost::class)
+            ->assertFormFieldDisabled('author_display')
+            ->fillForm([
+                'title' => 'Read-only author story',
+                'slug' => 'read-only-author-story',
+                'content' => '<p>Author cannot be changed.</p>',
+                'language' => 'en',
+                'status' => PostStatus::Draft->value,
+                'author_id' => $other->id,
+                'categories' => [$this->category->id],
+                'primary_category_id' => $this->category->id,
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $post = Post::query()->where('slug', 'read-only-author-story')->firstOrFail();
+        $this->assertSame($this->editor->id, $post->author_id);
+
+        Livewire::actingAs($this->editor)
+            ->test(EditPost::class, ['record' => $post->getRouteKey()])
+            ->assertFormFieldDisabled('author_display')
+            ->set('data.author_id', $other->id)
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->assertSame($this->editor->id, $post->refresh()->author_id);
+    }
+
     public function test_post_creation_success_dialog_is_shown_to_editor_with_record_actions(): void
     {
         $post = Post::factory()->create([

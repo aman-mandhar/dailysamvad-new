@@ -6,7 +6,6 @@ use App\Enums\PostStatus;
 use App\Filament\Resources\Posts\PostResource;
 use App\Models\User;
 use App\Services\EditorialWorkflowService;
-use App\Support\Authorization\ContentAccess;
 use App\Support\PostSeoData;
 use App\Support\PostTaxonomy;
 use Filament\Actions\Action;
@@ -71,6 +70,7 @@ class EditPost extends EditRecord
         $data['primary_category_id'] = $this->record
             ->primaryCategory()
             ->value('categories.id');
+        $data['author_display'] = $this->record->author?->name ?? 'No author assigned';
         $data['tag_names'] = $this->record->tags()->ordered()->pluck('name')->all();
         $data['robots'] = PostSeoData::robotsDirective($this->record->seo_data);
 
@@ -95,9 +95,7 @@ class EditPost extends EditRecord
 
         unset($data['status'], $data['published_at'], $data['scheduled_at']);
 
-        if (! ContentAccess::canAssignPostAuthor(auth()->user())) {
-            $data['author_id'] = $this->record->author_id;
-        }
+        $data['author_id'] = $this->record->author_id;
 
         return $data;
     }

@@ -109,26 +109,11 @@ class PostResource extends Resource
                             'en' => 'English',
                         ])
                         ->required(),
-                    Select::make('author_id')
+                    TextInput::make('author_display')
                         ->label('Author')
-                        ->relationship(
-                            name: 'author',
-                            titleAttribute: 'name',
-                            modifyQueryUsing: fn (Builder $query): Builder => $query
-                                ->where('is_active', true)
-                                ->where(function (Builder $query): void {
-                                    $query->whereHas('roles', fn (Builder $roles): Builder => $roles->whereIn('name', [
-                                        'super-admin', 'admin', 'editor', 'reporter', 'author',
-                                    ]))->orWhereHas('authoredPosts');
-                                })
-                                ->orderBy('name'),
-                        )
-                        ->searchable()
-                        ->default(fn (): ?int => auth()->id())
-                        ->visible(fn (): bool => auth()->user()?->can('edit all posts') ?? false)
-                        ->disabled(fn (): bool => ! ContentAccess::canAssignPostAuthor(auth()->user()))
-                        ->dehydrated(fn (): bool => ContentAccess::canAssignPostAuthor(auth()->user()))
-                        ->required(),
+                        ->default(fn (): ?string => auth()->user()?->name)
+                        ->disabled()
+                        ->dehydrated(false),
                 ]),
             Section::make('Publishing')
                 ->columns(2)
