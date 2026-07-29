@@ -13,7 +13,9 @@ use App\Import\Services\ImportVerificationService;
 use App\Import\Services\WordPressConnection;
 use App\Queries\BreakingNewsQuery;
 use App\Queries\NavigationQuery;
+use App\View\Components\YouTubePlaylistPlayer;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -37,6 +39,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Blade::component(YouTubePlaylistPlayer::class, 'youtube-playlist-player');
+
         Gate::before(function ($user, string $ability): ?bool {
             if (! $user->is_active) {
                 return false;
