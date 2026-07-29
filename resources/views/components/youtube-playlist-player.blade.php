@@ -28,9 +28,6 @@
         >
             Unmute
         </button>
-        <a href="{{ $playlistUrl() }}" target="_blank" rel="noopener noreferrer">
-            Watch playlist on YouTube
-        </a>
     </div>
 
     <script type="application/json" data-youtube-playlist-config>{!! \Illuminate\Support\Js::encode($playerConfig) !!}</script>
