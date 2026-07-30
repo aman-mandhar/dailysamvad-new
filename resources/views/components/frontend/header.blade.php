@@ -32,4 +32,5 @@
     <x-frontend.policy-navigation />
     <x-frontend.header-search />
     <img class="ds-header__mobile-ad" src="{{ asset('images/frontend/ads/jd.jpeg') }}" alt="Daily Samvad">
+    <x-frontend.advertisements.3in1 />
 </header>

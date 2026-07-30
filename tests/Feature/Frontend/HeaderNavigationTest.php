@@ -84,4 +84,12 @@ class HeaderNavigationTest extends TestCase
             ->assertOk()
             ->assertDontSee('Header media slot');
     }
+
+    public function test_header_renders_three_advertisements_in_one_grid_row(): void
+    {
+        $html = $this->get('/')->assertOk()->getContent();
+
+        $this->assertSame(1, substr_count($html, 'ds-3in1-advertisement__grid'));
+        $this->assertSame(3, substr_count($html, 'ds-3in1-advertisement__item'));
+    }
 }

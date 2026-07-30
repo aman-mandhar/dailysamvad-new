@@ -68,6 +68,28 @@
         display: none;
     }
 
+    .ds-3in1-advertisement {
+        margin-block: 1.5rem;
+    }
+
+    .ds-3in1-advertisement__grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: clamp(.35rem, 1vw, 1rem);
+    }
+
+    .ds-3in1-advertisement__item,
+    .ds-3in1-advertisement__item a {
+        display: block;
+        min-width: 0;
+    }
+
+    .ds-3in1-advertisement__image {
+        display: block;
+        width: 100%;
+        height: auto;
+    }
+
     .ds-header__editor,
     .ds-header__strapline {
         display: flex;
