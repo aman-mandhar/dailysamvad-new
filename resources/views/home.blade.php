@@ -2,7 +2,7 @@
 
 @section('content')
     <div class="ds-container py-4 sm:py-5">
-        <x-news.advertisement-slot :advertisement="$homepageTopAdvertisement" />
+        <x-advertisement.slot :advertisement="$homepageTopAdvertisement" />
 
         <div class="ds-home-top ds-main-grid mt-6">
             <div class="min-w-0 space-y-8">
@@ -35,7 +35,7 @@
                     </section>
                 @endif
 
-                <x-news.advertisement-slot :advertisement="$homepageInlineAdvertisement" />
+                <x-advertisement.slot :advertisement="$homepageInlineAdvertisement" />
 
             </div>
 

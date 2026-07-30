@@ -30,7 +30,10 @@ class RolesAndPermissionsSeeder extends Seeder
         'view own analytics', 'view editorial analytics', 'view all analytics', 'export analytics',
         'view users', 'create users', 'update users', 'disable users', 'delete users', 'manage users',
         'view roles', 'manage roles and permissions',
-        'manage advertisements', 'manage settings', 'manage own profile', 'manage pages',
+        'manage advertisements', 'view advertisements', 'create advertisements', 'update advertisements',
+        'delete advertisements', 'restore advertisements', 'publish advertisements', 'pause advertisements',
+        'update advertisements from frontend', 'view advertisement analytics', 'manage advertisement provider code',
+        'manage advertisement settings', 'manage settings', 'manage own profile', 'manage pages',
 
         // Compatibility aliases retained for existing roles, users, policies, and extensions.
         'edit own posts', 'edit all posts', 'delete own drafts', 'submit own posts',
@@ -49,7 +52,10 @@ class RolesAndPermissionsSeeder extends Seeder
             'view media', 'upload media', 'update all media', 'delete all media', 'manage media',
             'view seo', 'manage seo', 'view editorial analytics',
             'view users', 'create users', 'update users', 'disable users', 'delete users', 'manage users',
-            'manage advertisements', 'manage own profile', 'manage pages',
+            'manage advertisements', 'view advertisements', 'create advertisements', 'update advertisements',
+            'delete advertisements', 'restore advertisements', 'publish advertisements', 'pause advertisements',
+            'update advertisements from frontend', 'view advertisement analytics', 'manage advertisement provider code',
+            'manage advertisement settings', 'manage own profile', 'manage pages',
         ],
         'editor' => [
             'access admin panel', 'view admin dashboard', 'view posts', 'view own posts', 'view all posts',
@@ -58,7 +64,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'assign reviewers', 'view workflow history', 'schedule posts', 'publish posts', 'archive posts', 'restore posts',
             'view categories', 'manage categories', 'view tags', 'manage tags',
             'view media', 'upload media', 'update all media', 'delete own media', 'manage media',
-            'view editorial analytics', 'manage own profile', 'manage pages',
+            'view editorial analytics', 'view advertisements', 'update advertisements', 'publish advertisements',
+            'pause advertisements', 'update advertisements from frontend', 'view advertisement analytics', 'manage own profile', 'manage pages',
         ],
         'reviewer' => [
             'access admin panel', 'view admin dashboard', 'view posts', 'view assigned posts',
@@ -75,14 +82,14 @@ class RolesAndPermissionsSeeder extends Seeder
         'seo-manager' => [
             'access admin panel', 'view admin dashboard', 'view posts', 'view all posts',
             'view categories', 'view tags', 'view media', 'view seo', 'manage seo',
-            'view editorial analytics', 'manage own profile',
+            'view editorial analytics', 'view advertisements', 'manage own profile',
         ],
         'media-manager' => [
             'access admin panel', 'view admin dashboard', 'view media', 'upload media',
             'update all media', 'delete all media', 'manage media', 'manage own profile',
         ],
         'analytics-manager' => [
-            'access admin panel', 'view admin dashboard', 'view all analytics', 'export analytics', 'manage own profile',
+            'access admin panel', 'view admin dashboard', 'view all analytics', 'export analytics', 'view advertisements', 'view advertisement analytics', 'manage own profile',
         ],
         'contributor' => [
             'access admin panel', 'view admin dashboard', 'view posts', 'view own posts',

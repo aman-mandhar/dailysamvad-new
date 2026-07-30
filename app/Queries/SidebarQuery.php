@@ -6,29 +6,30 @@ use App\Data\AdvertisementData;
 use App\Data\SidebarWidgetData;
 use App\Models\Category;
 use App\Models\Post;
+use App\Services\Advertisements\AdvertisementResolver;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
 
 class SidebarQuery
 {
+    public function __construct(private readonly ?AdvertisementResolver $advertisements = null) {}
+
     /** @return array{sticky: bool, widgets: Collection<int, SidebarWidgetData>} */
     public function forHomepage(): array
     {
-        return $this->forContext('homepage');
+        return $this->forContext('homepage', ['page_type' => 'home']);
     }
 
-    public function advertisement(string $slot): AdvertisementData
+    /** @param array<string, mixed>|object|null $context */
+    public function advertisement(string $slot, array|object|null $context = null): AdvertisementData
     {
-        return AdvertisementData::fromConfig(
-            $slot,
-            (array) config("advertisements.slots.$slot", []),
-            (bool) config('advertisements.show_placeholders', false),
-        );
+        return ($this->advertisements ?? app(AdvertisementResolver::class))->resolve($slot, $context);
     }
 
     /** @return array{sticky: bool, widgets: Collection<int, SidebarWidgetData>} */
-    public function forContext(string $context): array
+    /** @param array<string, mixed>|object|null $advertisementContext */
+    public function forContext(string $context, array|object|null $advertisementContext = null): array
     {
         $configuration = config("sidebar.$context", []);
         $definitions = collect($configuration['widgets'] ?? [])->filter(fn (array $widget): bool => (bool) ($widget['enabled'] ?? false));
@@ -46,7 +47,7 @@ class SidebarQuery
             'latest-news' => $this->newsWidget($definition, false, $hasPosts, $hasViewCounts),
             'popular-news' => $this->newsWidget($definition, true, $hasPosts, $hasViewCounts),
             'categories' => $this->categoryWidget($definition, $hasPosts && $hasCategories),
-            'advertisement' => $this->advertisementWidget($definition),
+            'advertisement' => $this->advertisementWidget($definition, $advertisementContext ?? ['page_type' => $context]),
             'social-follow' => $this->socialWidget($definition),
             default => null,
         })->filter()->values();
@@ -115,10 +116,11 @@ class SidebarQuery
         );
     }
 
-    private function advertisementWidget(array $definition): ?SidebarWidgetData
+    /** @param array<string, mixed>|object|null $context */
+    private function advertisementWidget(array $definition, array|object|null $context = null): ?SidebarWidgetData
     {
         $slot = (string) ($definition['slot'] ?? '');
-        $advertisement = $this->advertisement($slot);
+        $advertisement = $this->advertisement($slot, $context);
 
         return $advertisement->enabled ? new SidebarWidgetData(
             key: (string) $definition['key'],

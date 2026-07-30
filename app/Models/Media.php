@@ -29,6 +29,11 @@ class Media extends Model
         return $this->hasMany(Post::class, 'featured_media_id');
     }
 
+    public function advertisementCreatives(): HasMany
+    {
+        return $this->hasMany(AdvertisementCreative::class);
+    }
+
     protected function casts(): array
     {
         return ['size' => 'integer', 'width' => 'integer', 'height' => 'integer', 'missing_at' => 'datetime', 'metadata' => 'array'];

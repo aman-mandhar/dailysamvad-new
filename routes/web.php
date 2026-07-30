@@ -7,8 +7,11 @@ use App\Http\Controllers\Account\ReadingHistoryController;
 use App\Http\Controllers\Account\ReferralController;
 use App\Http\Controllers\Account\SavedArticleController;
 use App\Http\Controllers\Account\SecurityController;
-use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\AdvertisementClickController;
+use App\Http\Controllers\AdvertisementFrontendUpdateController;
+use App\Http\Controllers\AdvertisementImpressionController;
 use App\Http\Controllers\AnalyticsBeaconController;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
@@ -25,8 +28,8 @@ use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\StaticPageController;
 use App\Http\Controllers\TagController;
-use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\PublicResponseCache;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->middleware(PublicResponseCache::class)->name('home');
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
@@ -52,6 +55,8 @@ Route::get('/tag/{slug}', TagController::class)->middleware(PublicResponseCache:
 Route::get('/author/{username}', AuthorController::class)->middleware(PublicResponseCache::class)->name('authors.show');
 Route::get('/search', SearchController::class)->name('search');
 Route::post('/analytics/beacon/{post}', AnalyticsBeaconController::class)->middleware('throttle:60,1')->name('analytics.beacon');
+Route::get('/advertisements/{advertisement}/click', AdvertisementClickController::class)->middleware('throttle:120,1')->name('advertisements.click');
+Route::post('/advertisements/{advertisement}/impression', AdvertisementImpressionController::class)->middleware('throttle:120,1')->name('advertisements.impression');
 Route::get('/archive/{year}', [DateArchiveController::class, 'year'])->middleware(PublicResponseCache::class)->whereNumber('year')->name('archives.year');
 Route::get('/archive/{year}/{month}', [DateArchiveController::class, 'month'])->middleware(PublicResponseCache::class)->whereNumber(['year', 'month'])->name('archives.month');
 Route::get('/archive/{year}/{month}/{day}', [DateArchiveController::class, 'day'])->middleware(PublicResponseCache::class)->whereNumber(['year', 'month', 'day'])->name('archives.day');
@@ -71,6 +76,7 @@ Route::middleware('guest')->group(function (): void {
 });
 
 Route::middleware('auth')->group(function (): void {
+    Route::patch('/advertisements/{advertisement}', AdvertisementFrontendUpdateController::class)->name('advertisements.frontend.update');
     Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
     Route::get('/dashboard', DashboardController::class)->middleware('active')->name('dashboard');
 

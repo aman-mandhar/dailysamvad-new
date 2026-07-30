@@ -2,6 +2,7 @@
 
 namespace App\Data;
 
+use Illuminate\Support\Collection;
 use Illuminate\Support\HtmlString;
 
 final readonly class ArticleContentBlockData
@@ -10,6 +11,7 @@ final readonly class ArticleContentBlockData
         public string $type,
         public ?HtmlString $html = null,
         public ?AdvertisementData $advertisement = null,
+        public ?Collection $advertisements = null,
     ) {}
 
     public static function html(string $html): self
@@ -20,5 +22,11 @@ final readonly class ArticleContentBlockData
     public static function advertisement(AdvertisementData $advertisement): self
     {
         return new self('advertisement', advertisement: $advertisement);
+    }
+
+    /** @param Collection<int, AdvertisementData> $advertisements */
+    public static function bottomStack(Collection $advertisements): self
+    {
+        return new self('advertisement_bottom_stack', advertisements: $advertisements);
     }
 }

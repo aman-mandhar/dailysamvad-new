@@ -16,6 +16,7 @@ return [
     'article' => [
         'sticky' => true,
         'widgets' => [
+            ['key' => 'article-sidebar-ad', 'type' => 'advertisement', 'enabled' => true, 'slot' => 'ARTICLE_SIDEBAR'],
             ['key' => 'article-sidebar-top-ad', 'type' => 'advertisement', 'enabled' => true, 'slot' => 'ARTICLE_SIDEBAR_TOP'],
             ['key' => 'article-latest-news', 'type' => 'latest-news', 'enabled' => true, 'title' => 'Latest News', 'limit' => 6, 'show_category' => true, 'show_date' => true],
             ['key' => 'article-popular-news', 'type' => 'popular-news', 'enabled' => true, 'title' => 'Popular News', 'limit' => 6, 'show_category' => false, 'show_date' => true],

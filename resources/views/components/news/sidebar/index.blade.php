@@ -7,7 +7,7 @@
         <div class="ds-sidebar__inner">
             @foreach ($widgets as $widget)
                 @switch($widget->type)
-                    @case('advertisement')<x-news.advertisement-slot :advertisement="$widget->advertisement" />@break
+                    @case('advertisement')<x-advertisement.slot :advertisement="$widget->advertisement" />@break
                     @case('latest-news')<x-news.sidebar.latest-news :widget="$widget" />@break
                     @case('popular-news')<x-news.sidebar.popular-news :widget="$widget" />@break
                     @case('categories')<x-news.sidebar.category-list :widget="$widget" />@break
@@ -21,6 +21,10 @@
 
             @if (collect($widgets)->isEmpty() && $showVideoPlayer)
                 <x-youtube-playlist-player :placement="$context ?: 'homepage'" />
+            @endif
+
+            @if ($context === 'article' && config('services.mgid.sidebar_widget_id'))
+                <x-news.sidebar.mgid-widget :widget-id="config('services.mgid.sidebar_widget_id')" />
             @endif
         </div>
     </aside>

@@ -78,7 +78,9 @@ class ArchivePageQuery
     {
         $term = $this->normalizeSearch($term);
         $query = $this->search->query(SearchCriteria::from(['q' => $term]));
-        if ($term === '' || mb_strlen($term) < (int) config('archive.search_min_length', 1)) $query->whereRaw('1 = 0');
+        if ($term === '' || mb_strlen($term) < (int) config('archive.search_min_length', 1)) {
+            $query->whereRaw('1 = 0');
+        }
 
         $baseUrl = route('search', $term === '' ? [] : ['q' => $term]);
 
@@ -147,7 +149,14 @@ class ArchivePageQuery
         $seoDescription = $this->plainText($metaDescription) ?: $description;
         $breadcrumbs = $this->breadcrumbs($type, $title, $baseUrl, $dateParts);
         $sidebarContext = (string) config("archive.sidebar_contexts.$type", 'archive');
-        $sidebar = $this->sidebar->forContext($sidebarContext);
+        $adContext = ['page_type' => $type];
+        if ($entity instanceof Category) {
+            $adContext['category_id'] = $entity->getKey();
+        }
+        if ($entity instanceof Tag) {
+            $adContext['tag_ids'] = [$entity->getKey()];
+        }
+        $sidebar = $this->sidebar->forContext($sidebarContext, $adContext);
         $ads = (array) config("archive.advertisements.$type", []);
         $authorAvatarUrl = null;
         $authorSocialLinks = [];
@@ -171,8 +180,8 @@ class ArchivePageQuery
             sidebarWidgets: $sidebar['widgets'],
             sidebarSticky: $sidebar['sticky'],
             sidebarContext: $sidebarContext,
-            topAdvertisement: $this->sidebar->advertisement((string) ($ads['top'] ?? 'ARCHIVE_TOP')),
-            inlineAdvertisement: $this->sidebar->advertisement((string) ($ads['inline'] ?? 'ARCHIVE_INLINE')),
+            topAdvertisement: $this->sidebar->advertisement((string) ($ads['top'] ?? 'ARCHIVE_TOP'), $adContext),
+            inlineAdvertisement: $this->sidebar->advertisement((string) ($ads['inline'] ?? 'ARCHIVE_INLINE'), $adContext),
             seoTitle: $metaTitle.$pageSuffix,
             seoDescription: $seoDescription.($page > 1 ? ' Page '.$page.'.' : ''),
             canonicalUrl: $canonical,

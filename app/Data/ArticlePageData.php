@@ -27,6 +27,7 @@ final readonly class ArticlePageData
         public Collection $sidebarWidgets,
         public bool $sidebarSticky,
         public AdvertisementData $topAdvertisement,
+        public AdvertisementData $afterFeaturedImageAdvertisement,
         public AdvertisementData $bottomAdvertisement,
         public string $canonicalUrl,
         public string $seoTitle,

@@ -164,6 +164,19 @@ class SingleNewsPageTest extends TestCase
             ->assertSee(route('tags.show', $tag->slug), false);
     }
 
+    public function test_article_sidebar_renders_the_mgid_widget_once(): void
+    {
+        $post = Post::factory()->published()->create();
+
+        $response = $this->get($post->publicUrl())->assertOk();
+        $html = $response->getContent();
+
+        $this->assertSame(1, substr_count($html, 'data-widget-id="1664561"'));
+        $response
+            ->assertSee('data-mgid-sidebar', false)
+            ->assertSeeInOrder(['data-sidebar-context="article"', 'data-widget-id="1664561"']);
+    }
+
     public function test_author_box_renders_contact_details_before_tags(): void
     {
         $author = User::factory()->create([

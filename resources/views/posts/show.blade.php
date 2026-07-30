@@ -7,8 +7,9 @@
         <div class="ds-article-layout">
             <article class="ds-article" aria-labelledby="article-headline">
                 <x-news.article.header :article="$article" />
-                <x-news.advertisement-slot :advertisement="$article->topAdvertisement" />
+                <x-advertisement.slot :advertisement="$article->topAdvertisement" />
                 <x-news.article.featured-image :article="$article" />
+                <x-advertisement.slot :advertisement="$article->afterFeaturedImageAdvertisement" />
                 <x-news.article.share :share="$article->shareUrls" />
                 <div class="my-4">
                     @auth
@@ -25,7 +26,6 @@
                 <x-news.article.content :blocks="$article->contentBlocks" />
                 <x-news.article.author-box :author="$article->post->author" />
                 <x-news.article.tags :tags="$article->post->tags" />
-                <x-news.advertisement-slot :advertisement="$article->bottomAdvertisement" />
                 <x-news.article.previous-next :previous="$article->previousPost" :next="$article->nextPost" />
                 <x-news.article.related-news :posts="$article->relatedPosts" />
             </article>

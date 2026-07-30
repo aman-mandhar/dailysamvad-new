@@ -29,7 +29,7 @@
                 <li><a href="{{ route('pages.contact') }}">Contact Us</a></li>
             </ul>
         </nav>
-        <x-frontend.advertisements.footer />
+        <x-advertisement.slot :position="\App\Enums\AdvertisementPosition::FooterTop" :context="['page_type' => 'footer']" />
     </div>
     <div class="border-t border-slate-800 px-4 py-5 text-center text-sm text-slate-400">
         &copy; {{ now()->year }} {{ $organization['organization_name'] }}. All rights reserved.

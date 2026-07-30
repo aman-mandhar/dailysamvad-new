@@ -2,6 +2,10 @@
 
 return [
 
+    'mgid' => [
+        'sidebar_widget_id' => env('MGID_SIDEBAR_WIDGET_ID', '1664561'),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Third Party Services

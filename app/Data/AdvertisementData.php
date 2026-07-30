@@ -17,6 +17,18 @@ final readonly class AdvertisementData
         public int $height,
         public bool $openInNewTab,
         public string $rel,
+        public ?int $advertisementId = null,
+        public ?string $advertisementUuid = null,
+        public ?string $videoUrl = null,
+        public ?string $posterUrl = null,
+        public bool $autoplay = false,
+        public bool $muted = true,
+        public bool $loop = false,
+        public bool $controls = true,
+        public ?string $clickUrl = null,
+        public ?string $impressionUrl = null,
+        public ?string $editUrl = null,
+        public bool $canEdit = false,
     ) {}
 
     public static function fromConfig(string $slot, array $config, bool $showPlaceholders): self

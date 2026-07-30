@@ -7,14 +7,14 @@
         <div class="ds-archive-layout">
             <section class="ds-archive-main" aria-labelledby="archive-heading">
                 <x-news.archive.header :archive="$archive" />
-                <x-news.advertisement-slot :advertisement="$archive->topAdvertisement" />
+                <x-advertisement.slot :advertisement="$archive->topAdvertisement" />
 
                 @if ($archive->contextType === 'search')
                     <x-frontend.search-form :term="$archive->searchQuery" class="ds-archive-search-form" />
                 @endif
 
                 <x-news.archive.results :archive="$archive" />
-                <x-news.advertisement-slot :advertisement="$archive->inlineAdvertisement" />
+                <x-advertisement.slot :advertisement="$archive->inlineAdvertisement" />
                 <x-news.pagination :paginator="$archive->posts" />
             </section>
 

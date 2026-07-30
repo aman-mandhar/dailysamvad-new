@@ -15,6 +15,7 @@ $placeholder = [
 ];
 
 return [
+    'cache_ttl' => 60,
     'show_placeholders' => env('ADVERTISEMENT_PLACEHOLDERS', env('APP_ENV', 'production') !== 'production'),
     'slots' => [
         'HEADER_TOP' => [...$placeholder, 'width' => 970, 'height' => 90],
@@ -23,9 +24,16 @@ return [
         'HOME_SIDEBAR_BOTTOM' => $placeholder,
         'HOME_BETWEEN_SECTIONS' => [...$placeholder, 'width' => 970, 'height' => 90],
         'ARTICLE_TOP' => [...$placeholder, 'width' => 728, 'height' => 90],
+        'ARTICLE_AFTER_FEATURED_IMAGE' => [...$placeholder, 'width' => 728, 'height' => 90],
+        'ARTICLE_AFTER_PARAGRAPH_1' => [...$placeholder, 'width' => 728, 'height' => 90],
+        'ARTICLE_AFTER_PARAGRAPH_2' => [...$placeholder, 'width' => 728, 'height' => 90],
+        'ARTICLE_AFTER_PARAGRAPH_3' => [...$placeholder, 'width' => 728, 'height' => 90],
+        'ARTICLE_AFTER_PARAGRAPH_4' => [...$placeholder, 'width' => 728, 'height' => 90],
+        'ARTICLE_AFTER_PARAGRAPH_5' => [...$placeholder, 'width' => 728, 'height' => 90],
         'ARTICLE_INLINE_1' => [...$placeholder, 'width' => 728, 'height' => 90],
         'ARTICLE_INLINE_2' => [...$placeholder, 'width' => 728, 'height' => 90],
         'ARTICLE_BOTTOM' => [...$placeholder, 'width' => 728, 'height' => 90],
+        'ARTICLE_SIDEBAR' => $placeholder,
         'ARTICLE_SIDEBAR_TOP' => $placeholder,
         'ARTICLE_SIDEBAR_BOTTOM' => $placeholder,
         'CATEGORY_TOP' => [...$placeholder, 'width' => 970, 'height' => 90],

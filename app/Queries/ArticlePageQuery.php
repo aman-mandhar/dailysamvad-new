@@ -3,7 +3,9 @@
 namespace App\Queries;
 
 use App\Data\ArticlePageData;
+use App\Enums\AdvertisementPosition;
 use App\Models\Post;
+use App\Services\Advertisements\AdvertisementResolver;
 use App\Services\ArticleContentComposer;
 use App\Services\CacheQueryService;
 use App\Support\PostSeoData;
@@ -16,6 +18,7 @@ class ArticlePageQuery
     public function __construct(
         private readonly SidebarQuery $sidebar,
         private readonly ArticleContentComposer $contentComposer,
+        private readonly AdvertisementResolver $advertisements,
     ) {}
 
     public function find(string $slug): ArticlePageData
@@ -53,9 +56,10 @@ class ArticlePageQuery
             ['label' => $post->title, 'url' => $canonicalUrl, 'current' => true],
         ]);
         $seoDescription = $post->effectiveMetaDescription();
-        $sidebar = $this->sidebar->forContext('article');
+        $sidebar = $this->sidebar->forContext('article', $post);
         $inlineAdvertisements = collect(array_keys((array) config('article.inline_ad_positions', [])))
-            ->mapWithKeys(fn (string $slot): array => [$slot => $this->sidebar->advertisement($slot)])
+            ->push(AdvertisementPosition::ArticleBottom->value)
+            ->mapWithKeys(fn (string $slot): array => [$slot => $this->advertisements->resolve($slot, $post)])
             ->all();
 
         return new ArticlePageData(
@@ -69,8 +73,9 @@ class ArticlePageQuery
             relatedPosts: $this->relatedPosts($post),
             sidebarWidgets: $sidebar['widgets'],
             sidebarSticky: $sidebar['sticky'],
-            topAdvertisement: $this->sidebar->advertisement('ARTICLE_TOP'),
-            bottomAdvertisement: $this->sidebar->advertisement('ARTICLE_BOTTOM'),
+            topAdvertisement: $this->advertisements->resolve(AdvertisementPosition::ArticleTop, $post),
+            afterFeaturedImageAdvertisement: $this->advertisements->resolve(AdvertisementPosition::ArticleAfterFeaturedImage, $post),
+            bottomAdvertisement: $inlineAdvertisements[AdvertisementPosition::ArticleBottom->value],
             canonicalUrl: $canonicalUrl,
             seoTitle: $post->effectiveMetaTitle(),
             seoDescription: $seoDescription,
