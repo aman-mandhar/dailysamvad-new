@@ -7,7 +7,7 @@
 
 @if ($breakingItems->isNotEmpty())
     <section class="ds-breaking {{ $shouldAnimate ? 'is-animated' : 'is-static' }}" data-ticker aria-labelledby="breaking-news-heading">
-        <div class="ds-container ds-breaking__inner">
+        
             <div class="ds-breaking__viewport" data-ticker-viewport tabindex="0">
                 <div class="ds-breaking__track" data-ticker-track>
                     @foreach ($breakingItems as $post)
@@ -38,6 +38,6 @@
                     <span data-ticker-control-label>Pause breaking news</span>
                 </button>
             @endif
-        </div>
+        
     </section>
 @endif
