@@ -10,6 +10,7 @@ use App\Models\Post;
 use App\Support\AdvertisementUrl;
 use App\Support\MediaUrlResolver;
 use App\Support\SafeAdvertisementHtml;
+use Illuminate\Contracts\Cache\Repository;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
@@ -33,10 +34,27 @@ class AdvertisementResolver
             return $resolved ?? AdvertisementData::fromConfig($slot, (array) config("advertisements.slots.$slot", []), (bool) config('advertisements.show_placeholders', false));
         };
         try {
-            return Cache::store(config('cache_architecture.store'))->remember($key, now()->addSeconds((int) config('advertisements.cache_ttl', 60)), $callback);
+            return $this->resolveCached(Cache::store(config('cache_architecture.store')), $key, $callback);
         } catch (Throwable) {
-            return Cache::remember($key, now()->addSeconds((int) config('advertisements.cache_ttl', 60)), $callback);
+            return $this->resolveCached(Cache::store(), $key, $callback);
         }
+    }
+
+    /** @param callable(): AdvertisementData $callback */
+    private function resolveCached(Repository $cache, string $key, callable $callback): AdvertisementData
+    {
+        $cached = $cache->get($key);
+        if (is_array($cached)) {
+            return AdvertisementData::fromCacheArray($cached);
+        }
+        if ($cached !== null) {
+            $cache->forget($key);
+        }
+
+        $advertisement = $callback();
+        $cache->put($key, $advertisement->toCacheArray(), now()->addSeconds((int) config('advertisements.cache_ttl', 60)));
+
+        return $advertisement;
     }
 
     /** @param array{page_type:?string,post_id:?int,category_id:?int,tag_ids:list<int>} $context */

@@ -68,6 +68,22 @@ class AdvertisementManagementTest extends TestCase
         $this->assertSame($high->getKey(), app(AdvertisementResolver::class)->resolve(AdvertisementPosition::FooterTop, ['page_type' => 'footer'], 'desktop')->advertisementId);
     }
 
+    public function test_resolver_uses_serialization_safe_cache_payloads(): void
+    {
+        config(['cache_architecture.store' => 'database']);
+        $ad = $this->advertisement();
+        $ad->placements()->create(['position' => 'FOOTER_TOP', 'device' => 'all']);
+        $ad->creatives()->create(['type' => 'html', 'html_code' => '<b>Cached ad</b>']);
+        $resolver = app(AdvertisementResolver::class);
+
+        $first = $resolver->resolve(AdvertisementPosition::FooterTop, ['page_type' => 'footer'], 'desktop');
+        $second = $resolver->resolve(AdvertisementPosition::FooterTop, ['page_type' => 'footer'], 'desktop');
+
+        $this->assertSame($ad->getKey(), $first->advertisementId);
+        $this->assertSame($ad->getKey(), $second->advertisementId);
+        $this->assertSame($first->toCacheArray(), $second->toCacheArray());
+    }
+
     public function test_click_and_impression_tracking_deduplicates_and_redirect_is_not_request_controlled(): void
     {
         $ad = $this->advertisement(['target_url' => 'https://advertiser.test/path?utm_source=site']);

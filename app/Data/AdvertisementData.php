@@ -58,4 +58,41 @@ final readonly class AdvertisementData
             rel: (string) ($config['rel'] ?? 'sponsored noopener noreferrer'),
         );
     }
+
+    /** @return array<string, bool|int|string|null> */
+    public function toCacheArray(): array
+    {
+        return get_object_vars($this);
+    }
+
+    /** @param array<string, mixed> $data */
+    public static function fromCacheArray(array $data): self
+    {
+        return new self(
+            slot: (string) $data['slot'],
+            enabled: (bool) $data['enabled'],
+            type: (string) $data['type'],
+            label: (string) $data['label'],
+            html: isset($data['html']) ? (string) $data['html'] : null,
+            imageUrl: isset($data['imageUrl']) ? (string) $data['imageUrl'] : null,
+            destinationUrl: isset($data['destinationUrl']) ? (string) $data['destinationUrl'] : null,
+            altText: (string) $data['altText'],
+            width: (int) $data['width'],
+            height: (int) $data['height'],
+            openInNewTab: (bool) $data['openInNewTab'],
+            rel: (string) $data['rel'],
+            advertisementId: isset($data['advertisementId']) ? (int) $data['advertisementId'] : null,
+            advertisementUuid: isset($data['advertisementUuid']) ? (string) $data['advertisementUuid'] : null,
+            videoUrl: isset($data['videoUrl']) ? (string) $data['videoUrl'] : null,
+            posterUrl: isset($data['posterUrl']) ? (string) $data['posterUrl'] : null,
+            autoplay: (bool) ($data['autoplay'] ?? false),
+            muted: (bool) ($data['muted'] ?? true),
+            loop: (bool) ($data['loop'] ?? false),
+            controls: (bool) ($data['controls'] ?? true),
+            clickUrl: isset($data['clickUrl']) ? (string) $data['clickUrl'] : null,
+            impressionUrl: isset($data['impressionUrl']) ? (string) $data['impressionUrl'] : null,
+            editUrl: isset($data['editUrl']) ? (string) $data['editUrl'] : null,
+            canEdit: (bool) ($data['canEdit'] ?? false),
+        );
+    }
 }
