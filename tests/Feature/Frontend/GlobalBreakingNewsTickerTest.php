@@ -109,6 +109,7 @@ class GlobalBreakingNewsTickerTest extends TestCase
         $response = $this->get(route('home'))->assertOk()
             ->assertSee('aria-labelledby="breaking-news-heading"', false)
             ->assertSee('data-ticker-toggle', false)
+            ->assertSee('ds-breaking__control sr-only', false)
             ->assertSee('Pause breaking news');
 
         $this->assertSame(1, substr_count($response->getContent(), 'id="breaking-news-heading"'));
