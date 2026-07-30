@@ -18,7 +18,7 @@ class YouTubePlaylistPlayerTest extends TestCase
         parent::setUp();
 
         Cache::flush();
-        config()->set('youtube.playlist_id', 'PLHZXkx2rzrVUxs_--bZGvq-KkStA_OTGq');
+        config()->set('youtube.playlist_id', 'PLKQKUirmHvMkEU4L8tS9H3Bi6ex9f89qr');
         config()->set('youtube.api_key', null);
     }
 

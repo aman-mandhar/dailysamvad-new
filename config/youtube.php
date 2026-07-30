@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'playlist_id' => env('YOUTUBE_PLAYLIST_ID', 'PLHZXkx2rzrVUxs_--bZGvq-KkStA_OTGq'),
+    'playlist_id' => env('YOUTUBE_PLAYLIST_ID', 'PLKQKUirmHvMkEU4L8tS9H3Bi6ex9f89qr'),
     'api_key' => env('YOUTUBE_API_KEY'),
     'cache_ttl' => max(60, (int) env('YOUTUBE_PLAYLIST_CACHE_TTL', 1800)),
     'failure_cache_ttl' => max(30, (int) env('YOUTUBE_PLAYLIST_FAILURE_CACHE_TTL', 60)),
