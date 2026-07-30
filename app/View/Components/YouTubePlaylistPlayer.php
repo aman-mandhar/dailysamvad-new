@@ -45,6 +45,7 @@ class YouTubePlaylistPlayer extends Component
             'mute' => (int) config('youtube.muted', true),
             'playsinline' => 1,
             'enablejsapi' => 1,
+            'origin' => url('/'),
             'rel' => 0,
             'controls' => 1,
             'loop' => (int) config('youtube.loop', true),

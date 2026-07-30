@@ -51,6 +51,8 @@ class YouTubePlaylistPlayerTest extends TestCase
         $this->assertStringContainsString(config('youtube.playlist_id'), $html);
         $this->assertStringContainsString('latestVid01', $html);
         $this->assertStringContainsString('youtube-nocookie.com', $html);
+        $this->assertStringContainsString('origin='.rawurlencode(url('/')), $html);
+        $this->assertStringContainsString('loading="eager"', $html);
         $this->assertStringNotContainsString('super-secret-server-key', $html);
     }
 

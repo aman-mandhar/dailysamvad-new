@@ -13,7 +13,7 @@
             title="Daily Samvad video news playlist"
             allow="autoplay; encrypted-media; picture-in-picture"
             allowfullscreen
-            loading="lazy"
+            loading="eager"
             referrerpolicy="strict-origin-when-cross-origin"
         ></iframe>
     </div>
