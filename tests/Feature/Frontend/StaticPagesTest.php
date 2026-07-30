@@ -44,6 +44,30 @@ class StaticPagesTest extends TestCase
             ->assertSee(route('pages.contact'), false);
     }
 
+    public function test_footer_renders_configured_social_channels_and_accessible_sections(): void
+    {
+        $this->get(route('pages.about'))
+            ->assertOk()
+            ->assertSee('id="footer-about-heading"', false)
+            ->assertSee('id="footer-visit-heading"', false)
+            ->assertSee('id="footer-social-heading"', false)
+            ->assertSee('id="footer-quick-links-heading"', false)
+            ->assertSee('https://www.facebook.com/dailysamvad', false)
+            ->assertSee('https://www.instagram.com/dailysamvadnews', false)
+            ->assertSee('https://www.youtube.com/@DailySamvad', false)
+            ->assertSee('https://whatsapp.com/channel/0029VaNmS3h7dmefXnv8T71s', false);
+    }
+
+    public function test_footer_renders_default_visit_details_when_environment_values_are_blank(): void
+    {
+        $this->get(route('pages.about'))
+            ->assertOk()
+            ->assertSee('+91 9888190945')
+            ->assertSee('mmmmediahouse@gmail.com')
+            ->assertSee('92A, Rajiv Gandhi Vihar, Surya Enclave, Jalandhar (Punjab) - 144001')
+            ->assertSee('10am - 8pm');
+    }
+
     public function test_contact_details_come_from_central_configuration(): void
     {
         config()->set('organization.phone', '+91 12345 67890');

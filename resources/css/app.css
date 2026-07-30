@@ -9,6 +9,7 @@
 @import './frontend/sidebar.css';
 @import './frontend/article.css';
 @import './frontend/archive.css';
+@import './frontend/footer.css';
 @import './frontend/utilities.css';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
