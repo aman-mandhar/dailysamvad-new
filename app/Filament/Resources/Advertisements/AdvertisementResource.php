@@ -59,7 +59,13 @@ class AdvertisementResource extends Resource
             ]),
             Section::make('Destination and schedule')->columns(2)->schema([
                 TextInput::make('target_url')->url()->maxLength(2048)->helperText('HTTP/HTTPS destination. Internal relative URLs can be set using frontend quick edit.'),
-                DateTimePicker::make('start_at'), DateTimePicker::make('end_at')->after('start_at'),
+                DateTimePicker::make('start_at')
+                    ->timezone(config('app.display_timezone'))
+                    ->helperText('Displayed in '.config('app.display_timezone').'; stored in UTC.'),
+                DateTimePicker::make('end_at')
+                    ->timezone(config('app.display_timezone'))
+                    ->after('start_at')
+                    ->helperText('Displayed in '.config('app.display_timezone').'; stored in UTC.'),
                 Checkbox::make('open_in_new_tab')->default(true), Checkbox::make('sponsored')->default(true), Checkbox::make('nofollow')->default(true),
             ]),
             Section::make('Creative')->schema([
@@ -98,7 +104,7 @@ class AdvertisementResource extends Resource
         return $table->columns([
             TextColumn::make('title')->searchable()->sortable(), TextColumn::make('advertiser_name')->searchable()->placeholder('—'),
             TextColumn::make('placements.position')->badge()->limitList(3), TextColumn::make('creative.type')->badge(), TextColumn::make('status')->badge(),
-            TextColumn::make('priority')->sortable(), TextColumn::make('start_at')->dateTime()->sortable()->placeholder('—'), TextColumn::make('end_at')->dateTime()->sortable()->placeholder('—'),
+            TextColumn::make('priority')->sortable(), TextColumn::make('start_at')->dateTime()->timezone(config('app.display_timezone'))->sortable()->placeholder('—'), TextColumn::make('end_at')->dateTime()->timezone(config('app.display_timezone'))->sortable()->placeholder('—'),
             TextColumn::make('impressions')->numeric(), TextColumn::make('clicks')->numeric(), TextColumn::make('ctr')->suffix('%'),
             TextColumn::make('updater.name')->label('Updated by')->placeholder('—'), TextColumn::make('updated_at')->dateTime()->sortable(),
         ])->filters([

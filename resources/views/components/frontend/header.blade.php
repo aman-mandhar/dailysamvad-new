@@ -1,11 +1,24 @@
 @props(['mainMenu' => collect(), 'breakingNews' => collect()])
 
+@php
+    $advertisementContext = ['page_type' => match (true) {
+        request()->routeIs('home') => 'home',
+        request()->routeIs('news.*') => 'article',
+        request()->routeIs('categories.*') => 'category',
+        request()->routeIs('tags.*') => 'tag',
+        request()->routeIs('authors.*') => 'author',
+        request()->routeIs('search') => 'search',
+        request()->routeIs('archives.*') => 'archive',
+        default => null,
+    }];
+@endphp
+
 <header class="ds-header" data-header data-brand="DailySamvad">
     <div class="ds-header__branding ds-container">
         <x-frontend.logo />
 
         <div class="ds-header__right">
-            <img src="{{ asset('images/frontend/ads/jd.jpeg') }}" alt="Daily Samvad">
+            <x-advertisement.slot :position="\App\Enums\AdvertisementPosition::HeaderTop" :context="$advertisementContext" />
         </div>
     </div>
 
@@ -31,6 +44,8 @@
     <x-frontend.mobile-menu :items="$mainMenu" />
     <x-frontend.policy-navigation />
     <x-frontend.header-search />
-    <img class="ds-header__mobile-ad" src="{{ asset('images/frontend/ads/jd.jpeg') }}" alt="Daily Samvad">
+    <div class="ds-header__mobile-ad">
+        <x-advertisement.slot :position="\App\Enums\AdvertisementPosition::HeaderTop" :context="$advertisementContext" />
+    </div>
     <x-frontend.advertisements.3in1 />
 </header>

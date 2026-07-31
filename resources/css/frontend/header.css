@@ -64,6 +64,11 @@
         padding-left: 24px;
     }
 
+    .ds-header__right > .ds-ad-slot {
+        margin-inline: 0;
+        background: transparent;
+    }
+
     .ds-header__mobile-ad {
         display: none;
     }
@@ -485,7 +490,12 @@
     .ds-header__mobile-ad {
         display: block;
         width: 100%;
-        height: auto;
+    }
+
+    .ds-header__mobile-ad > .ds-ad-slot {
+        width: 100%;
+        min-height: 0;
+        background: transparent;
     }
 
     .ds-header__branding {

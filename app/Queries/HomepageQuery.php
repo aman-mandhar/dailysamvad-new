@@ -71,7 +71,6 @@ class HomepageQuery
             'categorySections' => $this->categorySections->get(),
             'sidebarWidgets' => $sidebar['widgets'],
             'sidebarSticky' => $sidebar['sticky'],
-            'homepageTopAdvertisement' => $this->sidebar->advertisement('HEADER_TOP', ['page_type' => 'home']),
             'homepageInlineAdvertisement' => $this->sidebar->advertisement('HOME_BETWEEN_SECTIONS', ['page_type' => 'home']),
         ];
     }
@@ -94,7 +93,6 @@ class HomepageQuery
             'categorySections' => new Collection,
             'sidebarWidgets' => new Collection,
             'sidebarSticky' => false,
-            'homepageTopAdvertisement' => null,
             'homepageInlineAdvertisement' => null,
         ];
     }

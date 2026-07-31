@@ -22,7 +22,6 @@ use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\EditAction;
-use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
@@ -446,7 +445,18 @@ class PostResource extends Resource
                     ->preload(),
             ])
             ->recordActions([
-                ViewAction::make(),
+                Action::make('postViews')
+                    ->label(fn (Post $record): string => number_format($record->views_count).' views')
+                    ->icon(Heroicon::OutlinedEye)
+                    ->color('gray')
+                    ->disabled(),
+                Action::make('viewPost')
+                    ->label('View Post')
+                    ->icon(Heroicon::OutlinedArrowTopRightOnSquare)
+                    ->url(fn (Post $record): string => $record->publicUrl())
+                    ->openUrlInNewTab()
+                    ->visible(fn (Post $record): bool => $record->status === PostStatus::Published
+                        && $record->published_at?->isPast()),
                 EditAction::make(),
             ])
             ->toolbarActions([

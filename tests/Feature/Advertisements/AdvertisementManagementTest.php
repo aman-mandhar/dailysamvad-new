@@ -15,6 +15,7 @@ use App\Services\Advertisements\AdvertisementResolver;
 use App\Support\AdvertisementUrl;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Filament\Facades\Filament;
+use Filament\Forms\Components\DateTimePicker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Cache;
@@ -66,6 +67,42 @@ class AdvertisementManagementTest extends TestCase
             $ad->creatives()->create(['type' => 'html', 'html_code' => '<b>'.$ad->title.'</b>']);
         }
         $this->assertSame($high->getKey(), app(AdvertisementResolver::class)->resolve(AdvertisementPosition::FooterTop, ['page_type' => 'footer'], 'desktop')->advertisementId);
+    }
+
+    public function test_header_top_advertisement_replaces_the_legacy_static_banner(): void
+    {
+        $ad = $this->advertisement(['title' => 'Managed header campaign']);
+        $ad->placements()->create([
+            'position' => AdvertisementPosition::HeaderTop->value,
+            'page_type' => 'home',
+            'device' => 'all',
+        ]);
+        $ad->creatives()->create([
+            'type' => 'html',
+            'html_code' => '<strong>Managed header creative</strong>',
+            'width' => 970,
+            'height' => 90,
+        ]);
+
+        $response = $this->get('/')->assertOk()
+            ->assertSee('Managed header creative', false)
+            ->assertDontSee('images/frontend/ads/jd.jpeg', false);
+
+        $response->assertSeeInOrder(['ds-header__right', 'data-ad-slot="HEADER_TOP"', 'ds-header__desktop']);
+    }
+
+    public function test_advertisement_schedule_fields_use_the_configured_display_timezone(): void
+    {
+        config(['app.display_timezone' => 'Asia/Kolkata']);
+        $admin = User::factory()->create();
+        $this->seed(RolesAndPermissionsSeeder::class);
+        $admin->assignRole('admin');
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+
+        Livewire::actingAs($admin)
+            ->test(CreateAdvertisement::class)
+            ->assertFormFieldExists('start_at', fn (DateTimePicker $field): bool => $field->getTimezone() === 'Asia/Kolkata')
+            ->assertFormFieldExists('end_at', fn (DateTimePicker $field): bool => $field->getTimezone() === 'Asia/Kolkata');
     }
 
     public function test_resolver_uses_serialization_safe_cache_payloads(): void

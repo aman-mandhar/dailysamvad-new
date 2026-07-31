@@ -464,6 +464,23 @@ class PostResourceTest extends TestCase
             ->assertCanSeeTableRecords([$high, $low], inOrder: true);
     }
 
+    public function test_post_row_actions_include_view_count_and_public_post_link(): void
+    {
+        $published = Post::factory()->published()->create(['views_count' => 1234567]);
+        $draft = Post::factory()->create([
+            'status' => PostStatus::Draft,
+            'views_count' => 25,
+        ]);
+
+        Livewire::actingAs($this->editor)
+            ->test(ListPosts::class)
+            ->assertSee('1,234,567 views')
+            ->assertSee('25 views')
+            ->assertSee('View Post')
+            ->assertSee($published->publicUrl())
+            ->assertDontSee($draft->publicUrl());
+    }
+
     public function test_resource_query_eager_loads_authors(): void
     {
         $post = Post::factory()->create();
