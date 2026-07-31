@@ -1,5 +1,5 @@
 @php
-    $img1 = $img1 ?? asset('images/frontend/ads/5-Dips-Jalandhar-AD.jpg');
+    $img1 = $img1 ?? asset('images/frontend/ads/mc-jalandhar.png');
     $img2 = $img2 ?? asset('images/frontend/ads/dr-caremax-1.jpg');
     $img3 = $img3 ?? asset('images/frontend/ads/innocent-new-add-6-6-26-400-x-400.jpg');
 @endphp
