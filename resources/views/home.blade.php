@@ -10,7 +10,7 @@
                 @elseif (app()->environment(['local', 'development']))
                     <div class="ds-home-top__empty">Published top stories will appear here.</div>
                 @endif
-
+                <x-advertisement.slot :advertisement="$homepageInlineAdvertisement" />
                 <section aria-labelledby="latest-news-heading">
                     <x-frontend.section-heading id="latest-news-heading">Latest News</x-frontend.section-heading>
                     <div class="grid gap-4 sm:grid-cols-2">
@@ -34,7 +34,7 @@
                     </section>
                 @endif
 
-                <x-advertisement.slot :advertisement="$homepageInlineAdvertisement" />
+                
 
             </div>
 
