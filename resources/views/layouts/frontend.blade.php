@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="@yield('language', str_replace('_', '-', app()->getLocale()))" class="scheme-light dark:scheme-dark">
     <head>
+        @if(config('services.mgid.site_id'))
+        <script async src="https://jsc.mgid.com/site/{{ config('services.mgid.site_id') }}.js"></script>
+        @endif
+
         @if(config('services.google_analytics.measurement_id'))
         <script async src="https://www.googletagmanager.com/gtag/js?id={{ config('services.google_analytics.measurement_id') }}"></script>
 
@@ -13,6 +17,25 @@
         gtag('config', '{{ config('services.google_analytics.measurement_id') }}');
         </script>
         @endif
+
+        @if(config('services.comscore.client_id'))
+        <script>
+        var _comscore = _comscore || [];
+        _comscore.push({
+          c1: "2",
+          c2: "{{ config('services.comscore.client_id') }}",
+          options: { enableFirstPartyCookie: "false" }
+        });
+        (function() {
+          var s = document.createElement("script");
+          var el = document.getElementsByTagName("script")[0];
+          s.async = true;
+          s.src = "https://sb.scorecardresearch.com/cs/{{ config('services.comscore.client_id') }}/beacon.js";
+          el.parentNode.insertBefore(s, el);
+        })();
+        </script>
+        @endif
+
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">

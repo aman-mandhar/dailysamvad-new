@@ -177,6 +177,17 @@ class SingleNewsPageTest extends TestCase
             ->assertSeeInOrder(['data-sidebar-context="article"', 'data-widget-id="1664561"']);
     }
 
+    public function test_whatsapp_join_links_render_immediately_below_the_featured_image(): void
+    {
+        $post = Post::factory()->published()->create();
+
+        $response = $this->get($post->publicUrl())->assertOk()
+            ->assertSee('https://whatsapp.com/channel/0029VaNmS3h7dmefXnv8T71s', false)
+            ->assertSee('https://chat.whatsapp.com/FqbcTOAQUSrBeI1BnZOxOP', false);
+
+        $response->assertSeeInOrder(['ds-article-featured-image', 'data-whatsapp-join', 'ds-article-share']);
+    }
+
     public function test_author_box_renders_contact_details_before_tags(): void
     {
         $author = User::factory()->create([

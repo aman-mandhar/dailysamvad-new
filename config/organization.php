@@ -20,5 +20,6 @@ return [
         'instagram' => $configured('ORGANIZATION_INSTAGRAM_URL', 'https://www.instagram.com/dailysamvadnews'),
         'youtube' => $configured('ORGANIZATION_YOUTUBE_URL', 'https://www.youtube.com/@DailySamvad'),
         'whatsapp' => $configured('ORGANIZATION_WHATSAPP_URL', 'https://whatsapp.com/channel/0029VaNmS3h7dmefXnv8T71s'),
+        'whatsapp_chat' => $configured('ORGANIZATION_WHATSAPP_CHAT_URL', 'https://chat.whatsapp.com/FqbcTOAQUSrBeI1BnZOxOP'),
     ],
 ];

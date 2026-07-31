@@ -82,4 +82,15 @@ class HomeTopNewsTest extends TestCase
             ->assertSee('aria-label="Previous top story"', false)
             ->assertSee('data-slider-toggle', false);
     }
+
+    public function test_whatsapp_join_links_render_immediately_below_the_slider(): void
+    {
+        Post::factory()->published()->featured()->create();
+
+        $response = $this->get('/')->assertOk()
+            ->assertSee('https://whatsapp.com/channel/0029VaNmS3h7dmefXnv8T71s', false)
+            ->assertSee('https://chat.whatsapp.com/FqbcTOAQUSrBeI1BnZOxOP', false);
+
+        $response->assertSeeInOrder(['data-lead-slider', 'data-whatsapp-join', 'latest-news-heading']);
+    }
 }

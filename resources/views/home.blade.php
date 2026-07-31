@@ -8,6 +8,7 @@
             <div class="min-w-0 space-y-8">
                 @if ($heroPosts->isNotEmpty())
                     <x-news.lead-slider :posts="$heroPosts" />
+                    <x-frontend.whatsapp-join />
                 @elseif (app()->environment(['local', 'development']))
                     <div class="ds-home-top__empty">Published top stories will appear here.</div>
                 @endif

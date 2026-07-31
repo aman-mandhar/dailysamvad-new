@@ -3,7 +3,12 @@
 return [
 
     'mgid' => [
+        'site_id' => env('MGID_SITE_ID', '629948'),
         'sidebar_widget_id' => env('MGID_SIDEBAR_WIDGET_ID', '1664561'),
+    ],
+
+    'comscore' => [
+        'client_id' => env('COMSCORE_CLIENT_ID', '41132432'),
     ],
 
     /*
@@ -40,7 +45,7 @@ return [
     ],
 
     'google_analytics' => [
-        'measurement_id' => env('GA_MEASUREMENT_ID'),
+        'measurement_id' => env('GA_MEASUREMENT_ID', 'G-K596NQV45Z'),
     ],
 
 ];

@@ -9,6 +9,7 @@
                 <x-news.article.header :article="$article" />
                 <x-advertisement.slot :advertisement="$article->topAdvertisement" />
                 <x-news.article.featured-image :article="$article" />
+                <x-frontend.whatsapp-join />
                 <x-advertisement.slot :advertisement="$article->afterFeaturedImageAdvertisement" />
                 <x-news.article.share :share="$article->shareUrls" />
                 <div class="my-4">

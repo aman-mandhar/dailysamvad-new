@@ -108,6 +108,31 @@
         background: var(--ds-color-white);
     }
 
+    .ds-whatsapp-card__actions {
+        display: flex;
+        flex-shrink: 0;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 8px;
+    }
+
+    .ds-whatsapp-card__button {
+        border-color: var(--ds-color-whatsapp);
+        background: var(--ds-color-whatsapp);
+    }
+
+    @media (max-width: 479px) {
+        .ds-whatsapp-card {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .ds-whatsapp-card__actions {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
     .ds-button {
         display: inline-flex;
         min-height: 38px;
