@@ -33,8 +33,9 @@ class MediaImageBlock extends RichContentCustomBlock
                     ->limit(250)
                     ->get()
                     ->mapWithKeys(fn (Media $media): array => [
-                        $media->id => $media->original_filename ?: basename($media->path),
+                        $media->id => static::getMediaOptionLabel($media),
                     ])->all())
+                ->allowHtml()
                 ->searchable()
                 ->required(),
             TextInput::make('alt')->label('Alternative text')->maxLength(255),
@@ -45,6 +46,16 @@ class MediaImageBlock extends RichContentCustomBlock
     public static function getPreviewLabel(array $config): string
     {
         return 'Media image #'.($config['media_id'] ?? '');
+    }
+
+    public static function getMediaOptionLabel(Media $media): string
+    {
+        $url = app(MediaUrlResolver::class)->resolve($media->path, $media->disk);
+        $name = e($media->original_filename ?: basename($media->path));
+
+        return '<div style="display:flex;align-items:center;gap:.75rem;min-height:4rem">'
+            .'<img src="'.e($url).'" alt="" style="width:5rem;height:3.5rem;object-fit:cover;border-radius:.375rem">'
+            .'<span style="overflow-wrap:anywhere">'.$name.'</span></div>';
     }
 
     public static function toPreviewHtml(array $config): ?string

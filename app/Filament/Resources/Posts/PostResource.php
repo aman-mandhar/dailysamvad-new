@@ -228,15 +228,23 @@ class PostResource extends Resource
                             },
                         )
                         ->getOptionLabelFromRecordUsing(function (Media $record): string {
-                            $url = app(MediaUrlResolver::class)->resolve($record->path, $record->disk);
-                            $name = e($record->original_filename ?: basename($record->path));
-
-                            return '<div style="display:flex;align-items:center;gap:.75rem;min-height:4rem">'
-                                .'<img src="'.e($url).'" alt="" style="width:5rem;height:3.5rem;object-fit:cover;border-radius:.375rem">'
-                                .'<span style="overflow-wrap:anywhere">'.$name.'</span></div>';
+                            return static::mediaOptionLabel($record);
                         })
                         ->allowHtml()
-                        ->searchable(false)
+                        ->searchable()
+                        ->getSearchResultsUsing(fn (string $search): array => ContentAccess::scopeMedia(Media::query(), auth()->user())
+                            ->whereNull('missing_at')
+                            ->where('mime_type', 'like', 'image/%')
+                            ->where(fn (Builder $query): Builder => $query
+                                ->where('original_filename', 'like', "%{$search}%")
+                                ->orWhere('path', 'like', "%{$search}%"))
+                            ->latest('id')
+                            ->limit(50)
+                            ->get()
+                            ->mapWithKeys(fn (Media $media): array => [
+                                $media->id => static::mediaOptionLabel($media),
+                            ])
+                            ->all())
                         ->preload()
                         ->optionsLimit(51)
                         ->live()
@@ -330,6 +338,16 @@ class PostResource extends Resource
                         ->columnSpanFull(),
                 ]),
         ]);
+    }
+
+    private static function mediaOptionLabel(Media $media): string
+    {
+        $url = app(MediaUrlResolver::class)->resolve($media->path, $media->disk);
+        $name = e($media->original_filename ?: basename($media->path));
+
+        return '<div style="display:flex;align-items:center;gap:.75rem;min-height:4rem">'
+            .'<img src="'.e($url).'" alt="" style="width:5rem;height:3.5rem;object-fit:cover;border-radius:.375rem">'
+            .'<span style="overflow-wrap:anywhere">'.$name.'</span></div>';
     }
 
     public static function table(Table $table): Table

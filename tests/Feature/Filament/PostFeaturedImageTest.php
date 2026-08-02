@@ -5,6 +5,7 @@ namespace Tests\Feature\Filament;
 use App\Enums\PostStatus;
 use App\Filament\Resources\Posts\Pages\CreatePost;
 use App\Filament\Resources\Posts\Pages\EditPost;
+use App\Filament\RichContent\MediaImageBlock;
 use App\Models\Category;
 use App\Models\Media;
 use App\Models\Post;
@@ -115,7 +116,7 @@ class PostFeaturedImageTest extends TestCase
         Storage::disk('public')->assertExists($media->path);
     }
 
-    public function test_media_library_field_is_a_preloaded_thumbnail_picker_without_search(): void
+    public function test_media_library_field_is_a_preloaded_searchable_thumbnail_picker(): void
     {
         $media = Media::query()->create([
             'disk' => 'public',
@@ -127,9 +128,55 @@ class PostFeaturedImageTest extends TestCase
         Livewire::actingAs($this->editor)
             ->test(CreatePost::class)
             ->assertFormFieldExists('featured_media_id', fn (Select $field): bool => $field->isPreloaded()
-                && ! $field->isSearchable()
+                && $field->isSearchable()
                 && $field->isHtmlAllowed()
                 && str_contains($field->getOptionLabelFromRecord($media), '<img'));
+    }
+
+    public function test_media_library_can_search_all_images_by_filename(): void
+    {
+        Media::query()->insert(collect(range(1, 51))->map(fn (int $index): array => [
+            'disk' => 'public',
+            'path' => "media/library/general-{$index}.jpg",
+            'original_filename' => "general-{$index}.jpg",
+            'mime_type' => 'image/jpeg',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ])->all());
+
+        $target = Media::query()->create([
+            'disk' => 'public',
+            'path' => 'media/library/unique-election-photo.jpg',
+            'original_filename' => 'unique-election-photo.jpg',
+            'mime_type' => 'image/jpeg',
+            'created_at' => now()->subDay(),
+        ]);
+
+        Livewire::actingAs($this->editor)
+            ->test(CreatePost::class)
+            ->assertFormFieldExists('featured_media_id', function (Select $field) use ($target): bool {
+                $results = $field->getSearchResults('unique-election');
+
+                return array_key_exists($target->id, $results)
+                    && str_contains($results[$target->id], '<img')
+                    && str_contains($results[$target->id], 'unique-election-photo.jpg');
+            });
+    }
+
+    public function test_rich_editor_media_library_options_include_thumbnail_and_filename(): void
+    {
+        $media = Media::query()->create([
+            'disk' => 'public',
+            'path' => 'media/library/editor-thumbnail.jpg',
+            'original_filename' => 'editor-thumbnail.jpg',
+            'mime_type' => 'image/jpeg',
+        ]);
+
+        $label = MediaImageBlock::getMediaOptionLabel($media);
+
+        $this->assertStringContainsString('<img', $label);
+        $this->assertStringContainsString('/storage/media/library/editor-thumbnail.jpg', $label);
+        $this->assertStringContainsString('editor-thumbnail.jpg', $label);
     }
 
     public function test_media_library_can_load_additional_thumbnail_batches(): void
