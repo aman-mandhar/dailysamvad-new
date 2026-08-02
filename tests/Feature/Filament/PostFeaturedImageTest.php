@@ -179,6 +179,28 @@ class PostFeaturedImageTest extends TestCase
         $this->assertStringContainsString('editor-thumbnail.jpg', $label);
     }
 
+    public function test_rich_editor_media_dialog_can_upload_a_new_library_image(): void
+    {
+        $this->actingAs($this->editor);
+        $action = MediaImageBlock::configureEditorAction(Action::make('media-image'));
+
+        $action->data([
+            'upload' => UploadedFile::fake()->image('new-editor-image.jpg', 1200, 675),
+            'alt' => 'New editor image',
+            'caption' => 'Uploaded from the post editor',
+        ]);
+
+        $data = $action->getData();
+        $media = Media::query()->findOrFail($data['media_id']);
+
+        $this->assertArrayNotHasKey('upload', $data);
+        $this->assertSame($this->editor->id, $media->uploaded_by);
+        $this->assertSame('new-editor-image.jpg', $media->original_filename);
+        $this->assertSame('New editor image', $media->alt_text);
+        $this->assertSame('Uploaded from the post editor', $media->caption);
+        Storage::disk('public')->assertExists($media->path);
+    }
+
     public function test_media_library_can_load_additional_thumbnail_batches(): void
     {
         Media::query()->insert(collect(range(1, 51))->map(fn (int $index): array => [

@@ -3,11 +3,14 @@
 namespace App\Filament\RichContent;
 
 use App\Models\Media;
+use App\Services\MediaUploadService;
 use App\Support\MediaUrlResolver;
 use Filament\Actions\Action;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor\RichContentCustomBlock;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Illuminate\Http\UploadedFile;
 
 class MediaImageBlock extends RichContentCustomBlock
 {
@@ -37,10 +40,35 @@ class MediaImageBlock extends RichContentCustomBlock
                     ])->all())
                 ->allowHtml()
                 ->searchable()
-                ->required(),
+                ->requiredWithout('upload'),
+            FileUpload::make('upload')
+                ->label('Upload new image')
+                ->image()
+                ->storeFiles(false)
+                ->acceptedFileTypes(config('media.allowed_mime_types'))
+                ->maxSize(config('media.max_upload_kilobytes'))
+                ->helperText('Upload a new image or select one from the media library above.')
+                ->requiredWithout('media_id'),
             TextInput::make('alt')->label('Alternative text')->maxLength(255),
             TextInput::make('caption')->maxLength(500),
-        ]);
+        ])->mutateDataUsing(function (array $data): array {
+            $upload = $data['upload'] ?? null;
+            if (is_array($upload)) {
+                $upload = reset($upload);
+            }
+
+            if ($upload instanceof UploadedFile) {
+                $media = app(MediaUploadService::class)->store($upload, auth()->id(), [
+                    'alt_text' => $data['alt'] ?? null,
+                    'caption' => $data['caption'] ?? null,
+                ]);
+                $data['media_id'] = $media->getKey();
+            }
+
+            unset($data['upload']);
+
+            return $data;
+        });
     }
 
     public static function getPreviewLabel(array $config): string
