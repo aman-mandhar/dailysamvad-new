@@ -60,6 +60,18 @@ class SingleNewsPageTest extends TestCase
             ->assertSee($category->name);
     }
 
+    public function test_article_header_does_not_display_the_view_count(): void
+    {
+        $post = Post::factory()->published()->create(['views_count' => 1234]);
+
+        $html = $this->get($post->publicUrl())->assertOk()->getContent();
+        $header = strstr(strstr($html, '<header class="ds-article-header">'), '</header>', true);
+
+        $this->assertIsString($header);
+        $this->assertStringNotContainsString('views', $header);
+        $this->assertStringNotContainsString('1,234', $header);
+    }
+
     #[DataProvider('unpublishedStatuses')]
     public function test_unpublished_articles_return_not_found(PostStatus $status): void
     {

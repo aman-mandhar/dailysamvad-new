@@ -15,8 +15,5 @@
         @endif
         <time datetime="{{ $article->post->published_at->toIso8601String() }}">{{ $article->post->published_at->translatedFormat('d F Y, h:i A') }}</time>
         <span>{{ $article->readingTime }} min read</span>
-        @if ($article->post->views_count > 0)
-            <span>{{ number_format($article->post->views_count) }} views</span>
-        @endif
     </div>
 </header>
