@@ -43,13 +43,16 @@ class HomeTopNewsTest extends TestCase
         $this->get('/')->assertSee('aria-labelledby="breaking-news-heading"', false)->assertSee('data-ticker-toggle', false);
     }
 
-    public function test_featured_posts_lead_and_latest_posts_fill_the_minimum_without_duplicates(): void
+    public function test_hero_contains_the_ten_latest_published_posts_in_order(): void
     {
-        $featured = Post::factory()->published()->featured()->create(['published_at' => now()->subHour()]);
-        Post::factory()->count(3)->published()->create();
+        $posts = collect(range(1, 12))->map(fn (int $hoursAgo): Post => Post::factory()->published()->create([
+            'published_at' => now()->subHours($hoursAgo),
+        ]));
 
-        $response = $this->get('/')->assertOk()->assertSee('data-hero-post="'.$featured->id.'"', false);
-        $this->assertSame(3, substr_count($response->getContent(), 'data-hero-post='));
+        $heroPosts = $this->get('/')->assertOk()->viewData('heroPosts');
+
+        $this->assertCount(10, $heroPosts);
+        $this->assertSame($posts->take(10)->pluck('id')->all(), $heroPosts->pluck('id')->all());
     }
 
     public function test_one_post_renders_static_hero_without_slider_controls(): void

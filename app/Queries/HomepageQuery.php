@@ -38,20 +38,9 @@ class HomepageQuery
         }
 
         $heroPosts = $this->publishedPosts()
-            ->featured()
             ->latestPublished()
-            ->limit(5)
+            ->limit(10)
             ->get();
-
-        if ($heroPosts->count() < 3) {
-            $fallbackPosts = $this->publishedPosts()
-                ->whereNotIn('id', $heroPosts->modelKeys())
-                ->latestPublished()
-                ->limit(3 - $heroPosts->count())
-                ->get();
-
-            $heroPosts = $heroPosts->concat($fallbackPosts)->values();
-        }
 
         $sidebar = $this->sidebar->forHomepage();
 
