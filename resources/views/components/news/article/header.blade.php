@@ -13,7 +13,7 @@
         @if ($article->post->author)
             <span class="ds-article-author">By {{ $article->post->author->name }}</span>
         @endif
-        <time datetime="{{ $article->post->published_at->toIso8601String() }}">{{ $article->post->published_at->translatedFormat('d F Y, h:i A') }}</time>
+        <time datetime="{{ $article->post->published_at->toIso8601String() }}">{{ $article->post->published_at->copy()->timezone(config('app.display_timezone'))->translatedFormat('d F Y, h:i A') }}</time>
         <span>{{ $article->readingTime }} min read</span>
     </div>
 </header>

@@ -72,6 +72,19 @@ class SingleNewsPageTest extends TestCase
         $this->assertStringNotContainsString('1,234', $header);
     }
 
+    public function test_article_header_displays_publication_time_in_the_configured_display_timezone(): void
+    {
+        config(['app.display_timezone' => 'Asia/Kolkata']);
+
+        $post = Post::factory()->published()->create([
+            'published_at' => '2026-08-03 03:46:00',
+        ]);
+
+        $this->get($post->publicUrl())
+            ->assertOk()
+            ->assertSee('03 August 2026, 09:16 AM');
+    }
+
     #[DataProvider('unpublishedStatuses')]
     public function test_unpublished_articles_return_not_found(PostStatus $status): void
     {
