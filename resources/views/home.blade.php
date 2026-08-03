@@ -11,16 +11,13 @@
                     <div class="ds-home-top__empty">Published top stories will appear here.</div>
                 @endif
                 <x-advertisement.slot :advertisement="$homepageInlineAdvertisement" />
-                <section aria-labelledby="latest-news-heading">
-                    <x-frontend.section-heading id="latest-news-heading">Latest News</x-frontend.section-heading>
-                    <div class="grid gap-4 sm:grid-cols-2">
-                        @forelse ($latestPosts as $post)
-                            <x-news.medium-card :post="$post" />
-                        @empty
-                            <p class="text-slate-500 dark:text-slate-400">No published news is available yet.</p>
-                        @endforelse
+                <section aria-labelledby="video-news-heading">
+                    <!-- display video player here-->
+                    <x-frontend.section-heading id="video-news-heading">Video News</x-frontend.section-heading>
+                    <div class="space-y-4">
+                        <x-youtube-playlist-player placement="homepage" />
+                        <x-youtube-playlist-player placement="homepage-gallery" layout="grid" :limit="20" />
                     </div>
-                    <div class="mt-6">{{ $latestPosts->links() }}</div>
                 </section>
 
                 @if ($featuredPosts->isNotEmpty())

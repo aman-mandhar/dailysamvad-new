@@ -14,4 +14,4 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeArticleShare();
 });
 
-window.addEventListener('load', initializeYouTubePlaylistPlayers, { once: true });
+window.addEventListener('load', () => initializeYouTubePlaylistPlayers(), { once: true });

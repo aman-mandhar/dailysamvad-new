@@ -1,6 +1,6 @@
 @props(['widgets' => collect(), 'sticky' => false, 'label' => 'News sidebar', 'context' => null])
 
-@php($showVideoPlayer = $context === null || $context === 'article')
+@php($showVideoPlayer = $context === 'article')
 
 @if (collect($widgets)->isNotEmpty() || $showVideoPlayer)
     <aside class="ds-sidebar {{ $sticky ? 'ds-sidebar--sticky' : '' }}" @if($context) data-sidebar-context="{{ $context }}" @else data-homepage-sidebar @endif aria-label="{{ $label }}">

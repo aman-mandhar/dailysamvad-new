@@ -61,16 +61,19 @@ class YouTubePlaylistServiceTest extends TestCase
         Http::assertSent(fn ($request): bool => ($request['pageToken'] ?? null) === 'page-two');
     }
 
-    public function test_missing_api_key_returns_a_safe_playlist_fallback_without_an_http_call(): void
+    public function test_missing_api_key_uses_the_public_playlist_feed(): void
     {
         config()->set('youtube.api_key', null);
-        Http::preventStrayRequests();
+        Http::fake(['www.youtube.com/feeds/*' => Http::response($this->feed([
+            ['feedVideo01', '2026-07-10T10:00:00Z'],
+            ['feedVideo02', '2026-07-09T10:00:00Z'],
+        ]), 200, ['Content-Type' => 'application/atom+xml'])]);
 
         $playlist = app(YouTubePlaylistService::class)->playlist();
 
         $this->assertSame(config('youtube.playlist_id'), $playlist['playlist_id']);
-        $this->assertNull($playlist['latest_video_id']);
-        $this->assertSame([], $playlist['video_ids']);
+        $this->assertSame('feedVideo01', $playlist['latest_video_id']);
+        $this->assertSame(['feedVideo01', 'feedVideo02'], $playlist['video_ids']);
     }
 
     public function test_api_failure_is_logged_cached_and_falls_back_safely(): void
@@ -106,5 +109,13 @@ class YouTubePlaylistServiceTest extends TestCase
             ],
             'status' => ['privacyStatus' => $privacy],
         ];
+    }
+
+    /** @param array<int, array{string, string}> $videos */
+    private function feed(array $videos): string
+    {
+        $entries = collect($videos)->map(fn (array $video): string => '<entry><yt:videoId>'.$video[0].'</yt:videoId><published>'.$video[1].'</published></entry>')->implode('');
+
+        return '<?xml version="1.0" encoding="UTF-8"?><feed xmlns="http://www.w3.org/2005/Atom" xmlns:yt="http://www.youtube.com/xml/schemas/2015">'.$entries.'</feed>';
     }
 }

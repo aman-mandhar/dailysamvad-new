@@ -25,13 +25,8 @@ class YouTubePlaylistService
         }
 
         $apiKey = trim((string) config('youtube.api_key'));
-
-        if ($apiKey === '') {
-            return $this->fallback($playlistId);
-        }
-
         $cache = $this->cache();
-        $key = 'youtube:playlist:v1:'.$playlistId;
+        $key = 'youtube:playlist:v2:'.$playlistId;
 
         if ($cached = $this->validCachedValue($cache->get($key), $playlistId)) {
             return $cached;
@@ -44,7 +39,9 @@ class YouTubePlaylistService
                 }
 
                 try {
-                    $playlist = $this->fetch($playlistId, $apiKey);
+                    $playlist = $apiKey !== ''
+                        ? $this->fetch($playlistId, $apiKey)
+                        : $this->fetchFeed($playlistId);
                     $cache->put($key, $playlist, (int) config('youtube.cache_ttl', 1800));
 
                     return $playlist;
@@ -136,6 +133,47 @@ class YouTubePlaylistService
 
         usort($items, static fn (array $left, array $right): int => $right['published_at'] <=> $left['published_at']);
 
+        $videoIds = array_values(array_unique(array_column($items, 'video_id')));
+
+        return [
+            'playlist_id' => $playlistId,
+            'latest_video_id' => $videoIds[0] ?? null,
+            'video_ids' => $videoIds,
+            'fetched_at' => now()->toIso8601String(),
+        ];
+    }
+
+    /** @return array{playlist_id: string, latest_video_id: ?string, video_ids: array<int, string>, fetched_at: ?string} */
+    private function fetchFeed(string $playlistId): array
+    {
+        $response = $this->request()->get('https://www.youtube.com/feeds/videos.xml', [
+            'playlist_id' => $playlistId,
+        ]);
+        $response->throw();
+
+        $feed = simplexml_load_string($response->body());
+        if ($feed === false) {
+            throw new \RuntimeException('YouTube returned an invalid playlist feed.');
+        }
+
+        $items = [];
+        foreach ($feed->entry as $entry) {
+            $youtube = $entry->children('http://www.youtube.com/xml/schemas/2015');
+            $videoId = (string) $youtube->videoId;
+            $publishedAt = (string) $entry->published;
+
+            if (preg_match('/\A[A-Za-z0-9_-]{11}\z/', $videoId) !== 1 || $publishedAt === '') {
+                continue;
+            }
+
+            try {
+                $items[] = ['video_id' => $videoId, 'published_at' => (new DateTimeImmutable($publishedAt))->getTimestamp()];
+            } catch (Throwable) {
+                continue;
+            }
+        }
+
+        usort($items, static fn (array $left, array $right): int => $right['published_at'] <=> $left['published_at']);
         $videoIds = array_values(array_unique(array_column($items, 'video_id')));
 
         return [

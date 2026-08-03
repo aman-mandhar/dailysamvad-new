@@ -17,9 +17,14 @@ class YouTubePlaylistPlayer extends Component
     /** @var array<string, mixed> */
     public array $playerConfig;
 
-    public function __construct(YouTubePlaylistService $playlists, public string $placement = 'homepage')
-    {
+    public function __construct(
+        YouTubePlaylistService $playlists,
+        public string $placement = 'homepage',
+        public string $layout = 'player',
+        public int $limit = 8,
+    ) {
         $this->playlist = $playlists->playlist();
+        $this->limit = max(1, min($this->limit, 12));
         $this->playerId = 'youtube-playlist-player-'.Str::lower((string) Str::ulid());
         $this->playerConfig = [
             'playlistId' => $this->playlist['playlist_id'],
@@ -59,6 +64,20 @@ class YouTubePlaylistPlayer extends Component
     public function playlistUrl(): string
     {
         return 'https://www.youtube.com/playlist?list='.rawurlencode($this->playlist['playlist_id']);
+    }
+
+    /** @return array<int, string> */
+    public function videos(): array
+    {
+        return array_slice($this->playlist['video_ids'], 0, $this->limit);
+    }
+
+    public function videoEmbedUrl(string $videoId): string
+    {
+        return 'https://www.youtube-nocookie.com/embed/'.$videoId.'?'.http_build_query([
+            'playsinline' => 1,
+            'rel' => 0,
+        ], '', '&', PHP_QUERY_RFC3986);
     }
 
     public function render(): View
