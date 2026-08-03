@@ -65,6 +65,22 @@ class HomepageCategorySectionsTest extends TestCase
         $this->assertStringNotContainsString('data-category-layout="dual-lead"', $section);
     }
 
+    public function test_regional_sections_use_balanced_dual_lead_layout_when_enough_posts_exist(): void
+    {
+        foreach (['haryana', 'uttar-pradesh', 'himachal-pradesh'] as $slug) {
+            $category = Category::factory()->create(['name' => $slug, 'slug' => $slug]);
+            Post::factory()->count(3)->published()->create()->each(fn (Post $post) => $this->attach($category, $post));
+        }
+
+        $html = $this->get('/')->assertOk()->getContent();
+
+        foreach (['haryana', 'uttar-pradesh', 'himachal-pradesh'] as $key) {
+            $section = $this->sectionHtml($html, $key);
+            $this->assertStringContainsString('data-category-layout="dual-lead"', $section);
+            $this->assertSame(2, substr_count($section, 'ds-news-lead-card'));
+        }
+    }
+
     public function test_missing_image_uses_existing_fallback_and_view_all_uses_category_route(): void
     {
         $category = Category::factory()->create(['name' => 'पंजाब', 'slug' => 'punjab']);

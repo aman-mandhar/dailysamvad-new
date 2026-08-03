@@ -3,11 +3,11 @@
 return [
     'sections' => [
         ['key' => 'punjab', 'title' => 'पंजाब', 'slugs' => ['punjab'], 'names' => ['पंजाब', 'Punjab'], 'layout' => 'dual-lead', 'limit' => 8, 'show_meta' => true, 'view_all' => true],
-        ['key' => 'haryana', 'title' => 'हरियाणा', 'slugs' => ['haryana'], 'names' => ['हरियाणा', 'Haryana'], 'layout' => 'single-lead', 'limit' => 7, 'show_meta' => true, 'view_all' => true],
+        ['key' => 'haryana', 'title' => 'हरियाणा', 'slugs' => ['haryana'], 'names' => ['हरियाणा', 'Haryana'], 'layout' => 'dual-lead', 'limit' => 8, 'show_meta' => true, 'view_all' => true],
         ['key' => 'delhi', 'title' => 'दिल्ली', 'slugs' => ['delhi'], 'names' => ['दिल्ली', 'Delhi'], 'layout' => 'dual-lead', 'limit' => 8, 'show_meta' => true, 'view_all' => true],
-        ['key' => 'uttar-pradesh', 'title' => 'उत्तर प्रदेश', 'slugs' => ['uttar-pradesh'], 'names' => ['उत्तर प्रदेश', 'Uttar Pradesh'], 'layout' => 'single-lead', 'limit' => 9, 'show_meta' => true, 'view_all' => true],
+        ['key' => 'uttar-pradesh', 'title' => 'उत्तर प्रदेश', 'slugs' => ['uttar-pradesh'], 'names' => ['उत्तर प्रदेश', 'Uttar Pradesh'], 'layout' => 'dual-lead', 'limit' => 8, 'show_meta' => true, 'view_all' => true],
         ['key' => 'uttarakhand', 'title' => 'उत्तराखंड', 'slugs' => ['uttarakhand'], 'names' => ['उत्तराखंड', 'Uttarakhand'], 'layout' => 'dual-lead', 'limit' => 8, 'show_meta' => true, 'view_all' => true],
-        ['key' => 'himachal-pradesh', 'title' => 'हिमाचल प्रदेश', 'slugs' => ['himachal-pradesh'], 'names' => ['हिमाचल प्रदेश', 'Himachal Pradesh'], 'layout' => 'single-lead', 'limit' => 7, 'show_meta' => true, 'view_all' => true],
+        ['key' => 'himachal-pradesh', 'title' => 'हिमाचल प्रदेश', 'slugs' => ['himachal-pradesh'], 'names' => ['हिमाचल प्रदेश', 'Himachal Pradesh'], 'layout' => 'dual-lead', 'limit' => 8, 'show_meta' => true, 'view_all' => true],
         ['key' => 'india', 'title' => 'देश', 'slugs' => ['india', 'desh'], 'names' => ['देश', 'India'], 'layout' => 'compact-list', 'limit' => 8, 'show_meta' => true, 'view_all' => true],
         ['key' => 'world', 'title' => 'दुनिया', 'slugs' => ['world', 'duniya'], 'names' => ['दुनिया', 'World'], 'layout' => 'compact-list', 'limit' => 8, 'show_meta' => true, 'view_all' => true],
         // Phase 6+ insertion boundary: VIDEO NEWS belongs between world and breaking news.
