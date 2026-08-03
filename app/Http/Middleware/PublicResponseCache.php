@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Services\Advertisements\AdvertisementCacheService;
+use App\Services\CacheInvalidationService;
 use App\Support\CacheKey;
 use Closure;
 use Illuminate\Http\Request;
@@ -20,7 +21,11 @@ class PublicResponseCache
         if (! $this->eligible($request)) {
             return $next($request);
         }
-        $key = $this->keys->make('public', 'page', 'route', $request->route()?->getName() ?? 'unknown', parameters: ['path' => $request->path(), 'query' => $request->query(), 'advertisements' => app(AdvertisementCacheService::class)->version(), 'ad_schedule_bucket' => now()->format('YmdHi')]);
+        $parameters = ['path' => $request->path(), 'query' => $request->query(), 'advertisements' => app(AdvertisementCacheService::class)->version(), 'ad_schedule_bucket' => now()->format('YmdHi')];
+        if ($request->routeIs('home')) {
+            $parameters['content_version'] = app(CacheInvalidationService::class)->version('public', 'homepage');
+        }
+        $key = $this->keys->make('public', 'page', 'route', $request->route()?->getName() ?? 'unknown', parameters: $parameters);
         try {
             $store = Cache::store(config('cache_architecture.store', 'redis'));
             if (($cached = $store->get($key)) !== null) {

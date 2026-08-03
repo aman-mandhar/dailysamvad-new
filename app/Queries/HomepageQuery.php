@@ -4,6 +4,7 @@ namespace App\Queries;
 
 use App\Models\Category;
 use App\Models\Post;
+use App\Services\CacheInvalidationService;
 use App\Services\CacheQueryService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -24,7 +25,15 @@ class HomepageQuery
     public function get(): array
     {
         if (config('cache_architecture.enabled') && config('cache_architecture.query')) {
-            return app(CacheQueryService::class)->remember('query', 'homepage', 'public', 'default', (int) config('cache_architecture.ttls.short', 300), fn (): array => $this->uncachedGet());
+            return app(CacheQueryService::class)->remember(
+                'query',
+                'homepage',
+                'public',
+                'default',
+                (int) config('cache_architecture.ttls.short', 300),
+                fn (): array => $this->uncachedGet(),
+                ['content_version' => app(CacheInvalidationService::class)->version('public', 'homepage')],
+            );
         }
 
         return $this->uncachedGet();
