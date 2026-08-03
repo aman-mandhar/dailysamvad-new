@@ -25,12 +25,21 @@
         </div>
 
         @if ($categorySections->isNotEmpty())
-            <div class="ds-home-sections">
-                @foreach ($categorySections as $section)
-                    {{-- VIDEO NEWS insertion point intentionally reserved after world. --}}
-                    <x-news.category-section :section="$section" />
-                @endforeach
-            </div>
+            <section class="ds-home-sections-shell" data-home-category-sections aria-labelledby="more-stories-heading">
+                <header class="ds-home-sections-shell__header">
+                    <div>
+                        <p class="ds-home-sections-shell__eyebrow">Explore Daily Samvad</p>
+                        <h2 id="more-stories-heading">More Stories</h2>
+                    </div>
+                    <p>Latest reporting, organised by topic.</p>
+                </header>
+
+                <div class="ds-home-sections">
+                    @foreach ($categorySections as $section)
+                        <x-news.category-section :section="$section" />
+                    @endforeach
+                </div>
+            </section>
         @endif
     </div>
 @endsection

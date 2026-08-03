@@ -11,7 +11,7 @@
             <h2 class="ds-category-section__title" id="{{ $headingId }}">{{ $section['title'] }}</h2>
             <span class="ds-category-section__rule" aria-hidden="true"></span>
             @if (($section['view_all'] ?? false) && $section['url'])
-                <a class="ds-category-section__more" href="{{ $section['url'] }}">सभी देखें <span class="ds-visually-hidden">— {{ $section['title'] }}</span></a>
+                <a class="ds-category-section__more" href="{{ $section['url'] }}">सभी देखें <span aria-hidden="true">→</span><span class="ds-visually-hidden">— {{ $section['title'] }}</span></a>
             @endif
         </header>
         <div class="ds-category-section__body">

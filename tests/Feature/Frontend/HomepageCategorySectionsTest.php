@@ -21,6 +21,8 @@ class HomepageCategorySectionsTest extends TestCase
         $this->makeSection('बिजनेस', 'business');
 
         $html = $this->get('/')->assertOk()->getContent();
+        $this->assertStringContainsString('data-home-category-sections', $html);
+        $this->assertStringContainsString('id="more-stories-heading"', $html);
         $this->assertTrue(strpos($html, 'data-category-section="punjab"') < strpos($html, 'data-category-section="haryana"'));
         $this->assertTrue(strpos($html, 'data-category-section="haryana"') < strpos($html, 'data-category-section="business"'));
         $this->assertStringContainsString('data-category-layout="dual-lead"', $this->sectionHtml($html, 'punjab'));
