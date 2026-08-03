@@ -24,7 +24,7 @@ class YouTubePlaylistPlayer extends Component
         public int $limit = 8,
     ) {
         $this->playlist = $playlists->playlist();
-        $this->limit = max(1, min($this->limit, 16));
+        $this->limit = max(1, min($this->limit, 20));
         $this->playerId = 'youtube-playlist-player-'.Str::lower((string) Str::ulid());
         $this->playerConfig = [
             'playlistId' => $this->playlist['playlist_id'],

@@ -35,12 +35,12 @@ class YouTubePlaylistPlayerTest extends TestCase
         $this->assertStringContainsString('data-player-placement="article"', $article);
     }
 
-    public function test_homepage_replaces_latest_post_cards_with_the_latest_sixteen_playlist_videos(): void
+    public function test_homepage_replaces_latest_post_cards_with_the_latest_twenty_playlist_videos(): void
     {
         $post = Post::factory()->published()->create(['title' => 'First latest headline']);
         config()->set('youtube.api_key', 'server-only-key');
         Http::fake(['www.googleapis.com/*' => Http::response([
-            'items' => collect(range(1, 18))->map(fn (int $number): array => [
+            'items' => collect(range(1, 22))->map(fn (int $number): array => [
                 'snippet' => ['title' => 'Video '.$number, 'publishedAt' => now()->subMinutes($number)->toIso8601String()],
                 'contentDetails' => ['videoId' => 'videoId'.str_pad((string) $number, 4, '0', STR_PAD_LEFT), 'videoPublishedAt' => now()->subMinutes($number)->toIso8601String()],
                 'status' => ['privacyStatus' => 'public'],
@@ -60,9 +60,9 @@ class YouTubePlaylistPlayerTest extends TestCase
         $this->assertIsString($videoSection);
         $this->assertStringNotContainsString('First latest headline', $videoSection);
         $this->assertSame(1, substr_count($videoSection, 'data-youtube-playlist-player'));
-        $this->assertSame(16, substr_count($html, 'class="ds-video-grid__item"'));
-        $this->assertStringNotContainsString('/embed/videoId0017?', $html);
-        $this->assertStringNotContainsString('/embed/videoId0018?', $html);
+        $this->assertSame(20, substr_count($html, 'class="ds-video-grid__item"'));
+        $this->assertStringNotContainsString('/embed/videoId0021?', $html);
+        $this->assertStringNotContainsString('/embed/videoId0022?', $html);
     }
 
     public function test_component_renders_configured_playlist_and_never_exposes_the_api_key(): void
