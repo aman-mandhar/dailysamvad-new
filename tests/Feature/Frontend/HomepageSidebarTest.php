@@ -21,6 +21,7 @@ class HomepageSidebarTest extends TestCase
 
         $html = $this->get('/')->assertOk()->assertSee('data-homepage-sidebar', false)->getContent();
         $this->assertSame(1, substr_count($html, 'data-homepage-sidebar'));
+        $this->assertStringContainsString('ds-sidebar--sticky', $html);
         $this->assertTrue(strpos($html, 'data-sidebar-widget="latest-first"') < strpos($html, 'data-sidebar-widget="popular-second"'));
         $this->assertStringContainsString('aria-labelledby="sidebar-latest-first-heading"', $html);
         $this->assertSame(1, substr_count($html, 'data-mgid-sidebar'));

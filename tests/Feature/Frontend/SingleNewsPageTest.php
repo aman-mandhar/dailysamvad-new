@@ -197,6 +197,7 @@ class SingleNewsPageTest extends TestCase
         $html = $response->getContent();
 
         $this->assertSame(1, substr_count($html, 'data-widget-id="1664561"'));
+        $this->assertStringContainsString('ds-sidebar--sticky', $html);
         $response
             ->assertSee('data-mgid-sidebar', false)
             ->assertSeeInOrder(['data-sidebar-context="article"', 'data-widget-id="1664561"']);
