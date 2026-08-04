@@ -35,7 +35,7 @@ class YouTubePlaylistPlayerTest extends TestCase
         $this->assertStringContainsString('data-player-placement="article"', $article);
     }
 
-    public function test_homepage_replaces_latest_post_cards_with_the_latest_fifteen_playlist_videos(): void
+    public function test_homepage_replaces_latest_post_cards_with_the_latest_sixteen_playlist_videos(): void
     {
         $post = Post::factory()->published()->create(['title' => 'First latest headline']);
         config()->set('youtube.api_key', 'server-only-key');
@@ -60,8 +60,8 @@ class YouTubePlaylistPlayerTest extends TestCase
         $this->assertIsString($videoSection);
         $this->assertStringNotContainsString('First latest headline', $videoSection);
         $this->assertSame(1, substr_count($videoSection, 'data-youtube-playlist-player'));
-        $this->assertSame(15, substr_count($html, 'class="ds-video-grid__item"'));
-        $this->assertStringNotContainsString('/embed/videoId0016?', $html);
+        $this->assertSame(16, substr_count($html, 'class="ds-video-grid__item"'));
+        $this->assertStringContainsString('/embed/videoId0016?', $html);
         $this->assertStringNotContainsString('/embed/videoId0017?', $html);
     }
 
