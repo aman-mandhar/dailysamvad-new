@@ -9,6 +9,7 @@ enum AdvertisementPosition: string
     case HomeSidebarMiddle = 'HOME_SIDEBAR_MIDDLE';
     case HomeSidebarBottom = 'HOME_SIDEBAR_BOTTOM';
     case HomeBetweenSections = 'HOME_BETWEEN_SECTIONS';
+    case HomeAfterYoutube = 'HOME_AFTER_YOUTUBE';
     case ArticleTop = 'ARTICLE_TOP';
     case ArticleAfterFeaturedImage = 'ARTICLE_AFTER_FEATURED_IMAGE';
     case ArticleAfterParagraph1 = 'ARTICLE_AFTER_PARAGRAPH_1';

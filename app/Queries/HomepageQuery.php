@@ -2,6 +2,7 @@
 
 namespace App\Queries;
 
+use App\Enums\AdvertisementPosition;
 use App\Models\Category;
 use App\Models\Post;
 use App\Services\CacheInvalidationService;
@@ -69,7 +70,8 @@ class HomepageQuery
             'categorySections' => $this->categorySections->get(),
             'sidebarWidgets' => $sidebar['widgets'],
             'sidebarSticky' => $sidebar['sticky'],
-            'homepageInlineAdvertisement' => $this->sidebar->advertisement('HOME_BETWEEN_SECTIONS', ['page_type' => 'home']),
+            'homepageInlineAdvertisement' => $this->sidebar->advertisement(AdvertisementPosition::HomeBetweenSections->value, ['page_type' => 'home']),
+            'homepageAfterYoutubeAdvertisement' => $this->sidebar->advertisement(AdvertisementPosition::HomeAfterYoutube->value, ['page_type' => 'home']),
         ];
     }
 
@@ -92,6 +94,7 @@ class HomepageQuery
             'sidebarWidgets' => new Collection,
             'sidebarSticky' => false,
             'homepageInlineAdvertisement' => null,
+            'homepageAfterYoutubeAdvertisement' => null,
         ];
     }
 

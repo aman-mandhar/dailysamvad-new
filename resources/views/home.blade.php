@@ -19,6 +19,7 @@
                         <x-youtube-playlist-player placement="homepage-gallery" layout="grid" :limit="12" />
                     </div>
                 </section>
+                <x-advertisement.slot :advertisement="$homepageAfterYoutubeAdvertisement" />
             </div>
 
             <x-news.sidebar.index :widgets="$sidebarWidgets" :sticky="$sidebarSticky" />

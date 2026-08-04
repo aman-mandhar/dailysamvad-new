@@ -65,6 +65,17 @@ class YouTubePlaylistPlayerTest extends TestCase
         $this->assertStringNotContainsString('/embed/videoId0017?', $html);
     }
 
+    public function test_homepage_renders_independent_advertisement_slots_before_and_after_youtube(): void
+    {
+        $response = $this->get('/')->assertOk();
+
+        $response->assertSeeInOrder([
+            'data-ad-slot="HOME_BETWEEN_SECTIONS"',
+            'data-youtube-playlist-player',
+            'data-ad-slot="HOME_AFTER_YOUTUBE"',
+        ], false);
+    }
+
     public function test_component_renders_configured_playlist_and_never_exposes_the_api_key(): void
     {
         config()->set('youtube.api_key', 'super-secret-server-key');

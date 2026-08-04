@@ -23,6 +23,7 @@ return [
         'HOME_SIDEBAR_MIDDLE' => $placeholder,
         'HOME_SIDEBAR_BOTTOM' => $placeholder,
         'HOME_BETWEEN_SECTIONS' => [...$placeholder, 'width' => 970, 'height' => 90],
+        'HOME_AFTER_YOUTUBE' => [...$placeholder, 'width' => 970, 'height' => 90],
         'ARTICLE_TOP' => [...$placeholder, 'width' => 728, 'height' => 90],
         'ARTICLE_AFTER_FEATURED_IMAGE' => [...$placeholder, 'width' => 728, 'height' => 90],
         'ARTICLE_AFTER_PARAGRAPH_1' => [...$placeholder, 'width' => 728, 'height' => 90],
