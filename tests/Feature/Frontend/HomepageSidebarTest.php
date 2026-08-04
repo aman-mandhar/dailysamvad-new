@@ -23,6 +23,8 @@ class HomepageSidebarTest extends TestCase
         $this->assertSame(1, substr_count($html, 'data-homepage-sidebar'));
         $this->assertTrue(strpos($html, 'data-sidebar-widget="latest-first"') < strpos($html, 'data-sidebar-widget="popular-second"'));
         $this->assertStringContainsString('aria-labelledby="sidebar-latest-first-heading"', $html);
+        $this->assertSame(1, substr_count($html, 'data-mgid-sidebar'));
+        $this->assertTrue(strpos($html, 'data-sidebar-widget="popular-second"') < strpos($html, 'data-mgid-sidebar'));
     }
 
     public function test_homepage_sidebar_preserves_hero_ticker_and_category_sections(): void

@@ -3,7 +3,7 @@
 @php($showVideoPlayer = $context === 'article')
 
 @if (collect($widgets)->isNotEmpty() || $showVideoPlayer)
-    <aside class="ds-sidebar {{ $sticky ? 'ds-sidebar--sticky' : '' }}" @if($context) data-sidebar-context="{{ $context }}" @else data-homepage-sidebar @endif aria-label="{{ $label }}">
+    <aside class="ds-sidebar {{ $sticky ? 'ds-sidebar--sticky' : '' }}" @if($context === 'homepage' || $context === null) data-homepage-sidebar @else data-sidebar-context="{{ $context }}" @endif aria-label="{{ $label }}">
         <div class="ds-sidebar__inner">
             @foreach ($widgets as $widget)
                 @switch($widget->type)
@@ -23,7 +23,7 @@
                 <x-youtube-playlist-player :placement="$context ?: 'homepage'" />
             @endif
 
-            @if ($context === 'article' && config('services.mgid.sidebar_widget_id'))
+            @if (in_array($context, ['homepage', 'article'], true) && config('services.mgid.sidebar_widget_id'))
                 <x-news.sidebar.mgid-widget :widget-id="config('services.mgid.sidebar_widget_id')" />
             @endif
         </div>
