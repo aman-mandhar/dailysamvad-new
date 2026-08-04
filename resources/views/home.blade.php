@@ -2,8 +2,8 @@
 
 @section('content')
     <div class="ds-container py-4 sm:py-5">
-        <div class="ds-home-top ds-main-grid mt-6">
-            <div class="min-w-0 space-y-8">
+        <div class="ds-home-top ds-main-grid mt-6" data-sticky-columns>
+            <div class="min-w-0 space-y-8" data-sticky-column>
                 @if ($heroPosts->isNotEmpty())
                     <x-news.lead-slider :posts="$heroPosts" />
                     <x-frontend.whatsapp-join />

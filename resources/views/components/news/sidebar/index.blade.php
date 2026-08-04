@@ -3,7 +3,7 @@
 @php($showVideoPlayer = $context === 'article')
 
 @if (collect($widgets)->isNotEmpty() || $showVideoPlayer)
-    <aside class="ds-sidebar {{ $sticky ? 'ds-sidebar--sticky' : '' }}" @if($context === 'homepage' || $context === null) data-homepage-sidebar @else data-sidebar-context="{{ $context }}" @endif aria-label="{{ $label }}">
+    <aside class="ds-sidebar {{ $sticky ? 'ds-sidebar--sticky' : '' }}" @if($sticky) data-sticky-column @endif @if($context === 'homepage' || $context === null) data-homepage-sidebar @else data-sidebar-context="{{ $context }}" @endif aria-label="{{ $label }}">
         <div class="ds-sidebar__inner">
             @foreach ($widgets as $widget)
                 @switch($widget->type)

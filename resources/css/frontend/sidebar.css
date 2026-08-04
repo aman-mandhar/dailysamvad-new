@@ -1,7 +1,7 @@
 @layer components {
     .ds-sidebar { min-width: 0; width: 100%; }
     .ds-sidebar__inner { display: grid; min-width: 0; gap: 20px; }
-    .ds-sidebar--sticky .ds-sidebar__inner { position: sticky; top: 18px; max-height: calc(100vh - 36px); overflow-y: auto; overscroll-behavior: contain; }
+    [data-sticky-column].is-sticky-column { position: sticky; top: 18px; align-self: start; }
     .ds-sidebar-widget { min-width: 0; border: 1px solid var(--ds-color-border); background: var(--ds-color-white); }
     .ds-sidebar-widget__title { margin: 0; border-bottom: 1px solid var(--ds-color-border); border-left: 5px solid var(--ds-color-red); padding: 9px 11px 7px; color: var(--ds-color-text); font-size: 1.25rem; font-weight: 800; line-height: 1.25; }
     .ds-sidebar-widget__body { padding-inline: 11px; }
@@ -58,7 +58,7 @@
 }
 
 @media (max-width: 1023px) {
-    .ds-sidebar--sticky .ds-sidebar__inner { position: static; max-height: none; overflow-y: visible; }
+    [data-sticky-column].is-sticky-column { position: static; }
     .ds-sidebar { margin-top: 8px; }
 }
 

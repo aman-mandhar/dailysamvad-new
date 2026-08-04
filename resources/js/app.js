@@ -4,6 +4,7 @@ import { initializeTickers } from './frontend/ticker';
 import { initializeLeadSliders } from './frontend/lead-slider';
 import { initializeArticleShare } from './frontend/article-share';
 import { initializeYouTubePlaylistPlayers } from './frontend/youtube-playlist-player';
+import { initializeStickyColumns } from './frontend/sticky-columns';
 
 document.addEventListener('DOMContentLoaded', () => {
     document.documentElement.classList.add('js');
@@ -12,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeTickers();
     initializeLeadSliders();
     initializeArticleShare();
+    initializeStickyColumns();
 });
 
 window.addEventListener('load', () => initializeYouTubePlaylistPlayers(), { once: true });

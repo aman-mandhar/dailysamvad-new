@@ -4,8 +4,8 @@
     <div class="ds-container ds-article-page">
         <x-news.breadcrumbs :items="$article->breadcrumbs" />
 
-        <div class="ds-article-layout">
-            <article class="ds-article" aria-labelledby="article-headline">
+        <div class="ds-article-layout" data-sticky-columns>
+            <article class="ds-article" data-sticky-column aria-labelledby="article-headline">
                 <x-news.article.header :article="$article" />
                 <x-advertisement.slot :advertisement="$article->topAdvertisement" />
                 <x-news.article.featured-image :article="$article" />
