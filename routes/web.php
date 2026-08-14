@@ -19,6 +19,7 @@ use App\Http\Controllers\AuthorController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DateArchiveController;
+use App\Http\Controllers\EpaperController;
 use App\Http\Controllers\FeedController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\IndexNowKeyController;
@@ -44,6 +45,7 @@ Route::get('/image-sitemap.xml', [SitemapController::class, 'images'])->name('se
 Route::get('/robots.txt', RobotsController::class)->name('robots');
 Route::get('/{key}.txt', IndexNowKeyController::class)->where('key', '[A-Za-z0-9-]{8,128}')->name('seo.indexnow.key');
 Route::get('/news/{slug}', [PostController::class, 'legacy'])->name('news.legacy');
+Route::get('/epaper/{slug}', EpaperController::class)->middleware(PublicResponseCache::class)->name('epaper.show');
 Route::get('/{year}/{month}/{slug}', [PostController::class, 'show'])->middleware(PublicResponseCache::class)
     ->where([
         'year' => '[0-9]{4}',

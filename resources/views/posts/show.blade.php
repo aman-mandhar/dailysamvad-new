@@ -24,6 +24,9 @@
                         <a class="inline-block rounded-lg border border-slate-300 px-4 py-2 font-bold" href="{{ route('login') }}">Log in to save article</a>
                     @endauth
                 </div>
+                <a class="ds-article-epaper-link" href="{{ route('epaper.show', $article->post->slug) }}">
+                    <span aria-hidden="true">▤</span> View in ePaper
+                </a>
                 <x-news.article.content :blocks="$article->contentBlocks" />
                 <x-news.article.tags :tags="$article->post->tags" />
                 <x-news.article.previous-next :previous="$article->previousPost" :next="$article->nextPost" />
