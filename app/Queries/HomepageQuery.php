@@ -70,7 +70,10 @@ class HomepageQuery
             'categorySections' => $this->categorySections->get(),
             'sidebarWidgets' => $sidebar['widgets'],
             'sidebarSticky' => $sidebar['sticky'],
-            'homepageInlineAdvertisement' => $this->sidebar->advertisement(AdvertisementPosition::HomeBetweenSections->value, ['page_type' => 'home']),
+            'homepageInlineAdvertisements' => collect(AdvertisementPosition::homeBetweenSectionPositions())
+                ->map(fn (AdvertisementPosition $position) => $this->sidebar->advertisement($position->value, ['page_type' => 'home']))
+                ->filter->enabled
+                ->values(),
             'homepageAfterYoutubeAdvertisement' => $this->sidebar->advertisement(AdvertisementPosition::HomeAfterYoutube->value, ['page_type' => 'home']),
         ];
     }
@@ -93,7 +96,7 @@ class HomepageQuery
             'categorySections' => new Collection,
             'sidebarWidgets' => new Collection,
             'sidebarSticky' => false,
-            'homepageInlineAdvertisement' => null,
+            'homepageInlineAdvertisements' => new Collection,
             'homepageAfterYoutubeAdvertisement' => null,
         ];
     }

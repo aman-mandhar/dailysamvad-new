@@ -10,7 +10,13 @@
                 @elseif (app()->environment(['local', 'development']))
                     <div class="ds-home-top__empty">Published top stories will appear here.</div>
                 @endif
-                <x-advertisement.slot :advertisement="$homepageInlineAdvertisement" />
+                @if ($homepageInlineAdvertisements->isNotEmpty())
+                    <div class="ds-home-between-section-ads">
+                        @foreach ($homepageInlineAdvertisements as $advertisement)
+                            <x-advertisement.slot :advertisement="$advertisement" />
+                        @endforeach
+                    </div>
+                @endif
                 <section aria-labelledby="video-news-heading">
                     <!-- display video player here-->
                     <x-frontend.section-heading id="video-news-heading">Video News</x-frontend.section-heading>

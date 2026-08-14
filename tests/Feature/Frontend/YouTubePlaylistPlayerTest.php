@@ -72,7 +72,11 @@ class YouTubePlaylistPlayerTest extends TestCase
         $response = $this->get('/')->assertOk();
 
         $response->assertSeeInOrder([
-            'data-ad-slot="HOME_BETWEEN_SECTIONS"',
+            'data-ad-slot="HOME_BETWEEN_SECTIONS_1"',
+            'data-ad-slot="HOME_BETWEEN_SECTIONS_2"',
+            'data-ad-slot="HOME_BETWEEN_SECTIONS_3"',
+            'data-ad-slot="HOME_BETWEEN_SECTIONS_4"',
+            'data-ad-slot="HOME_BETWEEN_SECTIONS_5"',
             'data-youtube-playlist-player',
             'data-ad-slot="HOME_AFTER_YOUTUBE"',
         ], false);

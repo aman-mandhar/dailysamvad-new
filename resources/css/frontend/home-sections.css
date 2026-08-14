@@ -64,3 +64,5 @@
     .ds-news-lead-card .ds-news-card__title { font-size: 1.2rem; }
     .ds-news-compact-card .ds-news-card__title { font-size: .96rem; }
 }
+    .ds-home-between-section-ads { display: flex; flex-direction: column; gap: 5px; }
+    .ds-home-between-section-ads > .ds-ad-slot { margin-block: 0; }

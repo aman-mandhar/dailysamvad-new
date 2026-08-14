@@ -8,7 +8,11 @@ enum AdvertisementPosition: string
     case HomeSidebarTop = 'HOME_SIDEBAR_TOP';
     case HomeSidebarMiddle = 'HOME_SIDEBAR_MIDDLE';
     case HomeSidebarBottom = 'HOME_SIDEBAR_BOTTOM';
-    case HomeBetweenSections = 'HOME_BETWEEN_SECTIONS';
+    case HomeBetweenSections1 = 'HOME_BETWEEN_SECTIONS_1';
+    case HomeBetweenSections2 = 'HOME_BETWEEN_SECTIONS_2';
+    case HomeBetweenSections3 = 'HOME_BETWEEN_SECTIONS_3';
+    case HomeBetweenSections4 = 'HOME_BETWEEN_SECTIONS_4';
+    case HomeBetweenSections5 = 'HOME_BETWEEN_SECTIONS_5';
     case HomeAfterYoutube = 'HOME_AFTER_YOUTUBE';
     case ArticleTop = 'ARTICLE_TOP';
     case ArticleAfterFeaturedImage = 'ARTICLE_AFTER_FEATURED_IMAGE';
@@ -51,5 +55,11 @@ enum AdvertisementPosition: string
     public static function bottomPositions(): array
     {
         return [self::ArticleBottom1, self::ArticleBottom2, self::ArticleBottom3, self::ArticleBottom4, self::ArticleBottom5];
+    }
+
+    /** @return list<self> */
+    public static function homeBetweenSectionPositions(): array
+    {
+        return [self::HomeBetweenSections1, self::HomeBetweenSections2, self::HomeBetweenSections3, self::HomeBetweenSections4, self::HomeBetweenSections5];
     }
 }
