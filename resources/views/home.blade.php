@@ -16,7 +16,6 @@
                     <x-frontend.section-heading id="video-news-heading">Video News</x-frontend.section-heading>
                     <div class="space-y-4">
                         <x-youtube-playlist-player placement="homepage" />
-                        <x-youtube-playlist-player placement="homepage-gallery" layout="grid" :limit="14" />
                     </div>
                 </section>
                 <x-advertisement.slot :advertisement="$homepageAfterYoutubeAdvertisement" />
