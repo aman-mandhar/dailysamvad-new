@@ -40,7 +40,7 @@
                     @if ($category = $epaper->post->primaryCategory->first())
                         <p class="ds-epaper-story__category">{{ $category->name }}</p>
                     @endif
-                    <h1>{{ $epaper->post->title }}</h1>
+                    <h3>{{ $epaper->post->title }}</h3>
                     <p class="ds-epaper-story__byline">
                         By {{ $epaper->post->author->name }}
                         <span aria-hidden="true">•</span>
