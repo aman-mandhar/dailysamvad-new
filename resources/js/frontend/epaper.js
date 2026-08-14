@@ -14,8 +14,10 @@ export function initializeEpaper() {
 
     const capture = async () => {
         setBusy(true, 'Preparing JPEG…');
+        sheet.classList.add('is-capturing');
         try {
             const { default: html2canvas } = await import('html2canvas');
+            await new Promise((resolve) => requestAnimationFrame(resolve));
             const canvas = await html2canvas(sheet, {
                 backgroundColor: '#ffffff',
                 logging: false,
@@ -29,6 +31,7 @@ export function initializeEpaper() {
                 0.92,
             ));
         } finally {
+            sheet.classList.remove('is-capturing');
             setBusy(false);
         }
     };
