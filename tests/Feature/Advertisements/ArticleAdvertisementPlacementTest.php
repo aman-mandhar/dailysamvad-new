@@ -24,11 +24,31 @@ class ArticleAdvertisementPlacementTest extends TestCase
 
         $blocks = (new ArticleContentComposer(new TrustedArticleHtml))->compose($html, $ads, $positions);
         $stack = $blocks->firstWhere('type', 'advertisement_bottom_stack')?->advertisements?->pluck('slot')->all() ?? [];
-        $expectedStack = [...collect(AdvertisementPosition::paragraphPositions())->pluck('value')->all(), 'ARTICLE_BOTTOM'];
+        $expectedStack = collect(AdvertisementPosition::paragraphPositions())->pluck('value')->all();
 
         $this->assertSame([], $blocks->where('type', 'advertisement')->all());
         $this->assertSame($expectedStack, $stack);
         $this->assertSame(count($expectedStack), count(array_unique($stack)));
+        $this->assertSame('advertisement_bottom_stack', $blocks->last()->type);
+    }
+
+    public function test_google_ads_use_paragraph_slots_while_third_party_ads_render_at_the_bottom(): void
+    {
+        $positions = collect(AdvertisementPosition::paragraphPositions())->mapWithKeys(fn ($position, $index) => [$position->value => $index + 1])->all();
+        $ads = [
+            'ARTICLE_AFTER_PARAGRAPH_1' => $this->ad('GOOGLE_1', type: 'provider_code'),
+            'ARTICLE_AFTER_PARAGRAPH_2' => $this->ad('BANNER_1', type: 'image'),
+            'ARTICLE_AFTER_PARAGRAPH_3' => $this->ad('GOOGLE_3', type: 'provider_code'),
+            'ARTICLE_AFTER_PARAGRAPH_4' => $this->ad('VIDEO_1', type: 'video'),
+            'ARTICLE_AFTER_PARAGRAPH_5' => $this->ad('BANNER_2', type: 'html'),
+            'ARTICLE_BOTTOM' => $this->ad('BOTTOM_VIDEO', type: 'video'),
+        ];
+        $html = collect(range(1, 5))->map(fn ($number) => "<p>Paragraph $number</p>")->implode('');
+
+        $blocks = (new ArticleContentComposer(new TrustedArticleHtml))->compose($html, $ads, $positions);
+
+        $this->assertSame(['GOOGLE_1', 'GOOGLE_3'], $blocks->where('type', 'advertisement')->pluck('advertisement.slot')->values()->all());
+        $this->assertSame(['BANNER_1', 'VIDEO_1', 'BANNER_2', 'BOTTOM_VIDEO'], $blocks->firstWhere('type', 'advertisement_bottom_stack')->advertisements->pluck('slot')->all());
         $this->assertSame('advertisement_bottom_stack', $blocks->last()->type);
     }
 
@@ -50,8 +70,8 @@ class ArticleAdvertisementPlacementTest extends TestCase
         $this->assertStringContainsString('gap: 5px', file_get_contents(resource_path('css/frontend/article.css')));
     }
 
-    private function ad(string $slot, bool $enabled = true): AdvertisementData
+    private function ad(string $slot, bool $enabled = true, string $type = 'placeholder'): AdvertisementData
     {
-        return new AdvertisementData($slot, $enabled, 'placeholder', 'Advertisement', null, null, null, '', 728, 90, true, 'sponsored');
+        return new AdvertisementData($slot, $enabled, $type, 'Advertisement', null, null, null, '', 728, 90, true, 'sponsored');
     }
 }

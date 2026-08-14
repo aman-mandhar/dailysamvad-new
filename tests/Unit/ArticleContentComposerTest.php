@@ -31,18 +31,17 @@ class ArticleContentComposerTest extends TestCase
         ];
     }
 
-    public function test_ads_are_rendered_only_after_all_article_content(): void
+    public function test_provider_ads_render_between_paragraphs(): void
     {
         $blocks = $this->composer()->compose(
             '<ul><li><p>Nested</p></li></ul><p>One</p><table><tr><td>Cell</td></tr></table><p>Two</p>',
-            ['ARTICLE_INLINE_1' => $this->advertisement()],
+            ['ARTICLE_INLINE_1' => $this->advertisement(type: 'provider_code')],
             ['ARTICLE_INLINE_1' => 1],
         );
 
-        $this->assertSame(['html', 'html', 'html', 'html', 'advertisement_bottom_stack'], $blocks->pluck('type')->all());
+        $this->assertSame(['html', 'html', 'advertisement', 'html', 'html'], $blocks->pluck('type')->all());
         $this->assertStringContainsString('<p>One</p>', (string) $blocks[1]->html);
-        $this->assertStringContainsString('<table>', (string) $blocks[2]->html);
-        $this->assertSame(['TEST'], $blocks->last()->advertisements->pluck('slot')->all());
+        $this->assertStringContainsString('<table>', (string) $blocks[3]->html);
     }
 
     public function test_short_content_places_enabled_pending_ads_at_the_end_and_omits_disabled_ads(): void
@@ -94,8 +93,8 @@ class ArticleContentComposerTest extends TestCase
         return new ArticleContentComposer(new TrustedArticleHtml);
     }
 
-    private function advertisement(bool $enabled = true): AdvertisementData
+    private function advertisement(bool $enabled = true, string $type = 'placeholder'): AdvertisementData
     {
-        return new AdvertisementData('TEST', $enabled, 'placeholder', 'Advertisement', null, null, null, '', 728, 90, true, 'sponsored');
+        return new AdvertisementData('TEST', $enabled, $type, 'Advertisement', null, null, null, '', 728, 90, true, 'sponsored');
     }
 }

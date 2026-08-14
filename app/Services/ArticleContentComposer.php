@@ -33,12 +33,12 @@ class ArticleContentComposer
         $clean = (string) $this->sanitizer->sanitize($html);
 
         if ($clean === '') {
-            return $this->bottomStack($advertisements, $positions);
+            return $this->thirdPartyBottomStack($advertisements, $positions);
         }
 
         if (! class_exists(DOMDocument::class)) {
             return collect([ArticleContentBlockData::html($clean)])
-                ->concat($this->bottomStack($advertisements, $positions));
+                ->concat($this->thirdPartyBottomStack($advertisements, $positions));
         }
 
         $document = new DOMDocument('1.0', 'UTF-8');
@@ -50,10 +50,19 @@ class ArticleContentComposer
 
         if (! $root instanceof DOMElement) {
             return collect([ArticleContentBlockData::html($clean)])
-                ->concat($this->bottomStack($advertisements, $positions));
+                ->concat($this->thirdPartyBottomStack($advertisements, $positions));
+        }
+
+        $googleInsertions = [];
+        foreach ($positions as $slot => $position) {
+            $advertisement = $advertisements[$slot] ?? null;
+            if ($advertisement?->enabled && $advertisement->type === 'provider_code') {
+                $googleInsertions[max(1, $position)][] = $advertisement;
+            }
         }
 
         $blocks = collect();
+        $paragraphCount = 0;
 
         foreach (iterator_to_array($root->childNodes) as $node) {
             $serialized = $this->serializeNode($document, $node);
@@ -62,20 +71,43 @@ class ArticleContentComposer
             }
 
             $blocks->push(ArticleContentBlockData::html($serialized));
+            if ($this->isRenderableParagraph($node)) {
+                $paragraphCount++;
+                foreach ($googleInsertions[$paragraphCount] ?? [] as $advertisement) {
+                    $blocks->push(ArticleContentBlockData::advertisement($advertisement));
+                }
+            }
         }
 
-        return $blocks->concat($this->bottomStack($advertisements, $positions));
+        return $blocks->concat($this->thirdPartyBottomStack($advertisements, $positions));
     }
 
     /** @param array<string, AdvertisementData> $advertisements @param array<string, int> $positions */
-    private function bottomStack(array $advertisements, array $positions): Collection
+    private function thirdPartyBottomStack(array $advertisements, array $positions): Collection
     {
-        $stack = collect($positions)->sort()->keys()->map(fn (string $slot) => $advertisements[$slot] ?? null)->filter(fn ($ad) => $ad?->enabled);
-        if (($advertisements['ARTICLE_BOTTOM'] ?? null)?->enabled) {
+        $stack = collect($positions)
+            ->sort()
+            ->keys()
+            ->map(fn (string $slot) => $advertisements[$slot] ?? null);
+        if (isset($advertisements['ARTICLE_BOTTOM'])) {
             $stack->push($advertisements['ARTICLE_BOTTOM']);
         }
+        $stack = $stack
+            ->filter(fn (?AdvertisementData $advertisement) => $advertisement?->enabled && $advertisement->type !== 'provider_code')
+            ->take(5)
+            ->values();
 
-        return $stack->isEmpty() ? collect() : collect([ArticleContentBlockData::bottomStack($stack->values())]);
+        return $stack->isEmpty() ? collect() : collect([ArticleContentBlockData::bottomStack($stack)]);
+    }
+
+    private function isRenderableParagraph(DOMNode $node): bool
+    {
+        if (! $node instanceof DOMElement || strtolower($node->tagName) !== 'p' || $node->hasAttribute('hidden')) {
+            return false;
+        }
+        $style = strtolower($node->getAttribute('style'));
+
+        return ! str_contains($style, 'display:none') && ! str_contains($style, 'visibility:hidden') && trim($node->textContent) !== '';
     }
 
     private function serializeNode(DOMDocument $document, DOMNode $node): string
