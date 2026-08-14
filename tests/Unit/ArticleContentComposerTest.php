@@ -31,7 +31,7 @@ class ArticleContentComposerTest extends TestCase
         ];
     }
 
-    public function test_ads_are_inserted_only_between_top_level_blocks(): void
+    public function test_ads_are_rendered_only_after_all_article_content(): void
     {
         $blocks = $this->composer()->compose(
             '<ul><li><p>Nested</p></li></ul><p>One</p><table><tr><td>Cell</td></tr></table><p>Two</p>',
@@ -39,9 +39,10 @@ class ArticleContentComposerTest extends TestCase
             ['ARTICLE_INLINE_1' => 1],
         );
 
-        $this->assertSame(['html', 'html', 'advertisement', 'html', 'html'], $blocks->pluck('type')->all());
+        $this->assertSame(['html', 'html', 'html', 'html', 'advertisement_bottom_stack'], $blocks->pluck('type')->all());
         $this->assertStringContainsString('<p>One</p>', (string) $blocks[1]->html);
-        $this->assertStringContainsString('<table>', (string) $blocks[3]->html);
+        $this->assertStringContainsString('<table>', (string) $blocks[2]->html);
+        $this->assertSame(['TEST'], $blocks->last()->advertisements->pluck('slot')->all());
     }
 
     public function test_short_content_places_enabled_pending_ads_at_the_end_and_omits_disabled_ads(): void
@@ -52,7 +53,7 @@ class ArticleContentComposerTest extends TestCase
             ['one' => 3, 'two' => 7],
         );
 
-        $this->assertSame(['html', 'advertisement'], $blocks->pluck('type')->all());
+        $this->assertSame(['html', 'advertisement_bottom_stack'], $blocks->pluck('type')->all());
     }
 
     public function test_empty_and_malformed_content_do_not_crash(): void

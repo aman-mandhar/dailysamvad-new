@@ -33,11 +33,12 @@ class ArticleContentComposer
         $clean = (string) $this->sanitizer->sanitize($html);
 
         if ($clean === '') {
-            return $this->bottomStack($advertisements, 0, $positions);
+            return $this->bottomStack($advertisements, $positions);
         }
 
         if (! class_exists(DOMDocument::class)) {
-            return collect([ArticleContentBlockData::html($clean)]);
+            return collect([ArticleContentBlockData::html($clean)])
+                ->concat($this->bottomStack($advertisements, $positions));
         }
 
         $document = new DOMDocument('1.0', 'UTF-8');
@@ -48,19 +49,11 @@ class ArticleContentComposer
         $root = (new DOMXPath($document))->query('//*[@id="article-compose-root"]')->item(0);
 
         if (! $root instanceof DOMElement) {
-            return collect([ArticleContentBlockData::html($clean)]);
-        }
-
-        $insertions = [];
-        foreach ($positions as $slot => $position) {
-            $advertisement = $advertisements[$slot] ?? null;
-            if ($advertisement?->enabled) {
-                $insertions[max(1, $position)][] = $advertisement;
-            }
+            return collect([ArticleContentBlockData::html($clean)])
+                ->concat($this->bottomStack($advertisements, $positions));
         }
 
         $blocks = collect();
-        $eligibleCount = 0;
 
         foreach (iterator_to_array($root->childNodes) as $node) {
             $serialized = $this->serializeNode($document, $node);
@@ -69,43 +62,13 @@ class ArticleContentComposer
             }
 
             $blocks->push(ArticleContentBlockData::html($serialized));
-            if ($this->isRenderableParagraph($node)) {
-                $eligibleCount++;
-                foreach ($insertions[$eligibleCount] ?? [] as $advertisement) {
-                    $blocks->push(ArticleContentBlockData::advertisement($advertisement));
-                }
-                unset($insertions[$eligibleCount]);
-            }
         }
 
-        $fallback = collect($insertions)->sortKeys()->flatten()->filter(fn (AdvertisementData $ad) => $ad->enabled);
-        $bottom = $advertisements['ARTICLE_BOTTOM'] ?? null;
-        if ($bottom?->enabled) {
-            $fallback->push($bottom);
-        }
-        if ($fallback->isNotEmpty()) {
-            if ($this->usesCanonicalFallback($positions, $advertisements)) {
-                $blocks->push(ArticleContentBlockData::bottomStack($fallback->values()));
-            } else {
-                $fallback->each(fn (AdvertisementData $advertisement) => $blocks->push(ArticleContentBlockData::advertisement($advertisement)));
-            }
-        }
-
-        return $blocks;
-    }
-
-    private function isRenderableParagraph(DOMNode $node): bool
-    {
-        if (! $node instanceof DOMElement || strtolower($node->tagName) !== 'p' || $node->hasAttribute('hidden')) {
-            return false;
-        }
-        $style = strtolower($node->getAttribute('style'));
-
-        return ! str_contains($style, 'display:none') && ! str_contains($style, 'visibility:hidden') && trim($node->textContent) !== '';
+        return $blocks->concat($this->bottomStack($advertisements, $positions));
     }
 
     /** @param array<string, AdvertisementData> $advertisements @param array<string, int> $positions */
-    private function bottomStack(array $advertisements, int $count, array $positions): Collection
+    private function bottomStack(array $advertisements, array $positions): Collection
     {
         $stack = collect($positions)->sort()->keys()->map(fn (string $slot) => $advertisements[$slot] ?? null)->filter(fn ($ad) => $ad?->enabled);
         if (($advertisements['ARTICLE_BOTTOM'] ?? null)?->enabled) {
@@ -113,13 +76,6 @@ class ArticleContentComposer
         }
 
         return $stack->isEmpty() ? collect() : collect([ArticleContentBlockData::bottomStack($stack->values())]);
-    }
-
-    /** @param array<string, int> $positions @param array<string, AdvertisementData> $advertisements */
-    private function usesCanonicalFallback(array $positions, array $advertisements): bool
-    {
-        return array_key_exists('ARTICLE_BOTTOM', $advertisements)
-            || collect(array_keys($positions))->contains(fn (string $slot) => str_starts_with($slot, 'ARTICLE_AFTER_PARAGRAPH_'));
     }
 
     private function serializeNode(DOMDocument $document, DOMNode $node): string

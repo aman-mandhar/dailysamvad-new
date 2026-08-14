@@ -23,14 +23,13 @@ class ArticleAdvertisementPlacementTest extends TestCase
         }
 
         $blocks = (new ArticleContentComposer(new TrustedArticleHtml))->compose($html, $ads, $positions);
-        $inline = $blocks->where('type', 'advertisement')->pluck('advertisement.slot')->values()->all();
         $stack = $blocks->firstWhere('type', 'advertisement_bottom_stack')?->advertisements?->pluck('slot')->all() ?? [];
-        $expectedInline = collect(AdvertisementPosition::paragraphPositions())->take(min(5, $paragraphs))->pluck('value')->all();
-        $expectedStack = [...collect(AdvertisementPosition::paragraphPositions())->skip(min(5, $paragraphs))->pluck('value')->all(), 'ARTICLE_BOTTOM'];
+        $expectedStack = [...collect(AdvertisementPosition::paragraphPositions())->pluck('value')->all(), 'ARTICLE_BOTTOM'];
 
-        $this->assertSame($expectedInline, $inline);
+        $this->assertSame([], $blocks->where('type', 'advertisement')->all());
         $this->assertSame($expectedStack, $stack);
-        $this->assertSame(count($expectedInline) + count($expectedStack), count(array_unique([...$inline, ...$stack])));
+        $this->assertSame(count($expectedStack), count(array_unique($stack)));
+        $this->assertSame('advertisement_bottom_stack', $blocks->last()->type);
     }
 
     public static function paragraphCounts(): array
