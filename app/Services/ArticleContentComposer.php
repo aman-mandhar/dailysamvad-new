@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Data\AdvertisementData;
 use App\Data\ArticleContentBlockData;
+use App\Enums\AdvertisementPosition;
 use App\Filament\RichContent\ArticleRichContent;
 use App\Support\TrustedArticleHtml;
 use DOMDocument;
@@ -85,16 +86,9 @@ class ArticleContentComposer
     /** @param array<string, AdvertisementData> $advertisements @param array<string, int> $positions */
     private function thirdPartyBottomStack(array $advertisements, array $positions): Collection
     {
-        $stack = collect($positions)
-            ->sort()
-            ->keys()
-            ->map(fn (string $slot) => $advertisements[$slot] ?? null);
-        if (isset($advertisements['ARTICLE_BOTTOM'])) {
-            $stack->push($advertisements['ARTICLE_BOTTOM']);
-        }
-        $stack = $stack
+        $stack = collect(AdvertisementPosition::bottomPositions())
+            ->map(fn (AdvertisementPosition $position) => $advertisements[$position->value] ?? null)
             ->filter(fn (?AdvertisementData $advertisement) => $advertisement?->enabled && $advertisement->type !== 'provider_code')
-            ->take(5)
             ->values();
 
         return $stack->isEmpty() ? collect() : collect([ArticleContentBlockData::bottomStack($stack)]);

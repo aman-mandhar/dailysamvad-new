@@ -16,7 +16,7 @@ class ArticleAdvertisementPlacementTest extends TestCase
     public function test_exact_paragraph_fallback_matrix(int $paragraphs): void
     {
         $positions = collect(AdvertisementPosition::paragraphPositions())->mapWithKeys(fn ($position, $index) => [$position->value => $index + 1])->all();
-        $ads = collect(AdvertisementPosition::paragraphPositions())->mapWithKeys(fn ($position) => [$position->value => $this->ad($position->value)])->put('ARTICLE_BOTTOM', $this->ad('ARTICLE_BOTTOM'))->all();
+        $ads = collect(AdvertisementPosition::bottomPositions())->mapWithKeys(fn ($position) => [$position->value => $this->ad($position->value)])->all();
         $html = collect(range(1, $paragraphs))->map(fn ($number) => "<p>Paragraph $number</p>")->implode('');
         if ($paragraphs === 0) {
             $html = '<h2>Heading only</h2>';
@@ -24,7 +24,7 @@ class ArticleAdvertisementPlacementTest extends TestCase
 
         $blocks = (new ArticleContentComposer(new TrustedArticleHtml))->compose($html, $ads, $positions);
         $stack = $blocks->firstWhere('type', 'advertisement_bottom_stack')?->advertisements?->pluck('slot')->all() ?? [];
-        $expectedStack = collect(AdvertisementPosition::paragraphPositions())->pluck('value')->all();
+        $expectedStack = collect(AdvertisementPosition::bottomPositions())->pluck('value')->all();
 
         $this->assertSame([], $blocks->where('type', 'advertisement')->all());
         $this->assertSame($expectedStack, $stack);
@@ -37,11 +37,11 @@ class ArticleAdvertisementPlacementTest extends TestCase
         $positions = collect(AdvertisementPosition::paragraphPositions())->mapWithKeys(fn ($position, $index) => [$position->value => $index + 1])->all();
         $ads = [
             'ARTICLE_AFTER_PARAGRAPH_1' => $this->ad('GOOGLE_1', type: 'provider_code'),
-            'ARTICLE_AFTER_PARAGRAPH_2' => $this->ad('BANNER_1', type: 'image'),
             'ARTICLE_AFTER_PARAGRAPH_3' => $this->ad('GOOGLE_3', type: 'provider_code'),
-            'ARTICLE_AFTER_PARAGRAPH_4' => $this->ad('VIDEO_1', type: 'video'),
-            'ARTICLE_AFTER_PARAGRAPH_5' => $this->ad('BANNER_2', type: 'html'),
-            'ARTICLE_BOTTOM' => $this->ad('BOTTOM_VIDEO', type: 'video'),
+            'ARTICLE_BOTTOM_1' => $this->ad('BANNER_1', type: 'image'),
+            'ARTICLE_BOTTOM_2' => $this->ad('VIDEO_1', type: 'video'),
+            'ARTICLE_BOTTOM_3' => $this->ad('BANNER_2', type: 'html'),
+            'ARTICLE_BOTTOM_4' => $this->ad('BOTTOM_VIDEO', type: 'video'),
         ];
         $html = collect(range(1, 5))->map(fn ($number) => "<p>Paragraph $number</p>")->implode('');
 
@@ -60,13 +60,13 @@ class ArticleAdvertisementPlacementTest extends TestCase
     public function test_inactive_ads_create_no_stack_gap_and_css_is_exactly_five_pixels(): void
     {
         $blocks = (new ArticleContentComposer(new TrustedArticleHtml))->compose('<p>One</p>', [
-            'ARTICLE_AFTER_PARAGRAPH_1' => $this->ad('ARTICLE_AFTER_PARAGRAPH_1'),
-            'ARTICLE_AFTER_PARAGRAPH_2' => $this->ad('ARTICLE_AFTER_PARAGRAPH_2', false),
-            'ARTICLE_BOTTOM' => $this->ad('ARTICLE_BOTTOM'),
+            'ARTICLE_BOTTOM_1' => $this->ad('ARTICLE_BOTTOM_1'),
+            'ARTICLE_BOTTOM_2' => $this->ad('ARTICLE_BOTTOM_2', false),
+            'ARTICLE_BOTTOM_3' => $this->ad('ARTICLE_BOTTOM_3'),
         ], ['ARTICLE_AFTER_PARAGRAPH_1' => 1, 'ARTICLE_AFTER_PARAGRAPH_2' => 2]);
         $rendered = Blade::render('<x-news.article.content :blocks="$blocks" />', compact('blocks'));
         $this->assertStringContainsString('article-ad-bottom-stack', $rendered);
-        $this->assertStringNotContainsString('ARTICLE_AFTER_PARAGRAPH_2', $rendered);
+        $this->assertStringNotContainsString('ARTICLE_BOTTOM_2', $rendered);
         $this->assertStringContainsString('gap: 5px', file_get_contents(resource_path('css/frontend/article.css')));
     }
 

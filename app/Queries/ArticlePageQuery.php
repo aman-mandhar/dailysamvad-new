@@ -58,7 +58,7 @@ class ArticlePageQuery
         $seoDescription = $post->effectiveMetaDescription();
         $sidebar = $this->sidebar->forContext('article', $post);
         $inlineAdvertisements = collect(array_keys((array) config('article.inline_ad_positions', [])))
-            ->push(AdvertisementPosition::ArticleBottom->value)
+            ->concat(collect(AdvertisementPosition::bottomPositions())->pluck('value'))
             ->mapWithKeys(fn (string $slot): array => [$slot => $this->advertisements->resolve($slot, $post)])
             ->all();
 
@@ -75,7 +75,6 @@ class ArticlePageQuery
             sidebarSticky: $sidebar['sticky'],
             topAdvertisement: $this->advertisements->resolve(AdvertisementPosition::ArticleTop, $post),
             afterFeaturedImageAdvertisement: $this->advertisements->resolve(AdvertisementPosition::ArticleAfterFeaturedImage, $post),
-            bottomAdvertisement: $inlineAdvertisements[AdvertisementPosition::ArticleBottom->value],
             canonicalUrl: $canonicalUrl,
             seoTitle: $post->effectiveMetaTitle(),
             seoDescription: $seoDescription,

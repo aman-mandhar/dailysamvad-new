@@ -48,8 +48,7 @@ class ArticleContentComposerTest extends TestCase
     {
         $blocks = $this->composer()->compose(
             '<p>Only paragraph</p>',
-            ['one' => $this->advertisement(), 'two' => $this->advertisement(false)],
-            ['one' => 3, 'two' => 7],
+            ['ARTICLE_BOTTOM_1' => $this->advertisement(), 'ARTICLE_BOTTOM_2' => $this->advertisement(false)],
         );
 
         $this->assertSame(['html', 'advertisement_bottom_stack'], $blocks->pluck('type')->all());
