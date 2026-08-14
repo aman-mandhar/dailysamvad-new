@@ -92,4 +92,12 @@ class HeaderNavigationTest extends TestCase
         $this->assertSame(1, substr_count($html, 'ds-3in1-advertisement__grid'));
         $this->assertSame(3, substr_count($html, 'ds-3in1-advertisement__item'));
     }
+
+    public function test_policy_navigation_has_a_fixed_height_and_cannot_expand_on_article_pages(): void
+    {
+        $css = file_get_contents(resource_path('css/frontend/header.css'));
+
+        $this->assertStringContainsString(".ds-policy-nav {\n        height: 43px;\n        overflow: hidden;", $css);
+        $this->assertStringContainsString(".ds-policy-nav__scroller {\n        display: flex;\n        height: 43px;", $css);
+    }
 }

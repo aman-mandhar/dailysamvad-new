@@ -254,13 +254,14 @@
     }
 
     .ds-policy-nav {
-        min-height: 43px;
+        height: 43px;
+        overflow: hidden;
         background: var(--ds-color-gold);
     }
 
     .ds-policy-nav__scroller {
         display: flex;
-        min-height: 43px;
+        height: 43px;
         align-items: stretch;
         overflow-x: auto;
         overscroll-behavior-inline: contain;
