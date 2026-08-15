@@ -11,6 +11,9 @@
     $img10 = $img10 ?? asset('images/frontend/ads/img10.png');
     $img11 = $img11 ?? asset('images/frontend/ads/img11.png');
     $img12 = $img12 ?? asset('images/frontend/ads/img12.png');
+    $img13 = $img13 ?? asset('images/frontend/ads/img13.png');
+    $img14 = $img14 ?? asset('images/frontend/ads/img14.png');
+    $img15 = $img15 ?? asset('images/frontend/ads/img15.png');
     
 @endphp
 
@@ -82,6 +85,23 @@
         <div class="ds-3in1-advertisement__item">
             <a href="{{ $url3 ?? '#' }}" target="_blank" rel="noopener noreferrer">
                 <img src="{{ $img12 }}" alt="Advertisement 3" class="ds-3in1-advertisement__image">
+            </a>
+        </div>
+    </div>
+    <div class="ds-3in1-advertisement__grid">
+        <div class="ds-3in1-advertisement__item">
+            <a href="{{ $url1 ?? '#' }}" target="_blank" rel="noopener noreferrer">
+                <img src="{{ $img13 }}" alt="Advertisement 1" class="ds-3in1-advertisement__image">
+            </a>
+        </div>
+        <div class="ds-3in1-advertisement__item">
+            <a href="{{ $url2 ?? '#' }}" target="_blank" rel="noopener noreferrer">
+                <img src="{{ $img14 }}" alt="Advertisement 2" class="ds-3in1-advertisement__image">
+            </a>
+        </div>
+        <div class="ds-3in1-advertisement__item">
+            <a href="{{ $url3 ?? '#' }}" target="_blank" rel="noopener noreferrer">
+                <img src="{{ $img15 }}" alt="Advertisement 3" class="ds-3in1-advertisement__image">
             </a>
         </div>
     </div>
