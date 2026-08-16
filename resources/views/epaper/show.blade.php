@@ -31,7 +31,7 @@
 
             <article class="ds-epaper-sheet" data-epaper-sheet data-epaper-filename="{{ $epaper->post->slug }}">
                 <header class="ds-epaper-masthead">
-                    <img src="{{ asset('images/epaper-header.png') }}" alt="Daily Samvad ePaper" width="593" height="147">
+                    <img src="{{ asset('images/frontend/daily-samvad-logo.jpg') }}" alt="Daily Samvad ePaper" width="593" height="147">
                     <div class="ds-epaper-masthead__rule"></div>
                     <p>{{ $epaper->post->published_at?->timezone(config('app.display_timezone', 'Asia/Kolkata'))->translatedFormat('l, d F Y') }}</p>
                 </header>
