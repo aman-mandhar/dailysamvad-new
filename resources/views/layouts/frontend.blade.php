@@ -78,6 +78,17 @@
         </main>
 
         <x-frontend.footer />
+        <script type="application/json" id="firebase-web-config">{!! json_encode([
+            'apiKey' => config('firebase.web.api_key'),
+            'authDomain' => config('firebase.web.auth_domain'),
+            'projectId' => config('firebase.web.project_id'),
+            'storageBucket' => config('firebase.web.storage_bucket'),
+            'messagingSenderId' => config('firebase.web.messaging_sender_id'),
+            'appId' => config('firebase.web.app_id'),
+            'measurementId' => config('firebase.web.measurement_id'),
+            'vapidKey' => config('firebase.web.vapid_key'),
+            'authenticated' => auth()->check(),
+        ], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!}</script>
         @stack('scripts')
     </body>
 </html>

@@ -332,6 +332,7 @@ class Post extends Model
             'is_featured' => 'boolean',
             'allow_comments' => 'boolean',
             'published_at' => 'datetime',
+            'push_notified_at' => 'datetime',
             'scheduled_at' => 'datetime',
             'submitted_at' => 'datetime',
             'reviewed_at' => 'datetime',

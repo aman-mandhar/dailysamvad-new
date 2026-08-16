@@ -6,6 +6,7 @@ import { initializeArticleShare } from './frontend/article-share';
 import { initializeYouTubePlaylistPlayers } from './frontend/youtube-playlist-player';
 import { initializeStickyColumns } from './frontend/sticky-columns';
 import { initializeEpaper } from './frontend/epaper';
+import { initializePushNotifications } from './push';
 
 document.addEventListener('DOMContentLoaded', () => {
     document.documentElement.classList.add('js');
@@ -16,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeArticleShare();
     initializeStickyColumns();
     initializeEpaper();
+    initializePushNotifications();
 });
 
 window.addEventListener('load', () => initializeYouTubePlaylistPlayers(), { once: true });

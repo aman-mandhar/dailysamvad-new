@@ -2,12 +2,15 @@
 
 namespace App\Observers;
 
+use App\Enums\PostStatus;
+use App\Events\PostPublished;
 use App\Models\Media;
 use App\Models\Post;
 use App\SEO\Sitemap\IndexNowService;
 use App\SEO\Sitemap\SitemapCache;
-use App\Support\MediaPathNormalizer;
 use App\Services\CacheInvalidationService;
+use App\Support\MediaPathNormalizer;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 
 class PostObserver
@@ -32,11 +35,17 @@ class PostObserver
         if ($post->wasChanged('featured_image')) {
             self::deleteManagedImage($post->pullFeaturedImageBeforeUpdate());
         }
+        if ($this->becamePubliclyPublished($post)) {
+            PostPublished::dispatch($post->getKey());
+        }
     }
 
     public function created(Post $post): void
     {
         $this->invalidateAndNotify($post);
+        if ($post->old_wp_id === null && $this->isPubliclyPublished($post)) {
+            PostPublished::dispatch($post->getKey());
+        }
     }
 
     public function deleted(Post $post): void
@@ -61,6 +70,28 @@ class PostObserver
         if (! $cache->batching()) {
             app(IndexNowService::class)->submit([$post->effectiveCanonicalUrl() ?? $post->publicUrl()]);
         }
+    }
+
+    private function becamePubliclyPublished(Post $post): bool
+    {
+        if ($post->old_wp_id !== null || ! $this->isPubliclyPublished($post)) {
+            return false;
+        }
+
+        $previous = $post->getPrevious();
+        $previousStatus = PostStatus::tryFrom((string) ($previous['status'] ?? $post->getRawOriginal('status')));
+        $previousPublishedAt = $previous['published_at'] ?? $post->getRawOriginal('published_at');
+
+        return $previousStatus !== PostStatus::Published
+            || $previousPublishedAt === null
+            || Carbon::parse($previousPublishedAt)->isFuture();
+    }
+
+    private function isPubliclyPublished(Post $post): bool
+    {
+        return $post->status === PostStatus::Published
+            && $post->published_at !== null
+            && $post->published_at->isPast();
     }
 
     public static function deleteManagedImage(?string $path): bool

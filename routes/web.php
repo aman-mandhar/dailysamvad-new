@@ -24,6 +24,9 @@ use App\Http\Controllers\FeedController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\IndexNowKeyController;
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\PushNotificationClickController;
+use App\Http\Controllers\PushPreferenceController;
+use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\RobotsController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SitemapController;
@@ -63,6 +66,11 @@ Route::get('/archive/{year}', [DateArchiveController::class, 'year'])->middlewar
 Route::get('/archive/{year}/{month}', [DateArchiveController::class, 'month'])->middleware(PublicResponseCache::class)->whereNumber(['year', 'month'])->name('archives.month');
 Route::get('/archive/{year}/{month}/{day}', [DateArchiveController::class, 'day'])->middleware(PublicResponseCache::class)->whereNumber(['year', 'month', 'day'])->name('archives.day');
 Route::get('/feed.xml', FeedController::class)->middleware(PublicResponseCache::class)->name('feed');
+Route::post('/push/subscriptions', [PushSubscriptionController::class, 'store'])->middleware('throttle:push-subscriptions')->name('push.subscriptions.store');
+Route::delete('/push/subscriptions', [PushSubscriptionController::class, 'destroy'])->middleware('throttle:push-subscriptions')->name('push.subscriptions.destroy');
+Route::post('/push/preferences', [PushPreferenceController::class, 'show'])->middleware('throttle:push-preferences-read')->name('push.preferences.show');
+Route::put('/push/preferences', [PushPreferenceController::class, 'update'])->middleware('throttle:push-preferences-write')->name('push.preferences.update');
+Route::get('/push/click/{publicId}', PushNotificationClickController::class)->middleware('throttle:push-clicks')->whereUuid('publicId')->name('push.click');
 
 Route::middleware('guest')->group(function (): void {
     Route::get('/register', [RegisteredUserController::class, 'create'])->name('register');

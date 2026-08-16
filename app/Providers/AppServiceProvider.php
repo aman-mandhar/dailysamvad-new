@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Contracts\Push\AccessTokenProvider;
+use App\Contracts\Push\PushTransport;
 use App\Import\Contracts\CheckpointRepository;
 use App\Import\Contracts\Logger;
 use App\Import\Contracts\MediaSource;
@@ -13,10 +15,15 @@ use App\Import\Services\ImportVerificationService;
 use App\Import\Services\WordPressConnection;
 use App\Queries\BreakingNewsQuery;
 use App\Queries\NavigationQuery;
+use App\Services\Push\FirebaseAccessTokenProvider;
+use App\Services\Push\FirebaseMessagingClient;
 use App\View\Components\YouTubePlaylistPlayer;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -32,6 +39,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(WordPressConnection::class);
         $this->app->singleton(MediaSource::class, FilesystemMediaSource::class);
         $this->app->singleton(Verifier::class, ImportVerificationService::class);
+        $this->app->singleton(AccessTokenProvider::class, FirebaseAccessTokenProvider::class);
+        $this->app->singleton(PushTransport::class, FirebaseMessagingClient::class);
     }
 
     /**
@@ -40,6 +49,15 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Blade::component(YouTubePlaylistPlayer::class, 'youtube-playlist-player');
+
+        RateLimiter::for('push-subscriptions', fn (Request $request): Limit => Limit::perMinute(max(1, (int) config('firebase.security.subscription_limit', 30)))
+            ->by('push-subscriptions:'.$request->ip()));
+        RateLimiter::for('push-preferences-read', fn (Request $request): Limit => Limit::perMinute(max(1, (int) config('firebase.security.preference_read_limit', 60)))
+            ->by('push-preferences-read:'.$request->ip()));
+        RateLimiter::for('push-preferences-write', fn (Request $request): Limit => Limit::perMinute(max(1, (int) config('firebase.security.preference_write_limit', 20)))
+            ->by('push-preferences-write:'.$request->ip()));
+        RateLimiter::for('push-clicks', fn (Request $request): Limit => Limit::perMinute(max(1, (int) config('firebase.security.click_limit', 240)))
+            ->by('push-clicks:'.$request->ip()));
 
         Gate::before(function ($user, string $ability): ?bool {
             if (! $user->is_active) {

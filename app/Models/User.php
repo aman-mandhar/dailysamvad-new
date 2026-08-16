@@ -116,6 +116,12 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasMany(PostBookmark::class);
     }
 
+    /** @return HasMany<PushSubscription, $this> */
+    public function pushSubscriptions(): HasMany
+    {
+        return $this->hasMany(PushSubscription::class);
+    }
+
     public function savedPosts(): BelongsToMany
     {
         return $this->belongsToMany(Post::class, 'post_bookmarks')->withTimestamps();

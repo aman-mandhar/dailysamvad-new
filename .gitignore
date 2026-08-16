@@ -19,9 +19,13 @@
 /public/hot
 /public/storage
 /storage/*.key
+/storage/app/firebase-service-account.json
+/storage/app/service-account.json
+/storage/app/firebase-admin.json
 /storage/pail
 /vendor
 _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+/before_full_import.sql

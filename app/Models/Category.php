@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[ObservedBy([SitemapObserver::class])]
 #[Fillable([
@@ -66,6 +67,11 @@ class Category extends Model
     public function posts(): BelongsToMany
     {
         return $this->belongsToMany(Post::class)->withPivot('is_primary');
+    }
+
+    public function pushTopic(): HasOne
+    {
+        return $this->hasOne(PushTopic::class);
     }
 
     /**

@@ -16,6 +16,22 @@
     .ds-footer__social-links a { display: flex; align-items: center; gap: .75rem; color: #747983; }
     .ds-footer__social-icon { display: grid; width: 1.25rem; height: 1.25rem; flex: none; place-items: center; color: #555; font-family: Arial, sans-serif; font-size: .9rem; font-weight: 700; }
     .ds-footer__copyright { border-top: 1px solid #e5e7eb; padding-block: .65rem; color: #20242a; font-size: .9rem; text-align: center; }
+    .ds-footer__push { padding-bottom: 2rem; }
+    .ds-push-opt-in { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1.25rem; border: 1px solid #e5e7eb; border-radius: .75rem; background: #f8fafc; padding: 1rem 1.25rem; }
+    .ds-push-opt-in[hidden] { display: none; }
+    .ds-push-opt-in__title { margin: 0; color: #292d33; font-size: 1.05rem; font-weight: 700; }
+    .ds-push-opt-in__message { margin: .2rem 0 0; color: #64748b; font-size: .9rem; }
+    .ds-push-opt-in__button { flex: none; border: 0; border-radius: .5rem; background: var(--ds-color-brand); padding: .7rem 1rem; color: #fff; font-weight: 700; cursor: pointer; }
+    .ds-push-opt-in__button:hover { filter: brightness(.92); }
+    .ds-push-opt-in__button:focus-visible { outline: 3px solid #f59e0b; outline-offset: 2px; }
+    .ds-push-opt-in__button:disabled { cursor: wait; opacity: .65; }
+    .ds-push-opt-in__button[hidden] { display: none; }
+    .ds-push-opt-in__button--secondary { border: 1px solid #cbd5e1; background: #fff; color: #475569; }
+    .ds-push-preferences { width: 100%; border-top: 1px solid #e2e8f0; padding-top: .75rem; }
+    .ds-push-preferences summary { color: #292d33; font-weight: 700; cursor: pointer; }
+    .ds-push-preferences__topics { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: .55rem 1rem; margin-block: .75rem; }
+    .ds-push-preferences__topic { display: flex; align-items: center; gap: .5rem; color: #475569; font-size: .9rem; }
+    .ds-push-preferences__topic input { width: 1rem; height: 1rem; accent-color: var(--ds-color-brand); }
 }
 
 @media (max-width: 900px) {
@@ -26,4 +42,6 @@
     .ds-footer__grid { grid-template-columns: minmax(0, 1fr); gap: 2.25rem; }
     .ds-footer__heading { margin-bottom: 1rem; }
     .ds-footer__about { font-size: .95rem; }
+    .ds-push-opt-in { align-items: stretch; flex-direction: column; }
+    .ds-push-opt-in__button { width: 100%; }
 }

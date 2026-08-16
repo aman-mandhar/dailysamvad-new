@@ -34,6 +34,9 @@ class RolesAndPermissionsSeeder extends Seeder
         'delete advertisements', 'restore advertisements', 'publish advertisements', 'pause advertisements',
         'update advertisements from frontend', 'view advertisement analytics', 'manage advertisement provider code',
         'manage advertisement settings', 'manage settings', 'manage own profile', 'manage pages',
+        'view push notifications', 'create push notifications', 'update push notifications',
+        'delete push notifications', 'send push notifications',
+        'view push analytics',
 
         // Compatibility aliases retained for existing roles, users, policies, and extensions.
         'edit own posts', 'edit all posts', 'delete own drafts', 'submit own posts',
@@ -56,6 +59,9 @@ class RolesAndPermissionsSeeder extends Seeder
             'delete advertisements', 'restore advertisements', 'publish advertisements', 'pause advertisements',
             'update advertisements from frontend', 'view advertisement analytics', 'manage advertisement provider code',
             'manage advertisement settings', 'manage own profile', 'manage pages',
+            'view push notifications', 'create push notifications', 'update push notifications',
+            'delete push notifications', 'send push notifications',
+            'view push analytics',
         ],
         'editor' => [
             'access admin panel', 'view admin dashboard', 'view posts', 'view own posts', 'view all posts',
@@ -66,6 +72,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'view media', 'upload media', 'update all media', 'delete own media', 'manage media',
             'view editorial analytics', 'view advertisements', 'update advertisements', 'publish advertisements',
             'pause advertisements', 'update advertisements from frontend', 'view advertisement analytics', 'manage own profile', 'manage pages',
+            'view push notifications', 'create push notifications', 'update push notifications',
+            'delete push notifications',
         ],
         'reviewer' => [
             'access admin panel', 'view admin dashboard', 'view posts', 'view assigned posts',
@@ -89,7 +97,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'update all media', 'delete all media', 'manage media', 'manage own profile',
         ],
         'analytics-manager' => [
-            'access admin panel', 'view admin dashboard', 'view all analytics', 'export analytics', 'view advertisements', 'view advertisement analytics', 'manage own profile',
+            'access admin panel', 'view admin dashboard', 'view all analytics', 'export analytics', 'view advertisements', 'view advertisement analytics',
+            'view push notifications', 'view push analytics', 'manage own profile',
         ],
         'contributor' => [
             'access admin panel', 'view admin dashboard', 'view posts', 'view own posts',
