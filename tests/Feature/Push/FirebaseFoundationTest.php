@@ -37,8 +37,13 @@ class FirebaseFoundationTest extends TestCase
         $footer = file_get_contents(resource_path('css/frontend/footer.css'));
 
         $this->assertStringContainsString('--ds-color-brand:', $tokens);
-        $this->assertStringContainsString('background-color: #e60000', $footer);
-        $this->assertStringContainsString('background-color: #475569', $footer);
+        $this->assertStringContainsString('.ds-push-opt-in .ds-push-opt-in__button {', $footer);
+        $this->assertStringContainsString('background: #e60000', $footer);
+        $this->assertStringContainsString('color: #ffffff', $footer);
+        $this->assertStringContainsString('.ds-push-opt-in .ds-push-opt-in__button[hidden] { display: none; }', $footer);
+        $this->assertStringContainsString('.ds-push-opt-in .ds-push-opt-in__button--secondary {', $footer);
+        $this->assertStringContainsString('background: #475569', $footer);
+        $this->assertStringContainsString('.ds-push-opt-in .ds-push-opt-in__button { width: 100%; }', $footer);
     }
 
     public function test_messaging_service_worker_exists_at_the_public_root(): void
