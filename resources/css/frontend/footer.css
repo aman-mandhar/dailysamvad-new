@@ -21,7 +21,7 @@
     .ds-push-opt-in[hidden] { display: none; }
     .ds-push-opt-in__title { margin: 0; color: #292d33; font-size: 1.05rem; font-weight: 700; }
     .ds-push-opt-in__message { margin: .2rem 0 0; color: #64748b; font-size: .9rem; }
-    .ds-push-opt-in__button { flex: none; border: 1px solid #b80000; border-radius: .5rem; background-color: #e60000; padding: .7rem 1rem; color: #fff; font-weight: 700; cursor: pointer; }
+    .ds-push-opt-in__button { flex: none; border: 1px solid #b80000; border-radius: .5rem; background-color: #e60000; padding: .7rem 1rem; color: #000000; font-weight: 700; cursor: pointer; }
     .ds-push-opt-in__button:hover { filter: brightness(.92); }
     .ds-push-opt-in__button:focus-visible { outline: 3px solid #f59e0b; outline-offset: 2px; }
     .ds-push-opt-in__button:disabled { cursor: wait; opacity: .65; }
