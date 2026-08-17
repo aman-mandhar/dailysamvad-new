@@ -37,7 +37,8 @@ class FirebaseFoundationTest extends TestCase
         $footer = file_get_contents(resource_path('css/frontend/footer.css'));
 
         $this->assertStringContainsString('--ds-color-brand:', $tokens);
-        $this->assertStringContainsString('background: var(--ds-color-brand)', $footer);
+        $this->assertStringContainsString('background-color: #e60000', $footer);
+        $this->assertStringContainsString('background-color: #475569', $footer);
     }
 
     public function test_messaging_service_worker_exists_at_the_public_root(): void
