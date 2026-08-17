@@ -31,6 +31,15 @@ class FirebaseFoundationTest extends TestCase
         $this->assertStringContainsString('aria-live="polite"', $html);
     }
 
+    public function test_push_opt_in_primary_button_has_a_defined_brand_color(): void
+    {
+        $tokens = file_get_contents(resource_path('css/frontend/tokens.css'));
+        $footer = file_get_contents(resource_path('css/frontend/footer.css'));
+
+        $this->assertStringContainsString('--ds-color-brand:', $tokens);
+        $this->assertStringContainsString('background: var(--ds-color-brand)', $footer);
+    }
+
     public function test_messaging_service_worker_exists_at_the_public_root(): void
     {
         $this->assertFileExists(public_path('firebase-messaging-sw.js'));

@@ -7,6 +7,7 @@
     --ds-mobile-gutter: 10px;
 
     --ds-color-red: #e60000;
+    --ds-color-brand: var(--ds-color-red);
     --ds-color-ticker-red: #ed1010;
     --ds-color-gold: #f5b400;
     --ds-color-ticker-surface: #fffda0;
