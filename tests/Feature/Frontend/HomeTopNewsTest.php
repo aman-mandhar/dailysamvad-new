@@ -94,6 +94,6 @@ class HomeTopNewsTest extends TestCase
             ->assertSee('https://whatsapp.com/channel/0029VaNmS3h7dmefXnv8T71s', false)
             ->assertSee('https://chat.whatsapp.com/FqbcTOAQUSrBeI1BnZOxOP', false);
 
-        $response->assertSeeInOrder(['data-lead-slider', 'data-whatsapp-join', 'latest-news-heading']);
+        $response->assertSeeInOrder(['data-lead-slider', 'data-whatsapp-join', 'data-push-opt-in', 'latest-news-heading']);
     }
 }

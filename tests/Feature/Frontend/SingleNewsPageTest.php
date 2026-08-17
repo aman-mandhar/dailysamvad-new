@@ -211,7 +211,7 @@ class SingleNewsPageTest extends TestCase
             ->assertSee('https://whatsapp.com/channel/0029VaNmS3h7dmefXnv8T71s', false)
             ->assertSee('https://chat.whatsapp.com/FqbcTOAQUSrBeI1BnZOxOP', false);
 
-        $response->assertSeeInOrder(['ds-article-featured-image', 'data-whatsapp-join', 'ds-article-share']);
+        $response->assertSeeInOrder(['ds-article-featured-image', 'data-whatsapp-join', 'data-push-opt-in', 'ds-article-share']);
     }
 
     public function test_author_box_renders_contact_details_before_tags(): void

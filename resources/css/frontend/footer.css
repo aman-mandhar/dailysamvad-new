@@ -16,7 +16,6 @@
     .ds-footer__social-links a { display: flex; align-items: center; gap: .75rem; color: #747983; }
     .ds-footer__social-icon { display: grid; width: 1.25rem; height: 1.25rem; flex: none; place-items: center; color: #555; font-family: Arial, sans-serif; font-size: .9rem; font-weight: 700; }
     .ds-footer__copyright { border-top: 1px solid #e5e7eb; padding-block: .65rem; color: #20242a; font-size: .9rem; text-align: center; }
-    .ds-footer__push { padding-bottom: 2rem; }
     .ds-push-opt-in { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1.25rem; border: 1px solid #e5e7eb; border-radius: .75rem; background: #f8fafc; padding: 1rem 1.25rem; }
     .ds-push-opt-in[hidden] { display: none; }
     .ds-push-opt-in__title { margin: 0; color: #292d33; font-size: 1.05rem; font-weight: 700; }

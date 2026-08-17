@@ -77,9 +77,6 @@
         </nav>
     </div>
 
-    <div class="ds-container ds-footer__push">
-        <x-frontend.push-notification-opt-in />
-    </div>
 
     <div class="ds-footer__copyright">
         <div class="ds-container">Copyright &copy; {{ now()->year }} {{ $organization['organization_name'] }}. All rights reserved.</div>
