@@ -10,7 +10,6 @@
                     @case('advertisement')<x-advertisement.slot :advertisement="$widget->advertisement" />@break
                     @case('latest-news')<x-news.sidebar.latest-news :widget="$widget" />@break
                     @case('popular-news')<x-news.sidebar.popular-news :widget="$widget" />@break
-                    @case('categories')<x-news.sidebar.category-list :widget="$widget" />@break
                     @case('social-follow')<x-news.sidebar.social-follow :widget="$widget" />@break
                 @endswitch
 
