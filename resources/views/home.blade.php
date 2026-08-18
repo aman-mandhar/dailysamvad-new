@@ -20,7 +20,6 @@
                 @endif
                 <section aria-labelledby="video-news-heading">
                     <!-- display video player here-->
-                    <x-frontend.section-heading id="video-news-heading">Video News</x-frontend.section-heading>
                     <div class="space-y-4">
                         <x-youtube-playlist-player placement="homepage" />
                     </div>

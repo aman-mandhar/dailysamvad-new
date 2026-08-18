@@ -47,5 +47,4 @@
     <div class="ds-header__mobile-ad">
         <x-advertisement.slot :position="\App\Enums\AdvertisementPosition::HeaderTop" :context="$advertisementContext" />
     </div>
-    <x-frontend.advertisements.3in1 />
 </header>
