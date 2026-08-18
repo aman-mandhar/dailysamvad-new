@@ -64,7 +64,7 @@
 
         <nav aria-labelledby="footer-quick-links-heading">
             <h2 id="footer-quick-links-heading" class="ds-footer__heading">Quick Links</h2>
-            <ul class="ds-footer__links">
+            <ul class="ds-footer__links ds-footer__quick-links">
                 <li><a href="{{ route('pages.copyright') }}">Copyright Policy</a></li>
                 <li><a href="{{ route('pages.fact-checking') }}">Fact-Checking Policy</a></li>
                 <li><a href="{{ route('pages.editorial') }}">Editorial Policy</a></li>
@@ -79,6 +79,9 @@
 
 
     <div class="ds-footer__copyright">
-        <div class="ds-container">Copyright &copy; {{ now()->year }} {{ $organization['organization_name'] }}. All rights reserved.</div>
+        <div class="ds-container">
+            <span>Copyright &copy; {{ now()->year }} {{ $organization['organization_name'] }}. All rights reserved.</span>
+            <span class="ds-footer__developer">Developed by <a href="https://parthtechmantra.in" target="_blank" rel="noopener noreferrer">Parth Tech Mantra</a></span>
+        </div>
     </div>
 </footer>

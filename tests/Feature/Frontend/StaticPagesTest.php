@@ -41,7 +41,11 @@ class StaticPagesTest extends TestCase
             ->assertOk()
             ->assertSee(route('pages.copyright'), false)
             ->assertSee(route('pages.privacy'), false)
-            ->assertSee(route('pages.contact'), false);
+            ->assertSee(route('pages.contact'), false)
+            ->assertSee('ds-footer__quick-links', false)
+            ->assertSee('https://parthtechmantra.in', false)
+            ->assertSee('Developed by')
+            ->assertSee('Parth Tech Mantra');
     }
 
     public function test_footer_renders_configured_social_channels_and_accessible_sections(): void
