@@ -83,9 +83,6 @@
         background: transparent;
     }
 
-    .ds-header__mobile-ad {
-        display: none;
-    }
 
     .ds-3in1-advertisement {
         margin-block: 1.5rem;
@@ -517,16 +514,7 @@
 }
 
 @media (max-width: 639px) {
-    .ds-header__mobile-ad {
-        display: block;
-        width: 100%;
-    }
 
-    .ds-header__mobile-ad > .ds-ad-slot {
-        width: 100%;
-        min-height: 0;
-        background: transparent;
-    }
 
     .ds-header__branding {
         min-height: 68px;

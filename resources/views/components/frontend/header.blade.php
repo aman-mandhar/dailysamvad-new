@@ -1,26 +1,5 @@
 @props(['mainMenu' => collect(), 'breakingNews' => collect()])
 
-@php
-    $advertisementContext = ['page_type' => match (true) {
-        request()->routeIs('home') => 'home',
-        request()->routeIs('news.*') => 'article',
-        request()->routeIs('categories.*') => 'category',
-        request()->routeIs('tags.*') => 'tag',
-        request()->routeIs('authors.*') => 'author',
-        request()->routeIs('search') => 'search',
-        request()->routeIs('archives.*') => 'archive',
-        default => null,
-    }];
-@endphp
-
-<div class="ds-header__nonsticky" data-brand="DailySamvad">
-    <div class="ds-header__branding ds-header__advertisement ds-container">
-        <div class="ds-header__right">
-            <x-advertisement.slot :position="\App\Enums\AdvertisementPosition::HeaderTop" :context="$advertisementContext" />
-        </div>
-    </div>
-</div>
-
 <header class="ds-header ds-header__sticky-row" data-header>
     <div class="ds-header__desktop-row ds-container">
             <x-frontend.logo />
@@ -50,6 +29,3 @@
 <x-frontend.mobile-menu :items="$mainMenu" />
 <x-frontend.policy-navigation />
 <x-frontend.header-search />
-<div class="ds-header__mobile-ad">
-        <x-advertisement.slot :position="\App\Enums\AdvertisementPosition::HeaderTop" :context="$advertisementContext" />
-    </div>

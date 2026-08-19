@@ -69,7 +69,7 @@ class AdvertisementManagementTest extends TestCase
         $this->assertSame($high->getKey(), app(AdvertisementResolver::class)->resolve(AdvertisementPosition::FooterTop, ['page_type' => 'footer'], 'desktop')->advertisementId);
     }
 
-    public function test_header_top_advertisement_replaces_the_legacy_static_banner(): void
+    public function test_header_top_advertisement_record_is_retained_but_not_rendered_in_the_header(): void
     {
         $ad = $this->advertisement(['title' => 'Managed header campaign']);
         $ad->placements()->create([
@@ -84,11 +84,12 @@ class AdvertisementManagementTest extends TestCase
             'height' => 90,
         ]);
 
-        $response = $this->get('/')->assertOk()
-            ->assertSee('Managed header creative', false)
-            ->assertDontSee('images/frontend/ads/jd.jpeg', false);
+        $this->get('/')
+            ->assertOk()
+            ->assertDontSee('Managed header creative', false)
+            ->assertDontSee('data-ad-slot="HEADER_TOP"', false);
 
-        $response->assertSeeInOrder(['ds-header__right', 'data-ad-slot="HEADER_TOP"', 'ds-header__desktop']);
+        $this->assertDatabaseHas('advertisements', ['id' => $ad->getKey()]);
     }
 
     public function test_advertisement_schedule_fields_use_the_configured_display_timezone(): void

@@ -85,12 +85,12 @@ class HeaderNavigationTest extends TestCase
             ->assertDontSee('Header media slot');
     }
 
-    public function test_header_renders_three_advertisements_in_one_grid_row(): void
+    public function test_header_does_not_render_advertisement_slots(): void
     {
         $html = $this->get('/')->assertOk()->getContent();
 
-        $this->assertSame(1, substr_count($html, 'ds-3in1-advertisement__grid'));
-        $this->assertSame(3, substr_count($html, 'ds-3in1-advertisement__item'));
+        $this->assertStringNotContainsString('data-ad-slot="HEADER_TOP"', $html);
+        $this->assertStringNotContainsString('ds-header__advertisement', $html);
     }
 
     public function test_only_the_ninety_pixel_logo_and_navigation_row_is_sticky(): void
