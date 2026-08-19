@@ -92,6 +92,18 @@ class AdvertisementManagementTest extends TestCase
         $this->assertDatabaseHas('advertisements', ['id' => $ad->getKey()]);
     }
 
+    public function test_rendered_advertisements_do_not_reserve_empty_vertical_space(): void
+    {
+        $css = file_get_contents(resource_path('css/frontend/sidebar.css'));
+        $slotRule = strstr(strstr($css, '.ds-ad-slot {'), '}', true);
+
+        $this->assertIsString($slotRule);
+        $this->assertStringNotContainsString('min-height:', $slotRule);
+        $this->assertStringContainsString('background: transparent;', $slotRule);
+        $this->assertStringContainsString('.ds-ad-slot--placeholder { aspect-ratio:', $css);
+        $this->assertStringContainsString('background: #f4f4f4;', $css);
+    }
+
     public function test_advertisement_schedule_fields_use_the_configured_display_timezone(): void
     {
         config(['app.display_timezone' => 'Asia/Kolkata']);

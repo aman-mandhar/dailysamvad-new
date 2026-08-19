@@ -42,8 +42,8 @@
         .ds-video-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
 
-    .ds-ad-slot { display: grid; width: min(100%, calc(var(--ds-ad-width) * 1px)); max-width: 100%; min-height: min(calc(var(--ds-ad-height) * 1px), 80vw); margin-inline: auto; place-content: center; overflow: hidden; background: #f4f4f4; color: #777; text-align: center; }
-    .ds-ad-slot--placeholder { aspect-ratio: var(--ds-ad-width) / var(--ds-ad-height); border: 1px dashed #aaa; }
+    .ds-ad-slot { display: grid; width: min(100%, calc(var(--ds-ad-width) * 1px)); max-width: 100%; margin-inline: auto; place-content: center; overflow: hidden; background: transparent; color: #777; text-align: center; }
+    .ds-ad-slot--placeholder { aspect-ratio: var(--ds-ad-width) / var(--ds-ad-height); border: 1px dashed #aaa; background: #f4f4f4; }
     .ds-ad-slot--placeholder span { font-family: Arial, sans-serif; font-size: .72rem; font-weight: 700; letter-spacing: .12em; }
     .ds-ad-slot--placeholder small { margin-top: 3px; font-family: Arial, sans-serif; font-size: .68rem; }
     .ds-ad-slot img { display: block; width: auto; max-width: 100%; height: auto; max-height: calc(var(--ds-ad-height) * 1px); object-fit: contain; }
