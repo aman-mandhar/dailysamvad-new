@@ -93,6 +93,18 @@ class HeaderNavigationTest extends TestCase
         $this->assertSame(3, substr_count($html, 'ds-3in1-advertisement__item'));
     }
 
+    public function test_only_the_ninety_pixel_logo_and_navigation_row_is_sticky(): void
+    {
+        $html = $this->get('/')->assertOk()->getContent();
+        $css = file_get_contents(resource_path('css/frontend/header.css'));
+
+        $this->assertStringContainsString('<header class="ds-header ds-header__sticky-row" data-header>', $html);
+        $this->assertStringContainsString('class="ds-header__desktop-row ds-container"', $html);
+        $this->assertStringContainsString(".ds-header__sticky-row {\n        position: sticky;", $css);
+        $this->assertStringContainsString(".ds-header__desktop-row {\n        display: grid;\n        height: 90px;", $css);
+        $this->assertStringNotContainsString(".ds-header {\n        position: sticky;", $css);
+    }
+
     public function test_policy_navigation_has_a_fixed_height_and_cannot_expand_on_article_pages(): void
     {
         $css = file_get_contents(resource_path('css/frontend/header.css'));
