@@ -278,20 +278,6 @@ class PilotPostImportTest extends TestCase
         $this->assertStringNotContainsString('unknown_status', $output);
     }
 
-    public function test_mojibake_and_long_titles_are_preserved_safely(): void
-    {
-        $valid = "\u{0935}\u{0930}\u{093F}\u{0937}\u{094D}\u{0920} \u{092A}\u{0941}\u{0932}\u{093F}\u{0938}";
-        $once = mb_convert_encoding($valid, 'UTF-8', 'ISO-8859-1');
-        $mojibake = mb_convert_encoding($once, 'UTF-8', 'ISO-8859-1');
-        $this->insertPost(1, title: $mojibake.str_repeat(' headline', 40));
-
-        $this->runImport(['--limit' => 1]);
-
-        $post = Post::query()->where('old_wp_id', 1)->firstOrFail();
-        $this->assertStringStartsWith($valid, $post->title);
-        $this->assertGreaterThan(255, mb_strlen($post->title));
-    }
-
     /** @param array<string, mixed> $options */
     private function runImport(array $options = []): void
     {

@@ -101,11 +101,11 @@ class PostSeoMetadataTest extends TestCase
         $post = Post::factory()->make([
             'meta_description' => null,
             'excerpt' => null,
-            'content' => '<p>Hello <strong>world</strong> &amp; Rzana Punjab.</p> <p> Latest news.</p>',
+            'content' => '<p>Hello <strong>world</strong> &amp; Daily Samvad.</p> <p> Latest news.</p>',
         ]);
 
         $this->assertSame(
-            'Hello world & Rzana Punjab. Latest news.',
+            'Hello world & Daily Samvad. Latest news.',
             $post->effectiveMetaDescription(),
         );
     }

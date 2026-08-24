@@ -64,7 +64,7 @@ class HomeTopNewsTest extends TestCase
     public function test_missing_image_uses_existing_placeholder(): void
     {
         Post::factory()->published()->create(['featured_image' => null]);
-        $this->get('/')->assertSee('aria-label="No image available"', false)->assertSee('Rzana Punjab');
+        $this->get('/')->assertSee('aria-label="No image available"', false)->assertSee('Daily Samvad');
     }
 
     public function test_category_badge_is_rendered_only_when_a_primary_category_exists(): void

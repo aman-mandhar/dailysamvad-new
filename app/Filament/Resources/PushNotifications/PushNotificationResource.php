@@ -104,7 +104,7 @@ class PushNotificationResource extends Resource
                             ? '<img src="'.e($imageUrl).'" alt="Notification preview" class="mt-3 max-h-40 w-full rounded-lg object-cover">'
                             : '';
 
-                        return new HtmlString('<div class="mx-auto max-w-lg rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900"><div class="text-xs font-semibold text-gray-500">Rzana Punjab</div><div class="mt-1 font-bold text-gray-950 dark:text-white">'.$title.'</div><div class="mt-1 text-sm text-gray-700 dark:text-gray-300">'.$body.'</div>'.$image.'<div class="mt-3 truncate text-xs text-gray-500">'.$target.'</div></div>');
+                        return new HtmlString('<div class="mx-auto max-w-lg rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900"><div class="text-xs font-semibold text-gray-500">Daily Samvad</div><div class="mt-1 font-bold text-gray-950 dark:text-white">'.$title.'</div><div class="mt-1 text-sm text-gray-700 dark:text-gray-300">'.$body.'</div>'.$image.'<div class="mt-3 truncate text-xs text-gray-500">'.$target.'</div></div>');
                     }),
                     Text::make(function (Get $get): string {
                         $type = $get('target_type') ?: 'all';

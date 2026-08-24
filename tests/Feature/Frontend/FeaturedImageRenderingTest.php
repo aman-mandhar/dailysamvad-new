@@ -49,7 +49,7 @@ class FeaturedImageRenderingTest extends TestCase
 
         $html = Blade::render('<x-news.image :post="$post" />', compact('post'));
 
-        $this->assertStringContainsString('Rzana Punjab', $html);
+        $this->assertStringContainsString('Daily Samvad', $html);
         $this->assertStringNotContainsString('<img', $html);
     }
 
@@ -83,7 +83,7 @@ class FeaturedImageRenderingTest extends TestCase
 
         $this->assertStringContainsString('/storage/'.$path, $html);
         $this->assertStringContainsString('loading="lazy"', $html);
-        $this->assertStringNotContainsString('Rzana Punjab</div>', $html);
+        $this->assertStringNotContainsString('Daily Samvad</div>', $html);
     }
 
     public function test_homepage_uses_accessor_for_hero_and_card_images(): void

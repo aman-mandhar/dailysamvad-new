@@ -17,7 +17,7 @@ class PostTest extends TestCase
         $author = User::factory()->create();
         $post = Post::factory()->create([
             'author_id' => $author->id,
-            'title' => 'Rzana Punjab launches its Laravel news platform',
+            'title' => 'Daily Samvad launches its Laravel news platform',
             'slug' => 'daily-samvad-launches-laravel-news-platform',
             'language' => 'en',
         ]);
@@ -25,7 +25,7 @@ class PostTest extends TestCase
         $this->assertDatabaseHas('posts', [
             'id' => $post->id,
             'author_id' => $author->id,
-            'title' => 'Rzana Punjab launches its Laravel news platform',
+            'title' => 'Daily Samvad launches its Laravel news platform',
             'slug' => 'daily-samvad-launches-laravel-news-platform',
             'language' => 'en',
         ]);

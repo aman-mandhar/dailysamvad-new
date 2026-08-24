@@ -22,11 +22,11 @@
     <div class="ds-container ds-footer__grid">
         <section aria-labelledby="footer-about-heading">
             <h2 id="footer-about-heading" class="ds-footer__heading">About Us</h2>
-            <a class="ds-footer__logo" href="{{ route('home') }}" aria-label="Rzana Punjab home">
-                <img src="{{ asset('images/frontend/logo.png') }}" alt="Rzana Punjab" width="260" height="75">
+            <a class="ds-footer__logo" href="{{ route('home') }}" aria-label="Daily Samvad home">
+                <img src="{{ asset('images/frontend/daily-samvad-logo.jpg') }}" alt="Daily Samvad" width="260" height="75">
             </a>
             <p class="ds-footer__about">
-                Rzana Punjab — पत्रकारिता में जज़्बा, सिर्फ़ सच। Rzana Punjab is an online news portal dedicated to news that matters to us while celebrating the views and thoughts of a common man.
+                DailySamvad.com — पत्रकारिता में जज़्बा, सिर्फ़ सच। DailySamvad.com is an online news portal dedicated to news that matters to us while celebrating the views and thoughts of a common man.
             </p>
         </section>
 

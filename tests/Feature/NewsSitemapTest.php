@@ -16,7 +16,7 @@ class NewsSitemapTest extends TestCase
     public function test_news_sitemap_applies_rolling_48_hour_boundary_and_news_fields(): void
     {
         CarbonImmutable::setTestNow('2026-07-19 12:00:00');
-        config(['seo.sitemaps.news_cache_ttl' => 0, 'seo.news.publication_name' => 'Rzana Punjab News']);
+        config(['seo.sitemaps.news_cache_ttl' => 0, 'seo.news.publication_name' => 'Daily Samvad News']);
         $author = User::factory()->create();
         $inside = Post::factory()->published()->create(['author_id' => $author->id, 'title' => '<b>ਪੰਜਾਬ & हिंदी</b>', 'language' => 'pa-IN', 'published_at' => now()->subHours(47)->subMinutes(59)]);
         $boundary = Post::factory()->published()->create(['author_id' => $author->id, 'published_at' => now()->subHours(48)]);
@@ -32,7 +32,7 @@ class NewsSitemapTest extends TestCase
         $this->assertContains($inside->publicUrl(), $locations);
         $this->assertContains($boundary->publicUrl(), $locations);
         $this->assertNotContains($outside->publicUrl(), $locations);
-        $this->assertSame('Rzana Punjab News', $document->getElementsByTagNameNS('http://www.google.com/schemas/sitemap-news/0.9', 'name')->item(0)->textContent);
+        $this->assertSame('Daily Samvad News', $document->getElementsByTagNameNS('http://www.google.com/schemas/sitemap-news/0.9', 'name')->item(0)->textContent);
         $this->assertSame('pa', $document->getElementsByTagNameNS('http://www.google.com/schemas/sitemap-news/0.9', 'language')->item(0)->textContent);
         $this->assertSame('ਪੰਜਾਬ & हिंदी', $document->getElementsByTagNameNS('http://www.google.com/schemas/sitemap-news/0.9', 'title')->item(0)->textContent);
         $this->assertNotFalse(date_create($document->getElementsByTagNameNS('http://www.google.com/schemas/sitemap-news/0.9', 'publication_date')->item(0)->textContent));

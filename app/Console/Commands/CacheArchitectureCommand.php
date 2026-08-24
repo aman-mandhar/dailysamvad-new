@@ -10,7 +10,7 @@ use Throwable;
 class CacheArchitectureCommand extends Command
 {
     protected $signature = 'cache:architecture {operation : inspect|invalidate|warm} {key?}';
-    protected $description = 'Inspect, target-invalidate, or safely warm Rzana Punjab cache families.';
+    protected $description = 'Inspect, target-invalidate, or safely warm Daily Samvad cache families.';
 
     public function handle(): int
     {

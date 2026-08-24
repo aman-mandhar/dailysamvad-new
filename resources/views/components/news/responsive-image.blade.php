@@ -34,6 +34,6 @@
     @if ($sources)</picture>@endif
 @elseif ($fallback)
     <div {{ $attributes->class(['flex items-center justify-center bg-slate-200 text-sm font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-400', $class]) }} role="img" aria-label="No image available">
-        Rzana Punjab
+        Daily Samvad
     </div>
 @endif

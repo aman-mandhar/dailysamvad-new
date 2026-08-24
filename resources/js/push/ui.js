@@ -12,7 +12,7 @@ const UI_STATUS = Object.freeze({
 });
 
 const MESSAGE_BY_STATUS = {
-    [UI_STATUS.DEFAULT]: 'Rzana Punjab ki important khabrein turant paayen.',
+    [UI_STATUS.DEFAULT]: 'Daily Samvad ki important khabrein turant paayen.',
     [UI_STATUS.SUBSCRIBED]: 'News notifications enabled.',
     [UI_STATUS.DISABLED]: 'News notifications are disabled for this browser.',
     [UI_STATUS.DENIED]: 'Notifications browser settings mein blocked hain.',

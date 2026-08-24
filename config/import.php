@@ -19,7 +19,7 @@ return [
     ],
     'media' => [
         'source_disk' => env('WORDPRESS_UPLOADS_DISK'),
-        'source_path' => env('WORDPRESS_UPLOADS_PATH', storage_path('app/public/uploads')),
+        'source_path' => env('WORDPRESS_UPLOADS_PATH'),
         'destination_disk' => env('IMPORT_MEDIA_DISK', env('MEDIA_DISK', 'public')),
         'destination_path' => env('IMPORT_MEDIA_PATH', 'wordpress/uploads'),
         'supported_mime_types' => [

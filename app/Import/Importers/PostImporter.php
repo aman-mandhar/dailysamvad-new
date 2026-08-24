@@ -12,7 +12,6 @@ use App\Import\DTOs\ImportResult;
 use App\Import\DTOs\PostImportVerification;
 use App\Import\Services\WordPressConnection;
 use App\Import\Support\ImportMode;
-use App\Import\Support\MojibakeRepair;
 use App\Import\Support\StatisticsCounter;
 use App\Models\Category;
 use App\Models\Media;
@@ -35,7 +34,6 @@ class PostImporter implements Importer
         private readonly CheckpointRepository $checkpoints,
         private readonly Logger $logger,
         private readonly DatabaseManager $database,
-        private readonly MojibakeRepair $text,
     ) {
         $this->verification = new PostImportVerification;
     }
@@ -195,8 +193,7 @@ class PostImporter implements Importer
             $this->verification->missingAuthor++;
         }
 
-        $meta = $metadata->pluck('meta_value', 'meta_key')
-            ->map(fn ($value) => $this->text->repair($value === null ? null : (string) $value));
+        $meta = $metadata->pluck('meta_value', 'meta_key');
         $slug = $this->safeSlug((string) $record->post_name, $oldId, $post);
         $publishedAt = $status === PostStatus::Published ? $this->date($record->post_date_gmt ?: $record->post_date) : null;
         $scheduledAt = $status === PostStatus::Scheduled ? $this->date($record->post_date_gmt ?: $record->post_date) : null;
@@ -205,10 +202,10 @@ class PostImporter implements Importer
         $attributes = [
             'old_wp_id' => $oldId,
             'author_id' => $author?->getKey(),
-            'title' => $this->text->repair((string) $record->post_title),
+            'title' => (string) $record->post_title,
             'slug' => $slug,
-            'excerpt' => $this->nullable($this->text->repair($record->post_excerpt)),
-            'content' => $this->text->repair((string) $record->post_content),
+            'excerpt' => $this->nullable($record->post_excerpt),
+            'content' => (string) $record->post_content,
             'status' => $status,
             'language' => $this->language($meta, $terms),
             'published_at' => $publishedAt,
@@ -218,7 +215,7 @@ class PostImporter implements Importer
             'focus_keyword' => $seo['focus_keyword'],
             'canonical_url' => $seo['canonical_url'],
             'old_url' => $this->historicalUrl($record),
-            'source_url' => $this->nullable($this->text->repair($record->guid)),
+            'source_url' => $this->nullable($record->guid),
             'source_name' => 'WordPress',
             'source_data' => [
                 'wordpress_id' => $oldId,

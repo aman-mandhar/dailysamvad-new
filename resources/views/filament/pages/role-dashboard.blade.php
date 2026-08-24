@@ -3,7 +3,7 @@
         <x-filament::section>
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <p class="text-xs font-semibold uppercase tracking-[0.16em] text-primary-600 dark:text-primary-400">Rzana Punjab · Workspace</p>
+                    <p class="text-xs font-semibold uppercase tracking-[0.16em] text-primary-600 dark:text-primary-400">Daily Samvad · Workspace</p>
                     <h1 id="dashboard-heading" class="mt-1 text-2xl font-bold tracking-tight text-gray-950 dark:text-white sm:text-3xl">{{ $heading }}</h1>
                     <p class="mt-2 max-w-2xl text-sm leading-6 text-gray-600 dark:text-gray-300">{{ $description }}</p>
                 </div>

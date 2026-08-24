@@ -1,7 +1,7 @@
 <section class="ds-push-opt-in" data-push-opt-in hidden aria-labelledby="push-opt-in-heading">
     <div>
         <h2 id="push-opt-in-heading" class="ds-push-opt-in__title">Latest News Alerts</h2>
-        <p class="ds-push-opt-in__message" data-push-message aria-live="polite">Rzana Punjab ki important khabrein turant paayen.</p>
+        <p class="ds-push-opt-in__message" data-push-message aria-live="polite">Daily Samvad ki important khabrein turant paayen.</p>
     </div>
     <button class="ds-push-opt-in__button" type="button" data-push-enable>
         Enable Notifications

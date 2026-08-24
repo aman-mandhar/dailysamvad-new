@@ -1,7 +1,7 @@
 @extends('layouts.frontend')
 
-@section('title', 'Frontend Foundation Preview - Rzana Punjab')
-@section('meta_description', 'Local development preview of Rzana Punjab frontend design primitives.')
+@section('title', 'Frontend Foundation Preview - Daily Samvad')
+@section('meta_description', 'Local development preview of Daily Samvad frontend design primitives.')
 @section('robots', 'noindex, nofollow')
 
 @section('content')
@@ -9,7 +9,7 @@
         <header class="ds-section ds-stack">
             <span class="ds-badge">Development preview</span>
             <div>
-                <h1 class="text-4xl font-extrabold">Rzana Punjab frontend foundation</h1>
+                <h1 class="text-4xl font-extrabold">Daily Samvad frontend foundation</h1>
                 <p class="mt-2 text-[var(--ds-color-muted)]">
                     यह पृष्ठ सार्वजनिक थीम की typography, layout और reusable primitives की जाँच के लिए है।
                 </p>
@@ -24,7 +24,7 @@
             <div class="ds-stack">
                 <h3 class="text-3xl">हिंदी समाचार शीर्षक और English headline</h3>
                 <p>
-                    Rzana Punjab का मुख्य पाठ Anek Devanagari में पढ़ने योग्य, घना और समाचार-केंद्रित रहेगा।
+                    Daily Samvad का मुख्य पाठ Anek Devanagari में पढ़ने योग्य, घना और समाचार-केंद्रित रहेगा।
                     LongWordsAndUnbrokenReferencesWrapSafelyWithoutCausingHorizontalPageOverflow.
                 </p>
                 <div class="ds-meta">
@@ -54,7 +54,7 @@
                             समाचार कार्ड का शीर्षक दो पंक्तियों तक स्पष्ट और सुरक्षित रूप से दिखाई देता है
                         </h3>
                         <div class="ds-card__meta">
-                            <span>Rzana Punjab</span>
+                            <span>Daily Samvad</span>
                             <time datetime="2026-07-18">July 18, 2026</time>
                         </div>
                     </div>
