@@ -7,7 +7,7 @@
             <div class="ds-video-grid__item">
                 <iframe
                     src="{{ $videoEmbedUrl($videoId) }}"
-                    title="Daily Samvad video news {{ $loop->iteration }}"
+                    title="Rzana Punjab video news {{ $loop->iteration }}"
                     allow="encrypted-media; picture-in-picture"
                     allowfullscreen
                     loading="lazy"
@@ -30,7 +30,7 @@
         <iframe
             id="{{ $playerId }}"
             src="{{ $embedUrl() }}"
-            title="Daily Samvad video news playlist"
+            title="Rzana Punjab video news playlist"
             allow="autoplay; encrypted-media; picture-in-picture"
             allowfullscreen
             loading="eager"

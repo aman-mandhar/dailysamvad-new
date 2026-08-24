@@ -15,7 +15,7 @@ class LayoutEngineTest extends TestCase
             ->assertSee('aria-label="Main navigation"', false)
             ->assertSee('<main id="main-content"', false)
             ->assertSee('<footer', false)
-            ->assertSee('DailySamvad');
+            ->assertSee('Rzana Punjab');
     }
 
     public function test_frontend_layout_renders_configured_audience_measurement_scripts(): void

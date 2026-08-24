@@ -29,7 +29,7 @@
                     <section class="ds-home-sections-shell" data-home-category-sections aria-labelledby="more-stories-heading">
                         <header class="ds-home-sections-shell__header">
                             <div>
-                                <p class="ds-home-sections-shell__eyebrow">Explore Daily Samvad</p>
+                                <p class="ds-home-sections-shell__eyebrow">Explore Rzana Punjab</p>
                                 <h2 id="more-stories-heading">More Stories</h2>
                             </div>
                             <p>Latest reporting, organised by topic.</p>

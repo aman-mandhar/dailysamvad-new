@@ -81,6 +81,24 @@ class WordPressMediaImportTest extends TestCase
         ]);
     }
 
+    public function test_long_multilingual_alt_text_and_caption_are_preserved(): void
+    {
+        $post = Post::factory()->create(['old_wp_id' => 10, 'featured_image' => null]);
+        $altText = str_repeat('ਸਿੱਖਿਆ ਬੋਰਡ ਸਰਟੀਫਿਕੇਟ ਆਨਲਾਈਨ ', 20);
+        $caption = str_repeat('ਵਿਦੇਸ਼ ਪੜ੍ਹਨ ਵਾਲਿਆਂ ਲਈ ਜਾਣਕਾਰੀ ', 20);
+
+        $this->insertAttachment(100, '2024/09/long-metadata.png', caption: $caption);
+        $this->meta(10, '_thumbnail_id', '100');
+        $this->meta(100, '_wp_attachment_image_alt', $altText);
+        Storage::disk('wordpress-source')->put('2024/09/long-metadata.png', $this->png());
+
+        $this->runImport();
+
+        $post->refresh();
+        $this->assertSame($altText, $post->featured_image_alt);
+        $this->assertSame($caption, $post->featured_image_caption);
+    }
+
     public function test_latest_post_batch_imports_only_its_featured_attachment(): void
     {
         Post::factory()->create(['old_wp_id' => 10]);
@@ -184,11 +202,11 @@ class WordPressMediaImportTest extends TestCase
         $this->assertSame(0, Artisan::call('import:wordpress', ['--only' => ['media'], ...$options]));
     }
 
-    private function insertAttachment(int $id, string $path, string $mimeType = 'image/png'): void
+    private function insertAttachment(int $id, string $path, string $mimeType = 'image/png', string $caption = 'Imported caption'): void
     {
         $this->wordpress->table('wp_posts')->insert([
             'ID' => $id, 'post_type' => 'attachment', 'post_mime_type' => $mimeType,
-            'post_excerpt' => 'Imported caption',
+            'post_excerpt' => $caption,
         ]);
         $this->meta($id, '_wp_attached_file', $path);
     }

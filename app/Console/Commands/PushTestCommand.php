@@ -15,7 +15,7 @@ class PushTestCommand extends Command
 {
     protected $signature = 'push:test
         {--subscription= : Explicit push subscription database ID}
-        {--title=Daily Samvad Push Test : Notification title}
+        {--title=Rzana Punjab Push Test : Notification title}
         {--body=Push notification engine is working. : Notification body}
         {--url= : Optional absolute click URL}
         {--image= : Optional absolute image URL}

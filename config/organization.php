@@ -7,8 +7,8 @@ $configured = static function (string $key, string $fallback): string {
 };
 
 return [
-    'organization_name' => env('ORGANIZATION_NAME', 'Daily Samvad'),
-    'website_name' => env('WEBSITE_NAME', 'Daily Samvad'),
+    'organization_name' => env('ORGANIZATION_NAME', 'Rzana Punjab'),
+    'website_name' => env('WEBSITE_NAME', 'Rzana Punjab'),
     'address' => $configured('ORGANIZATION_ADDRESS', '92A, Rajiv Gandhi Vihar, Surya Enclave, Jalandhar (Punjab) - 144001'),
     'phone' => $configured('ORGANIZATION_PHONE', '+91 9888190945'),
     'email' => $configured('ORGANIZATION_EMAIL', 'mmmmediahouse@gmail.com'),

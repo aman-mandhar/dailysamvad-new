@@ -10,7 +10,7 @@ class FoundationPreviewTest extends TestCase
     {
         $html = view('frontend.foundation-preview')->render();
 
-        $this->assertStringContainsString('Daily Samvad frontend foundation', $html);
+        $this->assertStringContainsString('Rzana Punjab frontend foundation', $html);
         $this->assertStringContainsString('ds-main-grid', $html);
     }
 

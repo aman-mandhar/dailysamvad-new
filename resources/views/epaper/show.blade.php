@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
-        <title>{{ $epaper->post->title }} | Daily Samvad ePaper</title>
+        <title>{{ $epaper->post->title }} | Rzana Punjab ePaper</title>
         <meta name="robots" content="noindex, follow">
         <link rel="canonical" href="{{ $epaper->canonicalUrl }}">
         @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -31,7 +31,7 @@
 
             <article class="ds-epaper-sheet" data-epaper-sheet data-epaper-filename="{{ $epaper->post->slug }}">
                 <header class="ds-epaper-masthead">
-                    <img src="{{ asset('images/frontend/daily-samvad-logo.jpg') }}" alt="Daily Samvad ePaper" width="593" height="147">
+                    <img src="{{ asset('images/frontend/logo.png') }}" alt="Rzana Punjab ePaper" width="593" height="147">
                     <div class="ds-epaper-masthead__rule"></div>
                     <p>{{ $epaper->post->published_at?->timezone(config('app.display_timezone', 'Asia/Kolkata'))->translatedFormat('l, d F Y') }}</p>
                 </header>

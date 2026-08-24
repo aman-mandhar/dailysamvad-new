@@ -21,7 +21,7 @@
             <ul class="mt-3 flex flex-wrap gap-3">
                 @foreach ($socialLinks as $network => $url)
                     <li>
-                        <a href="{{ $url }}" target="_blank" rel="noopener noreferrer" class="text-amber-700 hover:underline dark:text-amber-400" aria-label="Daily Samvad on {{ ucfirst($network) }}">
+                        <a href="{{ $url }}" target="_blank" rel="noopener noreferrer" class="text-amber-700 hover:underline dark:text-amber-400" aria-label="Rzana Punjab on {{ ucfirst($network) }}">
                             {{ ucfirst($network) }}
                         </a>
                     </li>

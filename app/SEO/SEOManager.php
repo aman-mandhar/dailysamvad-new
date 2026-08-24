@@ -150,15 +150,15 @@ class SEOManager
             $canonical .= '?page='.$page;
         }
 
-        $title = 'Daily Samvad - Latest Hindi, Punjabi and English News';
-        $description = 'Read the latest breaking, featured and regional news from Daily Samvad in Hindi, Punjabi and English.';
+        $title = 'Rzana Punjab - Latest Hindi, Punjabi and English News';
+        $description = 'Read the latest breaking, featured and regional news from Rzana Punjab in Hindi, Punjabi and English.';
         $image = $this->images->configuredDefault($this->siteName());
         $openGraph = $this->websiteGraph($title, $description, $canonical, $image);
 
         return new SEOData(
             title: $title,
             description: $description,
-            keywords: $this->keywords(['Daily Samvad', 'latest news', 'Hindi news', 'Punjabi news', 'English news']),
+            keywords: $this->keywords(['Rzana Punjab', 'latest news', 'Hindi news', 'Punjabi news', 'English news']),
             author: $this->siteName(),
             robots: 'index, follow',
             canonical: $canonical,
@@ -315,6 +315,6 @@ class SEOManager
 
     private function siteName(): string
     {
-        return (string) config('organization.website_name', 'Daily Samvad');
+        return (string) config('organization.website_name', 'Rzana Punjab');
     }
 }
