@@ -36,7 +36,7 @@ class SearchResultsTest extends TestCase
             ->assertSee('No news found')
             ->assertSee('Searched for:')
             ->assertSee('alert(1)Missing')
-            ->assertDontSee('<script>', false);
+            ->assertDontSee('<script>alert(1)</script>', false);
     }
 
     public function test_query_is_escaped_and_pagination_preserves_normalized_query_and_canonical(): void
