@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use App\Data\AdvertisementData;
+use App\Filament\RichContent\YouTubeBlock;
 use App\Services\ArticleContentComposer;
 use App\Support\TrustedArticleHtml;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -70,8 +71,35 @@ class ArticleContentComposerTest extends TestCase
         $rendered = $this->composer()->compose($youtube.$xPost)->map(fn ($block) => (string) $block->html)->implode('');
 
         $this->assertStringContainsString('youtube-nocookie.com/embed/dQw4w9WgXcQ', $rendered);
+        $this->assertStringContainsString('referrerpolicy="strict-origin-when-cross-origin"', $rendered);
         $this->assertStringContainsString('platform.twitter.com/embed/Tweet.html?id=1234567890', $rendered);
         $this->assertStringNotContainsString('<script', $rendered);
+    }
+
+    public function test_youtube_editor_preview_sends_the_embedding_origin(): void
+    {
+        $html = YouTubeBlock::toPreviewHtml(['url' => 'https://www.youtube.com/watch?v=Rs9dqPKKsh0']);
+
+        $this->assertStringContainsString('src="https://www.youtube-nocookie.com/embed/Rs9dqPKKsh0"', $html);
+        $this->assertStringContainsString('referrerpolicy="strict-origin-when-cross-origin"', $html);
+    }
+
+    public function test_existing_youtube_iframes_receive_a_safe_referrer_policy(): void
+    {
+        foreach (['www.youtube.com', 'www.youtube-nocookie.com'] as $host) {
+            foreach (['', ' referrerpolicy="no-referrer"', ' referrerpolicy="unsafe-url"'] as $policy) {
+                $html = '<iframe src="https://'.$host.'/embed/Rs9dqPKKsh0"'.$policy.'></iframe>';
+                $rendered = $this->composer()->compose($html)->map(fn ($block) => (string) $block->html)->implode('');
+
+                $this->assertStringContainsString('referrerpolicy="strict-origin-when-cross-origin"', $rendered);
+                $this->assertStringNotContainsString('referrerpolicy="no-referrer"', $rendered);
+                $this->assertStringNotContainsString('referrerpolicy="unsafe-url"', $rendered);
+            }
+        }
+
+        $this->assertSame('', (string) (new TrustedArticleHtml)->sanitize(
+            '<iframe src="https://evil.example/embed/Rs9dqPKKsh0" referrerpolicy="unsafe-url"></iframe>',
+        ));
     }
 
     public function test_editor_alignment_and_color_styles_are_safely_preserved(): void

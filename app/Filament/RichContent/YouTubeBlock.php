@@ -50,6 +50,6 @@ class YouTubeBlock extends RichContentCustomBlock
             return null;
         }
 
-        return '<figure class="ds-article-embed ds-article-embed--video"><iframe src="https://www.youtube-nocookie.com/embed/'.e($id).'" title="'.e($config['title'] ?? 'YouTube video').'" loading="lazy" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></figure>';
+        return '<figure class="ds-article-embed ds-article-embed--video"><iframe src="https://www.youtube-nocookie.com/embed/'.e($id).'" title="'.e($config['title'] ?? 'YouTube video').'" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></figure>';
     }
 }

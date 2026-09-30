@@ -143,6 +143,13 @@ class TrustedArticleHtml
             }
 
             $node->setAttribute('loading', 'lazy');
+            $host = strtolower((string) parse_url($node->getAttribute('src'), PHP_URL_HOST));
+            if (collect(['youtube.com', 'youtube-nocookie.com', 'youtu.be'])
+                ->contains(fn (string $domain): bool => $host === $domain || str_ends_with($host, '.'.$domain))) {
+                // YouTube requires a Referer to identify the embedding site (error 153).
+                $node->setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+            }
+
             if (blank($node->getAttribute('title'))) {
                 $node->setAttribute('title', 'Embedded media');
             }
