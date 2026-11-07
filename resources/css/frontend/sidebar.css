@@ -25,6 +25,8 @@
     .ds-sidebar-social__link > span { display: grid; width: 26px; height: 26px; flex: none; place-items: center; background: #222; color: #fff; font-size: .72rem; }
     .ds-sidebar-mgid { min-width: 0; width: 100%; overflow: hidden; }
     .ds-sidebar-mgid > [data-type="_mgwidget"] { width: 100%; }
+    .ds-sidebar-static-ad { min-width: 0; width: 100%; overflow: hidden; }
+    .ds-sidebar-static-ad img { display: block; width: 100%; height: auto; }
 
     .ds-video-player { overflow: hidden; }
     .ds-video-player__frame { position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; background: #111; }

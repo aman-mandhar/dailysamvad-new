@@ -36,6 +36,20 @@ class UserImporter extends AbstractWordPressImporter
 
         $byWordPressId = User::query()->where('old_wp_id', $record->source_id)->first();
         if ($byWordPressId) {
+            $byWordPressId->fill([
+                'name' => trim((string) $record->display_name) ?: $username,
+            ]);
+
+            if ($byWordPressId->isDirty()) {
+                if (! $dryRun) {
+                    $byWordPressId->save();
+                }
+
+                $counter->updated++;
+
+                return;
+            }
+
             $counter->skipped++;
 
             return;

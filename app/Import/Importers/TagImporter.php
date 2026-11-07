@@ -36,7 +36,23 @@ class TagImporter extends AbstractWordPressImporter implements TaxonomyImporter
             return;
         }
 
-        if ($model::query()->where('old_wp_id', $record->source_id)->exists()) {
+        $byWordPressId = $model::query()->where('old_wp_id', $record->source_id)->first();
+        if ($byWordPressId) {
+            $byWordPressId->fill([
+                'name' => $record->name,
+                'description' => $record->description ?: null,
+            ]);
+
+            if ($byWordPressId->isDirty()) {
+                if (! $dryRun) {
+                    $byWordPressId->save();
+                }
+
+                $counter->updated++;
+
+                return;
+            }
+
             $counter->skipped++;
 
             return;

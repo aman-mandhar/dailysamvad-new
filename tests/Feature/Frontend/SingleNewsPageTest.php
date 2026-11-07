@@ -203,6 +203,20 @@ class SingleNewsPageTest extends TestCase
             ->assertSeeInOrder(['data-sidebar-context="article"', 'data-widget-id="1664561"']);
     }
 
+    public function test_article_sidebar_ends_with_the_dips_jalandhar_advertisement(): void
+    {
+        $post = Post::factory()->published()->create();
+
+        $response = $this->get($post->publicUrl())->assertOk();
+        $html = $response->getContent();
+
+        $this->assertSame(1, substr_count($html, 'data-sidebar-article-end-ad'));
+        $response
+            ->assertSee('images/frontend/ads/5-Dips-Jalandhar-AD.jpg', false)
+            ->assertSee('alt="DIPS Jalandhar advertisement"', false)
+            ->assertSeeInOrder(['data-mgid-sidebar', 'data-sidebar-article-end-ad']);
+    }
+
     public function test_whatsapp_join_links_render_immediately_below_the_featured_image(): void
     {
         $post = Post::factory()->published()->create();

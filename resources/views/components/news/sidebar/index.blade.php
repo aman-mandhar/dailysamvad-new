@@ -25,6 +25,19 @@
             @if (in_array($context, ['homepage', 'article'], true) && config('services.mgid.sidebar_widget_id'))
                 <x-news.sidebar.mgid-widget :widget-id="config('services.mgid.sidebar_widget_id')" />
             @endif
+
+            @if ($context === 'article')
+                <aside class="ds-sidebar-static-ad" data-sidebar-article-end-ad aria-label="DIPS Jalandhar advertisement">
+                    <img
+                        src="{{ asset('images/frontend/ads/5-Dips-Jalandhar-AD.jpg') }}"
+                        alt="DIPS Jalandhar advertisement"
+                        width="450"
+                        height="458"
+                        loading="lazy"
+                        decoding="async"
+                    >
+                </aside>
+            @endif
         </div>
     </aside>
 @endif

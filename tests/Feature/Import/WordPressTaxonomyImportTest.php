@@ -108,6 +108,42 @@ class WordPressTaxonomyImportTest extends TestCase
         $this->assertDatabaseHas('categories', ['slug' => 'politics', 'old_wp_id' => 10]);
     }
 
+    public function test_existing_imported_category_text_is_refreshed_without_replacing_its_slug(): void
+    {
+        $category = Category::factory()->create([
+            'old_wp_id' => 10,
+            'name' => 'Corrupted text',
+            'slug' => 'editorial-politics',
+            'description' => 'Corrupted description',
+        ]);
+        $this->insertTerm(10, 'राजनीति', 'wordpress-politics', 'category');
+
+        $this->runImport(['--only' => ['categories']]);
+
+        $category->refresh();
+        $this->assertSame('राजनीति', $category->name);
+        $this->assertSame('राजनीति description', $category->description);
+        $this->assertSame('editorial-politics', $category->slug);
+    }
+
+    public function test_existing_imported_user_display_name_is_refreshed_safely(): void
+    {
+        $user = User::factory()->create([
+            'old_wp_id' => 10,
+            'name' => 'Corrupted text',
+            'username' => 'local-editor',
+            'email' => 'local@example.com',
+        ]);
+        $this->insertUser(10, 'wp-editor', 'wp@example.com', 'सम्पादक');
+
+        $this->runImport(['--only' => ['users']]);
+
+        $user->refresh();
+        $this->assertSame('सम्पादक', $user->name);
+        $this->assertSame('local-editor', $user->username);
+        $this->assertSame('local@example.com', $user->email);
+    }
+
     public function test_category_hierarchy_is_linked_in_second_pass(): void
     {
         $this->insertTerm(20, 'Child', 'child', 'category', 10);
@@ -199,11 +235,11 @@ class WordPressTaxonomyImportTest extends TestCase
         $this->assertSame(0, Artisan::call('import:wordpress', $options));
     }
 
-    private function insertUser(int $id, string $login, string $email): void
+    private function insertUser(int $id, string $login, string $email, ?string $displayName = null): void
     {
         $this->wordpress->table('wp_users')->insert([
             'ID' => $id, 'user_login' => $login, 'user_email' => $email,
-            'user_nicename' => $login, 'display_name' => ucfirst($login),
+            'user_nicename' => $login, 'display_name' => $displayName ?? ucfirst($login),
             'user_registered' => '2020-01-01 12:00:00',
         ]);
     }

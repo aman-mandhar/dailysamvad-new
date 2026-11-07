@@ -1,5 +1,5 @@
 @php
-    $img1 = $img1 ?? asset('images\frontend\ads\5-Dips-Jalandhar-AD.jpg');
+    $img1 = $img1 ?? asset('images\frontend\ads\mcj-dwl.png');
     $img2 = $img2 ?? asset('images/frontend/ads/dr-caremax-1.jpg');
     $img3 = $img3 ?? asset('images/frontend/ads/ih401.jpg');
 @endphp
@@ -10,7 +10,7 @@
     <div class="ds-3in1-advertisement__grid">
         <div class="ds-3in1-advertisement__item">
             <a href="{{ $url3 ?? '#' }}" target="_blank" rel="noopener noreferrer">
-                <img src="{{ $img3 }}" alt="Advertisement 3" class="ds-3in1-advertisement__image">
+                <img src="{{ $img1 }}" alt="Advertisement 3" class="ds-3in1-advertisement__image">
             </a>
         </div>
         
@@ -21,7 +21,7 @@
         </div>
         <div class="ds-3in1-advertisement__item">
             <a href="{{ $url1 ?? '#' }}" target="_blank" rel="noopener noreferrer">
-                <img src="{{ $img1 }}" alt="Advertisement 1" class="ds-3in1-advertisement__image">
+                <img src="{{ $img3 }}" alt="Advertisement 1" class="ds-3in1-advertisement__image">
             </a>
         </div>
     </div>
